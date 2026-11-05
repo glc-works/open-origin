@@ -1,27 +1,27 @@
 ---
-title: Java Preanger, tempat semuanya dimulai
+title: Java Preanger, where it all began
 kind: origin
 crop: coffee
 country: ID
-region: Pegunungan Priangan, Jawa Barat
-producer: Petani kopi Priangan
+region: Priangan highlands, West Java
+producer: Coffee farmers of Priangan
 species: arabica
 altitude_masl: [1200, 1600]
 varieties: [Sigarar Utang, Lini S, Typica]
 process: [washed, natural, honey]
-harvest: Mei–Sep
-tasting_notes: [jeruk, gula merah, teh hitam]
-summary: Bibit dari Malabar tiba pada 1699 dan menjadikan "java" sebutan untuk kopi, dengan sejarah tanam paksa di baliknya.
+harvest: May–Sep
+tasting_notes: [citrus, brown sugar, black tea]
+summary: Seedlings from Malabar arrived in 1699 and made "java" a word for coffee, with a history of forced cultivation behind it.
 coords: [-7.18, 107.57]
-language: id
+language: en
 told_by: editor
 contributor: open-origin
 consent: true
 sources: []
 ---
 
-Di sinilah kisah kopi Indonesia dimulai. VOC membawa bibit kopi dari Malabar, India, ke Batavia pada 1696. Banjir menghanyutkan kiriman pertama, tetapi kiriman kedua pada 1699 bertahan dan menyebar ke dataran tinggi Priangan.
+This is where the story of Indonesian coffee begins. The Dutch East India Company (VOC) brought coffee seedlings from Malabar in India to Batavia in 1696. A flood washed away the first shipment, but a second one in 1699 survived and spread to the Priangan highlands.
 
-Kopi Jawa kemudian begitu terkenal di Eropa sampai kata "java" dipakai sebagai sebutan untuk kopi itu sendiri. Di balik ketenaran itu ada kisah pahit: lewat Preangerstelsel dan kemudian tanam paksa, rakyat Priangan diwajibkan menanam dan menyerahkan kopi kepada penguasa kolonial.
+Java coffee became so famous in Europe that "java" turned into a word for coffee itself. Behind that fame is a bitter history: under the Preanger system and later the Cultivation System, the people of Priangan were forced to grow coffee and hand it over to the colonial government.
 
-Setelah lama tertidur, Priangan bangkit kembali pada 2010-an. Kebun-kebun di Gunung Puntang, Malabar, dan Manglayang kini memenangkan kompetisi dengan kopi yang bersih, cerah, dan manis seperti gula merah.
+After a long sleep, Priangan woke up again in the 2010s. Farms on Mount Puntang, Malabar and Manglayang now win competitions with coffee that is clean, bright and sweet like brown sugar.

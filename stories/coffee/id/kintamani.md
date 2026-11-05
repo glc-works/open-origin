@@ -1,27 +1,27 @@
 ---
-title: Kintamani, kopi yang dijaga subak
+title: Kintamani, coffee guarded by the subak
 kind: origin
 crop: coffee
 country: ID
-region: Kabupaten Bangli, Bali
-producer: Petani Subak Abian Kintamani
+region: Bangli Regency, Bali
+producer: Subak Abian farmers of Kintamani
 species: arabica
 altitude_masl: [1000, 1600]
 varieties: [Kopyol, S795, USDA]
 process: [washed, honey, natural]
-harvest: Mei–Okt
-tasting_notes: [jeruk, lemon, gula batu]
-summary: Ditanam berselang dengan pohon jeruk di bawah aturan adat Tri Hita Karana, kopi Indikasi Geografis pertama Indonesia.
+harvest: May–Oct
+tasting_notes: [orange, lemon, rock sugar]
+summary: Grown among citrus trees under the customary rules of Tri Hita Karana, and Indonesia's first coffee with a Geographical Indication.
 coords: [-8.25, 115.33]
-language: id
+language: en
 told_by: editor
 contributor: open-origin
 consent: true
 sources: []
 ---
 
-Di bawah bayang-bayang Gunung Batur, petani Kintamani mengelola kebun lewat Subak Abian, organisasi adat yang mengatur pertanian lahan kering dengan falsafah Tri Hita Karana: keselarasan dengan Tuhan, sesama manusia, dan alam.
+In the shadow of Mount Batur, Kintamani farmers manage their gardens through the Subak Abian, a customary organisation for dryland farming guided by the philosophy of Tri Hita Karana: harmony with God, with other people, and with nature.
 
-Aturan subak melarang pupuk kimia dan mewajibkan petik merah. Kopi ditanam berselang dengan pohon jeruk, sayur, dan tanaman lain. Banyak penikmat percaya inilah sebab Kintamani punya keasaman seperti jeruk yang segar.
+Subak rules forbid chemical fertiliser and require picking only ripe red cherries. Coffee grows among citrus trees, vegetables and other crops. Many drinkers believe this is why Kintamani has its fresh, citrus-like acidity.
 
-Pada 2008, Kopi Arabika Kintamani Bali menjadi produk pertama Indonesia yang terdaftar sebagai Indikasi Geografis. Ia membuka jalan bagi puluhan kopi daerah lain sesudahnya.
+In 2008, Kintamani Bali Arabica became the first Indonesian product registered as a Geographical Indication. It opened the way for dozens of other regional coffees.

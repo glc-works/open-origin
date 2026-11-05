@@ -64,7 +64,9 @@ Quality changes with each harvest, shipment or production run, so it is stored p
 | Honey | nectar source, moisture, HMF, diastase |
 | Sugar | form, moisture, colour, sucrose |
 
-### 4.4 Translations
+### 4.4 Languages and translations
+
+English is the main language of the site, links and editorial content. Contributors may write in any language; an English translation is encouraged so every story can be read by everyone.
 
 A translation is a file next to its story: `<slug>.<lang>.md` (en, zh, ar, ja, id, ...). Anyone can contribute one. Right-to-left languages are displayed correctly.
 
