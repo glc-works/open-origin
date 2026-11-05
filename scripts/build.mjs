@@ -12,7 +12,7 @@ const STAGE_LABEL = { farm: "On the farm", harvest: "Harvest", process: "Process
 const pretty = (x) => { const t = String(x).replace(/-/g, " "); return t[0].toUpperCase() + t.slice(1); };
 const tagFor = (s) => (s.kind === "movement"
   ? `<span class="species movement">Movement</span>`
-  : `<span class="species ${esc(s.species)}">${esc(pretty(s.species))}</span>`);
+  : `<span class="species ${esc(s.species || s.crop)}">${esc(s.species ? pretty(s.species) : CROPS[s.crop].label)}</span>`);
 
 const DIST = path.join(ROOT, "dist");
 // The stylesheet ships with the code, not the content, so a fixture folder (OPEN_ORIGIN_ROOT) builds too.
@@ -345,7 +345,7 @@ function storyPage(s, t = null) {
     <div class="where">${flag(s.country)} ${esc(countryName.of(s.country))}${v.region ? ` · <span lang="${esc(v.language)}">${esc(v.region)}</span>` : ""}</div>
     ${s.kind === "movement"
       ? `<span class="species movement">${esc(CROPS[s.crop].label)} · Movement</span>`
-      : `<span class="species ${esc(s.species)}">${esc(CROPS[s.crop].label)} · ${esc(pretty(s.species))}</span>`}
+      : `<span class="species ${esc(s.species || s.crop)}">${esc(CROPS[s.crop].label)}${s.species ? ` · ${esc(pretty(s.species))}` : ""}</span>`}
     ${switcher}
     <dl class="passport">
       ${rowHtml("Producer", s.producerProfile ? `${s.producerProfile.logo ? `<img class="org-logo small" src="${esc(photoSrc({ photo: s.producerProfile.logo }, prefix))}" alt="">` : ""}<a class="term" href="${prefix}${producerHref(s.producerProfile)}">${esc(s.producer)}</a>` : esc(s.producer))}

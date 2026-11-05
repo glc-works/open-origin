@@ -397,7 +397,8 @@ export function validateStory(s) {
   if (!s.region && !["country", "blend"].includes(s.traceability)) errors.push(`missing required field "region" (optional only when traceability is country or blend)`);
   errors.push(...idErrors(s.id, s.kind === "origin" ? ID_PREFIX.origin : ID_PREFIX.story));
   if (!KINDS.includes(s.kind)) errors.push(`kind must be one of: ${KINDS.join(", ")}`);
-  if (s.kind !== "movement" && !s.species) errors.push(`missing required field "species"`);
+  // An origin profile may leave species out: a region often grows several, or sources do not say.
+  if (s.kind === "farm" && !s.species) errors.push(`missing required field "species"`);
   if (s.origin !== undefined && s.kind === "origin") errors.push(`an origin profile cannot itself have an "origin" field`);
   const crop = CROPS[s.crop];
   if (s.crop && !crop) errors.push(`crop "${s.crop}" is not open yet (open: ${Object.keys(CROPS).join(", ")})`);
