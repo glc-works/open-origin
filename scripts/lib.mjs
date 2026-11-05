@@ -9,6 +9,22 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 export const STORIES_DIR = path.join(ROOT, "stories");
 
 // Crops that are open for stories. Add a crop here (and a folder under stories/) to open it.
+// Quality fields a batch of each crop may report: [key, label, unit, min, max]; min null = free text.
+const MOISTURE = ["moisture_pct", "Moisture", "%", 0, 40];
+const GRADE = ["grade", "Grade", "", null];
+export const QUALITY = {
+  coffee: [["cupping_score", "Cupping score", "pts", 0, 100], ["cupping_protocol", "Protocol", "", null], MOISTURE,
+    ["water_activity", "Water activity", "aw", 0, 1], ["screen_size", "Screen size", "", null], ["density_g_l", "Density", "g/L", 300, 1000],
+    ["defects_primary", "Primary defects", "per 350 g", 0, 500], ["defects_secondary", "Secondary defects", "per 350 g", 0, 500], GRADE],
+  cocoa: [["fermented_pct", "Well fermented", "%", 0, 100], ["slaty_pct", "Slaty", "%", 0, 100], ["mouldy_pct", "Mouldy", "%", 0, 100],
+    ["bean_count_per_100g", "Bean count", "per 100 g", 30, 250], MOISTURE, GRADE],
+  tea: [GRADE, ["flush", "Flush", "", null], MOISTURE],
+  spice: [GRADE, MOISTURE, ["density_g_l", "Density", "g/L", 100, 1000], ["volatile_oil_pct", "Volatile oil", "%", 0, 30]],
+  vanilla: [GRADE, MOISTURE, ["pod_length_cm", "Pod length", "cm", 5, 35], ["vanillin_pct", "Vanillin", "%", 0, 10]],
+  honey: [["botanical_source", "Nectar source", "", null], MOISTURE, ["hmf_mg_kg", "HMF", "mg/kg", 0, 500], ["diastase_schade", "Diastase", "Schade", 0, 100]],
+  sugar: [["form", "Form", "", null], MOISTURE, ["colour", "Colour", "", null], ["sucrose_pct", "Sucrose", "%", 0, 100]],
+};
+
 // `species` lists the allowed values for the species field of that crop.
 export const CROPS = {
   coffee: { label: "Coffee", species: ["arabica", "robusta", "liberica", "excelsa"] },
@@ -34,7 +50,10 @@ export const KINDS = ["origin", "farm", "movement"];
 // Steps of the farm-to-table journey, in the order they usually happen.
 export const STAGES = ["farm", "harvest", "process", "dry", "sort", "roast", "brew", "market", "other"];
 
-const REQUIRED = ["title", "crop", "country", "region", "producer", "summary", "language", "told_by", "contributor", "consent"];
+// How far back a story's product can be traced. Region and producer may be broad for country or blend.
+export const TRACEABILITY = ["farm", "group", "region", "country", "blend"];
+
+const REQUIRED = ["title", "crop", "country", "producer", "summary", "language", "told_by", "contributor", "consent"];
 
 async function walk(dir) {
   const out = [];
@@ -80,7 +99,7 @@ export const TERM_TYPES = ["species", "process", "variety", "term"];
 
 export async function loadKnowledge() {
   let files = [];
-  try { files = (await walk(LEARN_DIR)).sort(); } catch { return []; }
+  try { files = (await walk(LEARN_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
   const out = [];
   for (const file of files) {
     const { data, content } = matter(await readFile(file, "utf8"));
@@ -98,7 +117,78 @@ export function validateKnowledge(k) {
   if (k.crop && k.pathCrop !== k.crop) errors.push(`file is in learn/${k.pathCrop}/ but crop is "${k.crop}"`);
   if (k.type && !TERM_TYPES.includes(k.type)) errors.push(`type must be one of: ${TERM_TYPES.join(", ")}`);
   if (k.summary && String(k.summary).length > 200) errors.push(`summary is ${String(k.summary).length} characters; keep it to 200`);
+  if (k.type === "variety") {
+    if (!k.species) errors.push(`a variety needs its species`);
+    if (k.aliases !== undefined && !isStrList(k.aliases)) errors.push(`aliases must be a list of names`);
+    if (k.leaf_rust !== undefined && !["resistant", "tolerant", "susceptible"].includes(k.leaf_rust)) errors.push(`leaf_rust must be resistant, tolerant or susceptible`);
+    for (const f of ["yield_potential"]) if (k[f] !== undefined && !["low", "medium", "high", "very high"].includes(k[f])) errors.push(`${f} must be low, medium, high or very high`);
+    if (k.quality_potential !== undefined && !["fair", "good", "very good", "exceptional"].includes(k.quality_potential)) errors.push(`quality_potential must be fair, good, very good or exceptional`);
+    if (k.stature !== undefined && !["dwarf", "semi-dwarf", "tall"].includes(k.stature)) errors.push(`stature must be dwarf, semi-dwarf or tall`);
+    if (k.altitude_masl !== undefined && !(Array.isArray(k.altitude_masl) && k.altitude_masl.length === 2 && k.altitude_masl.every(isNum))) errors.push(`altitude_masl must be [min, max]`);
+  }
+  if (k.sources !== undefined && (!Array.isArray(k.sources) || !k.sources.every(isHttpUrl))) errors.push(`sources must be a list of http(s) links`);
   if (!k.body || k.body.length < 200) errors.push(`the explanation is too short`);
+  errors.push(...citationErrors(k.body, k.sources));
+  return errors;
+}
+
+// A "[n]" footnote in a body must point to one of the entry's sources.
+export function citationErrors(body, sources) {
+  const n = Array.isArray(sources) ? sources.length : 0;
+  const bad = [...String(body || "").matchAll(/\[(\d+)\](?!\()/g)].map((m) => Number(m[1])).filter((i) => i < 1 || i > n);
+  return bad.length ? [`footnote ${[...new Set(bad)].map((i) => `[${i}]`).join(", ")} has no matching link in sources (${n} listed)`] : [];
+}
+
+// Batches: batches/<crop>/<country>/<story-slug>/<batch-id>.md. Quality belongs to a batch, not to a story.
+export const BATCHES_DIR = path.join(ROOT, "batches");
+
+export async function loadBatches() {
+  let files = [];
+  try { files = (await walk(BATCHES_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
+  const out = [];
+  for (const file of files) {
+    const { data, content } = matter(await readFile(file, "utf8"));
+    const parts = path.relative(BATCHES_DIR, file).split(path.sep);
+    const [crop, country, storySlug, name] = parts;
+    // YAML reads an unquoted 2025-06-01 as a Date; keep it as the written YYYY-MM-DD text.
+    if (data.date instanceof Date) data.date = data.date.toISOString().slice(0, 10);
+    out.push({ ...data, notes: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCrop: crop, pathCountry: country, storySlug, id: name ? name.replace(/\.md$/, "") : "" });
+  }
+  return out;
+}
+
+// YYYY, YYYY-MM or YYYY-MM-DD, and a day that exists in that month.
+function isPartialDate(v) {
+  const m = String(v ?? "").match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+  if (!m) return false;
+  const [y, mo, d] = [Number(m[1]), m[2] && Number(m[2]), m[3] && Number(m[3])];
+  if (mo !== undefined && (mo < 1 || mo > 12)) return false;
+  if (d !== undefined && (d < 1 || d > new Date(Date.UTC(y, mo, 0)).getUTCDate())) return false;
+  return true;
+}
+
+export function validateBatch(b, stories) {
+  const errors = [];
+  if (b.depth !== 4) return [`batch files go in batches/<crop>/<country>/<story>/<batch-id>.md`];
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(b.id)) errors.push(`batch file name must be lowercase words joined by hyphens, e.g. 2025-harvest-1`);
+  const story = stories.find((s) => s.pathCrop === b.pathCrop && s.pathCountry === b.pathCountry && s.slug === b.storySlug);
+  if (!story) errors.push(`no story stories/${b.pathCrop}/${b.pathCountry}/${b.storySlug}.md for this batch`);
+  else if (story.kind === "origin") errors.push(`batches belong to a farm, group or movement story, not an origin profile`);
+  if (!isPartialDate(b.date)) errors.push(`date must be a real date written YYYY, YYYY-MM or YYYY-MM-DD`);
+  if (b.traceability !== undefined && !TRACEABILITY.includes(b.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
+  if (b.quantity_kg !== undefined && !(isNum(b.quantity_kg) && b.quantity_kg > 0)) errors.push(`quantity_kg must be a positive number`);
+  const spec = QUALITY[b.pathCrop] || [];
+  const q = b.quality;
+  if (!q || typeof q !== "object" || Array.isArray(q) || !Object.keys(q).length) errors.push(`quality needs at least one field (${spec.map((f) => f[0]).join(", ")})`);
+  else for (const [k, v] of Object.entries(q)) {
+    const f = spec.find((x) => x[0] === k);
+    if (!f) errors.push(`quality.${k} is not a ${b.pathCrop} quality field (${spec.map((x) => x[0]).join(", ")})`);
+    else if (f[3] === null ? (typeof v !== "string" && !isNum(v)) : !(isNum(v) && v >= f[3] && v <= f[4])) {
+      errors.push(f[3] === null ? `quality.${k} must be text` : `quality.${k} must be a number from ${f[3]} to ${f[4]}`);
+    }
+  }
+  if (q?.cupping_score !== undefined && !(typeof b.tested_by === "string" && b.tested_by.trim())) errors.push(`a cupping score needs tested_by (e.g. "Licensed Q Grader, Name")`);
+  if (b.certificate !== undefined && !(isHttpUrl(b.certificate) && String(b.certificate).startsWith("https:"))) errors.push(`certificate must be an https link`);
   return errors;
 }
 
@@ -144,6 +234,7 @@ export function validateStory(s) {
   if (!s.slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(s.slug)) {
     errors.push(`file name must be lowercase words joined by hyphens, e.g. stories/coffee/id/gayo.md`);
   }
+  if (!s.region && !["country", "blend"].includes(s.traceability)) errors.push(`missing required field "region" (optional only when traceability is country or blend)`);
   if (!KINDS.includes(s.kind)) errors.push(`kind must be one of: ${KINDS.join(", ")}`);
   if (s.kind !== "movement" && !s.species) errors.push(`missing required field "species"`);
   if (s.origin !== undefined && s.kind === "origin") errors.push(`an origin profile cannot itself have an "origin" field`);
@@ -191,16 +282,13 @@ export function validateStory(s) {
       }
     });
   }
-  if (s.cupping_score !== undefined) {
-    if (!isNum(s.cupping_score) || s.cupping_score < 0 || s.cupping_score > 100) errors.push(`cupping_score must be a number from 0 to 100`);
-    if (s.kind === "origin") errors.push(`cupping_score belongs to one lot and harvest; add it to a farm story, not an origin profile`);
-    if (!s.graded_by) errors.push(`cupping_score needs graded_by (who scored it, e.g. "Licensed Q Grader")`);
-    if (!Number.isInteger(s.cupping_year)) errors.push(`cupping_score needs cupping_year (the harvest year)`);
-  }
+  if (s.lot !== undefined || s.cupping_score !== undefined) errors.push(`quality and lot data now live in batch files under batches/; see CONTRIBUTING.md`);
+  if (s.traceability !== undefined && !TRACEABILITY.includes(s.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
   if (s.sources !== undefined) {
     if (!Array.isArray(s.sources)) errors.push(`sources must be a list of links, e.g. [https://example.org/page]`);
     else for (const u of s.sources) if (!isHttpUrl(u)) errors.push(`source "${u}" must be an http(s) link`);
   }
+  errors.push(...citationErrors(s.body, s.sources));
   if (s.photo !== undefined && !(isHttpUrl(s.photo) && String(s.photo).startsWith("https:")) && !/^photos\/[a-z0-9/_-]+\.(jpe?g|png|webp)$/i.test(String(s.photo))) {
     errors.push(`photo must be an https link or a file in photos/, e.g. photos/id/gayo.jpg`);
   }

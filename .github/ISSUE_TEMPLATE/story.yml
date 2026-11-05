@@ -34,12 +34,18 @@ body:
       description: Two letters, e.g. ID (Indonesia), ET (Ethiopia), CO (Colombia), BR (Brazil).
       placeholder: ID
     validations: { required: true }
+  - type: dropdown
+    id: traceability
+    attributes:
+      label: How far can it be traced?
+      options: [farm, group, region, country, blend]
+    validations: { required: true }
   - type: input
     id: region
     attributes:
       label: Region
+      description: Leave empty only if it can be traced to the country or is a blend.
       placeholder: "Bener Meriah, Aceh"
-    validations: { required: true }
   - type: input
     id: origin
     attributes:

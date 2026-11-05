@@ -4,6 +4,7 @@
 # Copy to stories/<crop>/<country>/<farm-name>.md and fill in. Delete lines starting with # .
 title: Kebun Pak Rahman di lereng Burni Telong
 kind: farm
+traceability: farm                 # farm | group | region | country | blend
 origin: gayo                       # profil asal yang sudah ada / an existing origin profile
 crop: coffee
 country: ID

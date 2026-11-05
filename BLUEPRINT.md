@@ -102,8 +102,8 @@ Every build publishes a **Frictionless Data Package** (Open Knowledge Foundation
 
 | Phase | Scope | Status |
 |---|---|---|
-| **1. Foundation** | Story model, 9 Nusantara origins, movement and translation examples, forms, validation, site, Pages, open data, Learn (species, processes, cupping) | PR #1 |
-| **2. Beans and quality** | Variety catalogue with local names, traceability levels, per-batch quality for all crops, batch form | PR #2 (ready after #1) |
+| **1. Foundation** | Story model, 9 Nusantara origins, movement and translation examples, forms, validation, site, Pages, open data, Learn (species, processes, cupping) | Done |
+| **2. Beans and quality** | Variety catalogue with local names, traceability levels, per-batch quality for all crops, batch form | PR #2 |
 | **3. First real voices** | First farmer stories from Gayo, Toraja, Kintamani and Flores through partners and cooperatives; first translations (en, zh, ja, ar) | Next |
 | **4. Wider reach** | Tasting vocabulary guide, map view, search, multilingual interface (Astro), QR codes for packaging | Later |
 | **5. Beyond coffee** | Open cocoa, then tea, spices, vanilla, honey and palm sugar with their own Learn sections | Later |

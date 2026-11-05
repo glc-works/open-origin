@@ -49,6 +49,48 @@ journey:
 
 Explanations of species, processes and terms live in `learn/<crop>/<slug>.md`, with `title`, `crop`, `type` (species, process, variety or term), `summary` and an optional `latin` name. Story pages link to them automatically, for example when a story's species is `arabica` and `learn/coffee/arabica.md` exists.
 
+### Varieties
+
+A variety entry (`type: variety`) adds structured fields: `species`, `lineage`, `aliases` (local names, e.g. Ateng, Tim Tim, Jember), `stature` (dwarf, semi-dwarf, tall), `yield_potential` (low, medium, high, very high), `quality_potential` (fair, good, very good, exceptional), `leaf_rust` (resistant, tolerant, susceptible), `altitude_masl` and `sources`. A story's `varieties` link to an entry automatically when a name matches its title or one of its aliases.
+
+Write entries in your own words. Facts from catalogues such as World Coffee Research are welcome; link them in `sources` rather than copying text. To cite a fact, put its number in brackets after it, like `[2]` for the second link in `sources`; it becomes a footnote. Where sources disagree, give each view with its author and year.
+
+## Traceability
+
+Not every product can be traced to one farm. A story says how far back it goes with `traceability`:
+
+| Value | Meaning | Example |
+|---|---|---|
+| `farm` | one farm or family | a single-estate coffee |
+| `group` | a cooperative, collector or processing group | a palm sugar cooperative |
+| `region` | a known region, many farms | Kintamani coffee via the subak |
+| `country` | only the country is known | pepper bought from traders |
+| `blend` | several origins mixed | a honey blend |
+
+For `country` and `blend`, `region` may be left out. The story then tells who makes, sorts or trades the product, and why its quality is good.
+
+## Batches: quality belongs to a batch
+
+Quality changes with every harvest, shipment or production run, so it is not part of the story. Each batch is its own file next to nothing else:
+
+```
+batches/<crop>/<country>/<story-slug>/<batch-id>.md
+```
+
+Copy [`templates/batch.md`](templates/batch.md). A batch has a `date`, optional `quantity_kg`, `traceability` (if it differs from the story), `tested_by`, a `certificate` link, and a `quality` block with fields for its crop:
+
+| Crop | Quality fields |
+|---|---|
+| coffee | cupping_score, cupping_protocol, moisture_pct, water_activity, screen_size, density_g_l, defects_primary, defects_secondary, grade |
+| cocoa | fermented_pct, slaty_pct, mouldy_pct, bean_count_per_100g, moisture_pct, grade |
+| tea | grade, flush, moisture_pct |
+| spice | grade, moisture_pct, density_g_l, volatile_oil_pct |
+| vanilla | grade, moisture_pct, pod_length_cm, vanillin_pct |
+| honey | botanical_source, moisture_pct, hmf_mg_kg, diastase_schade |
+| sugar | form, moisture_pct, colour, sucrose_pct |
+
+The story page shows every batch, newest first, and marks results without `tested_by` as self-reported. The fields are set in `scripts/lib.mjs` (`QUALITY`).
+
 ## Translations
 
 Anyone can translate a story: [open the translation form](https://github.com/glc-works/open-origin/issues/new?template=translation.yml), or add a file next to the story named `<story>.<language>.md`, for example `gayo.id.md`, `gayo.zh.md`, `gayo.ar.md`, `gayo.ja.md`. Arabic, Persian, Urdu and Hebrew are shown right to left.
@@ -85,9 +127,6 @@ process: [wet-hulled, natural]             # optional
 harvest: Okt–Jun                           # optional
 tasting_notes: [cokelat hitam, rempah]     # optional, at most 4
 summary: One or two sentences, at most 200 characters, shown on the card.
-cupping_score: 86.25          # optional, farm stories only, needs graded_by and cupping_year
-graded_by: Licensed Q Grader
-cupping_year: 2025
 photo: photos/id/gayo.jpg     # optional, a path in this repo or an https URL
 photo_credit: Name            # required when there is a photo
 coords: [4.62, 96.85]         # optional, latitude and longitude, 2 decimals

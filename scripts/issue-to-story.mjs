@@ -6,7 +6,7 @@ import matter from "gray-matter";
 import { ROOT, CROPS, STORIES_DIR } from "./lib.mjs";
 
 const LABELS = {
-  "What kind of story?": "kind", "Which origin is this part of? (optional)": "origin",
+  "What kind of story?": "kind", "Which origin is this part of? (optional)": "origin", "How far can it be traced?": "traceability",
   "From farm to cup (optional)": "journey", "Crop": "crop", "Story title": "title", "Country code": "country", "Region": "region",
   "Farmer, farm or cooperative": "producer", "Species or type": "species",
   "Altitude in metres (optional)": "altitude", "Varieties (optional, separate with commas)": "varieties",
@@ -23,7 +23,7 @@ export function parseIssueForm(body) {
   const out = {};
   const lines = String(body).replace(/\r\n/g, "\n").split("\n");
   // Form fields in the order the form shows them; a heading only counts if it comes after the current one.
-  const order = ["kind", "crop", "title", "country", "region", "origin", "producer", "species", "altitude", "varieties", "process", "harvest", "tasting_notes", "town", "summary", "story", "journey", "photo", "photo_credit", "told_by", "language", "sources", "consent"];
+  const order = ["kind", "crop", "title", "country", "traceability", "region", "origin", "producer", "species", "altitude", "varieties", "process", "harvest", "tasting_notes", "town", "summary", "story", "journey", "photo", "photo_credit", "told_by", "language", "sources", "consent"];
   let key = null;
   let buf = [];
   const flush = () => {
@@ -60,7 +60,8 @@ export function toStory(f, { number, author }) {
     ...(f.origin && { origin: slugify(f.origin) }),
     crop: f.crop,
     country: f.country?.trim().toUpperCase(),
-    region: f.region,
+    ...(f.traceability && { traceability: f.traceability }),
+    ...(f.region && { region: f.region }),
     producer: f.producer,
     ...(f.species && { species: f.species.trim().toLowerCase() }),
     ...(alt && { altitude_masl: [num(alt[1]), num(alt[2])] }),

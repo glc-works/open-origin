@@ -1,5 +1,5 @@
 // Checks every story file and exits non-zero with readable messages if any are invalid.
-import { loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge, loadBatches, validateBatch } from "./lib.mjs";
 
 const { stories, translations } = await loadStories();
 let failed = 0;
@@ -33,8 +33,17 @@ for (const k of knowledge) {
     for (const e of errors) console.error(`  - ${e}`);
   }
 }
+const batches = await loadBatches();
+for (const b of batches) {
+  const errors = validateBatch(b, stories);
+  if (errors.length) {
+    failed++;
+    console.error(`\n✗ ${b.file}`);
+    for (const e of errors) console.error(`  - ${e}`);
+  }
+}
 if (failed) {
-  console.error(`\n${failed} of ${stories.length + translations.length} files need fixes.`);
+  console.error(`\n${failed} of ${stories.length + translations.length + knowledge.length + batches.length} files need fixes.`);
   process.exit(1);
 }
-console.log(`✓ ${stories.length} stories, ${translations.length} translations and ${knowledge.length} Learn entries valid.`);
+console.log(`✓ ${stories.length} stories, ${translations.length} translations, ${knowledge.length} Learn entries and ${batches.length} batches valid.`);
