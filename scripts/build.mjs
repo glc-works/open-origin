@@ -2,7 +2,7 @@
 import { mkdir, writeFile, copyFile, cp, rm, access } from "node:fs/promises";
 import path from "node:path";
 import { marked } from "marked";
-import { ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins } from "./lib.mjs";
+import { ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 
 const STAGE_LABEL = { farm: "On the farm", harvest: "Harvest", process: "Processing", dry: "Drying", sort: "Sorting", roast: "Roasting", brew: "In the cup", market: "To market", other: "Along the way" };
 const tagFor = (s) => (s.kind === "movement"
@@ -24,6 +24,13 @@ const loaded = await loadStories();
 const stories = loaded.stories.filter((s) => validateStory(s).length === 0);
 for (const s of stories) s.translations = s.translations.filter((t) => validateTranslation(t).length === 0);
 linkOrigins(stories);
+const knowledge = (await loadKnowledge()).filter((k) => validateKnowledge(k).length === 0);
+const learnHref = (crop, slug) => (knowledge.some((k) => k.crop === crop && k.slug === slug) ? `learn/${crop}/${slug}/` : null);
+// Wraps a term in a link to its Learn page when one exists.
+const termLink = (crop, term, prefix, label = term) => {
+  const h = learnHref(crop, term);
+  return h ? `<a class="term" href="${prefix}${h}">${esc(label)}</a>` : esc(label);
+};
 const origins = stories.filter((s) => s.kind === "origin");
 const voices = stories.filter((s) => s.kind !== "origin");
 const submitFor = (o) => `${SUBMIT}&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region)}`;
@@ -50,7 +57,7 @@ ${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" href="${prefix}">Open<span>·</span>Origin</a>
-  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}datapackage.json">Open data</a><a href="${REPO}">GitHub</a></nav>
+  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#learn">Learn</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}datapackage.json">Open data</a><a href="${REPO}">GitHub</a></nav>
 </div></header>`;
 }
 
@@ -65,7 +72,7 @@ function card(s) {
   const cover = s.photo
     ? `<img src="${esc(photoSrc(s, ""))}" alt="" loading="lazy">`
     : s.altitude_masl ? `<span class="alt">${esc(s.altitude_masl[1].toLocaleString("en"))}<small> masl</small></span>` : "";
-  const facts = [fmtAlt(s.altitude_masl), (s.varieties || []).slice(0, 2).join(", "), (s.process || []).join(" · ")].filter(Boolean);
+  const facts = [s.cupping_score ? `${s.cupping_score} pts (${s.cupping_year})` : "", fmtAlt(s.altitude_masl), (s.varieties || []).slice(0, 2).join(", "), (s.process || []).join(" · ")].filter(Boolean);
   return `<a class="card" href="${href(s)}" data-crop="${esc(s.crop)}" data-country="${esc(s.country)}" data-kind="${esc(s.kind)}">
   <div class="cover">${cover}${tagFor(s)}</div>
   <div class="body">
@@ -133,6 +140,14 @@ function indexPage() {
     : `<div class="empty"><p><strong>The first farmer stories are still to come.</strong> Two farms in Gayo can taste completely different: another hill, another process, another family. That difference is what Open Origin is for. Grow coffee, or work with people who do? Tell their story.</p><a class="btn primary" href="${SUBMIT}">Share a farmer story</a></div>`}
 </div></section>
 
+${knowledge.length ? `<section id="learn"><div class="wrap">
+  <div class="section-head"><div class="eyebrow">Learn</div><h2>What the words mean</h2>
+  <p>The species, processes and terms you meet in the stories, explained. Anyone can add or improve an entry.</p></div>
+  ${["species", "process", "variety", "term"].filter((t) => knowledge.some((k) => k.type === t)).map((t) => `
+  <h3 class="group-title">${{ species: "Species", process: "Processes", variety: "Varieties", term: "Terms" }[t]}</h3>
+  <div class="learn-grid">${knowledge.filter((k) => k.type === t).map((k) => `<a class="learn-item" href="learn/${k.crop}/${k.slug}/"><h4>${esc(k.title)}</h4>${k.latin ? `<i>${esc(k.latin)}</i>` : ""}<p>${esc(k.summary)}</p></a>`).join("")}</div>`).join("")}
+</div></section>` : ""}
+
 <section id="contribute"><div class="wrap">
   <div class="section-head"><div class="eyebrow">Contribute</div><h2>Tell us where it grows</h2>
   <p>Farmers, cooperatives, roasters and researchers are all welcome. You don't need to know code: fill in a form and we turn it into a page.</p></div>
@@ -163,12 +178,36 @@ document.querySelectorAll("[data-jump]").forEach((a) => a.addEventListener("clic
 ${foot}`;
 }
 
+function learnPage(k) {
+  const prefix = "../../../";
+  const related = stories.filter((s) => s.crop === k.crop && (s.species === k.slug || (s.process || []).includes(k.slug)));
+  return `${head(`${k.title} · Open Origin`, k.summary, prefix)}
+<main><div class="wrap">
+<article class="story">
+  <div>
+    <a class="back" href="${prefix}#learn">← Learn</a>
+    <h1 style="margin-top:18px">${esc(k.title)}</h1>
+    ${k.latin ? `<div class="where"><i>${esc(k.latin)}</i></div>` : ""}
+    <span class="species movement">${esc(CROPS[k.crop].label)} · ${esc(k.type)}</span>
+    <p style="margin-top:20px">${esc(k.summary)}</p>
+  </div>
+  <div class="prose">
+    <div class="text">${marked.parse(k.body)}</div>
+    ${related.length ? `<h2 class="journey-title">Stories with ${esc(k.title.toLowerCase())}</h2><div class="cards">${related.map((r) => card(r).replace(`href="${href(r)}"`, `href="${prefix}${href(r)}"`)).join("")}</div>` : ""}
+    <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc(k.file)}">Improve this entry</a></p>
+  </div>
+</article>
+</div></main>
+${foot}`;
+}
+
 // Renders a story in its original language (t = null) or in one of its translations.
 function storyPage(s, t = null) {
   const prefix = t ? "../../../../../" : "../../../../";
   const v = t ? { ...s, ...Object.fromEntries(["title", "summary", "region", "tasting_notes"].filter((k) => t[k]).map((k) => [k, t[k]])), body: t.body, language: t.language } : s;
   const journeyText = (j, i) => (t?.journey ? t.journey[i] : j.text);
   const row = (k, val) => (val ? `<div><dt>${k}</dt><dd>${esc(val)}</dd></div>` : "");
+  const rowHtml = (k, html) => (html ? `<div><dt>${k}</dt><dd>${html}</dd></div>` : "");
   const sources = (s.sources || []).filter(Boolean);
   const storyRoot = t ? "../" : "";
   const langs = [{ lang: s.language, href: storyRoot || "./" }, ...s.translations.map((x) => ({ lang: x.language, href: `${storyRoot}${x.language}/` }))];
@@ -212,8 +251,10 @@ function storyPage(s, t = null) {
       ${row("Producer", s.producer)}
       ${row("Altitude", fmtAlt(s.altitude_masl))}
       ${row("Varieties", (s.varieties || []).join(", "))}
-      ${row("Process", (s.process || []).join(", "))}
+      ${rowHtml("Species", s.species ? termLink(s.crop, s.species, prefix) : "")}
+      ${rowHtml("Process", (s.process || []).map((p) => termLink(s.crop, p, prefix)).join(", "))}
       ${row("Harvest", s.harvest)}
+      ${rowHtml("Cupping", s.cupping_score ? `${esc(s.cupping_score)} points · ${esc(s.graded_by)}, ${esc(s.cupping_year)} · ${termLink(s.crop, "cupping-and-q-grading", prefix, "what this means")}` : "")}
       ${row("Tastes of", (v.tasting_notes || []).join(", "))}
       ${row("Told by", TOLD[s.told_by])}
       ${row("Told in", nativeName(s.language))}
@@ -250,6 +291,11 @@ for (const s of stories) {
     await mkdir(path.join(dir, t.language), { recursive: true });
     await writeFile(path.join(dir, t.language, "index.html"), storyPage(s, t));
   }
+}
+for (const k of knowledge) {
+  const dir = path.join(DIST, "learn", k.crop, k.slug);
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, "index.html"), learnPage(k));
 }
 await writeFile(path.join(DIST, ".nojekyll"), "");
 await exportData();

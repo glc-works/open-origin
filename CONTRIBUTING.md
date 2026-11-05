@@ -38,6 +38,10 @@ journey:
     text: Pulped the same day and fermented overnight in buckets.
 ```
 
+## Learn entries
+
+Explanations of species, processes and terms live in `learn/<crop>/<slug>.md`, with `title`, `crop`, `type` (species, process, variety or term), `summary` and an optional `latin` name. Story pages link to them automatically, for example when a story's species is `arabica` and `learn/coffee/arabica.md` exists.
+
 ## Translations
 
 Anyone can translate a story: [open the translation form](https://github.com/glc-works/open-origin/issues/new?template=translation.yml), or add a file next to the story named `<story>.<language>.md`, for example `gayo.en.md`, `gayo.zh.md`, `gayo.ar.md`, `gayo.ja.md`. Arabic, Persian, Urdu and Hebrew are shown right to left.
@@ -75,6 +79,9 @@ process: [wet-hulled, natural]             # optional
 harvest: Okt–Jun                           # optional
 tasting_notes: [cokelat hitam, rempah]     # optional, at most 4
 summary: One or two sentences, at most 200 characters, shown on the card.
+cupping_score: 86.25          # optional, farm stories only, needs graded_by and cupping_year
+graded_by: Licensed Q Grader
+cupping_year: 2025
 photo: photos/id/gayo.jpg     # optional, a path in this repo or an https URL
 photo_credit: Name            # required when there is a photo
 coords: [4.62, 96.85]         # optional, latitude and longitude, 2 decimals

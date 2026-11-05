@@ -194,3 +194,12 @@ section { padding-block: clamp(48px, 7vw, 88px); border-top: 1px solid var(--lin
 .empty p { margin: 0; max-width: 62ch; }
 .part-of { font-family: var(--mono); font-size: .8rem; color: var(--muted); }
 .prose .cards { max-width: none; }
+
+/* Learn */
+.learn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.learn-item { padding: 18px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-decoration: none; min-width: 0; transition: background .2s ease; }
+.learn-item:hover { background: var(--card); }
+.learn-item h4 { margin: 0; font-family: var(--display); font-size: 1.15rem; font-weight: 700; }
+.learn-item i { font-size: .85rem; color: var(--muted); }
+.learn-item p { margin: 8px 0 0; font-size: .9rem; color: var(--muted); }
+a.term { text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }

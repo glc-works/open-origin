@@ -73,6 +73,34 @@ export async function loadStories() {
   return { stories, translations };
 }
 
+// Knowledge entries ("Learn" pages): learn/<crop>/<slug>.md, one term per file.
+export const LEARN_DIR = path.join(ROOT, "learn");
+export const TERM_TYPES = ["species", "process", "variety", "term"];
+
+export async function loadKnowledge() {
+  let files = [];
+  try { files = (await walk(LEARN_DIR)).sort(); } catch { return []; }
+  const out = [];
+  for (const file of files) {
+    const { data, content } = matter(await readFile(file, "utf8"));
+    const [crop, name] = path.relative(LEARN_DIR, file).split(path.sep);
+    out.push({ ...data, body: content.trim(), file: path.relative(ROOT, file), pathCrop: crop, slug: name ? name.replace(/\.md$/, "") : "" });
+  }
+  return out;
+}
+
+export function validateKnowledge(k) {
+  const errors = [];
+  for (const key of ["title", "crop", "type", "summary"]) if (!k[key]) errors.push(`missing required field "${key}"`);
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(k.slug)) errors.push(`file name must be lowercase words joined by hyphens`);
+  if (k.crop && !CROPS[k.crop]) errors.push(`crop "${k.crop}" is not open yet`);
+  if (k.crop && k.pathCrop !== k.crop) errors.push(`file is in learn/${k.pathCrop}/ but crop is "${k.crop}"`);
+  if (k.type && !TERM_TYPES.includes(k.type)) errors.push(`type must be one of: ${TERM_TYPES.join(", ")}`);
+  if (k.summary && String(k.summary).length > 200) errors.push(`summary is ${String(k.summary).length} characters; keep it to 200`);
+  if (!k.body || k.body.length < 200) errors.push(`the explanation is too short`);
+  return errors;
+}
+
 // Links farm and movement stories to their origin profile. Returns errors keyed by file.
 export function linkOrigins(stories) {
   const errors = new Map();
@@ -160,6 +188,12 @@ export function validateStory(s) {
         errors.push(`journey step ${i + 1} needs a stage (${STAGES.join(", ")}) and text`);
       }
     });
+  }
+  if (s.cupping_score !== undefined) {
+    if (!isNum(s.cupping_score) || s.cupping_score < 0 || s.cupping_score > 100) errors.push(`cupping_score must be a number from 0 to 100`);
+    if (s.kind === "origin") errors.push(`cupping_score belongs to one lot and harvest; add it to a farm story, not an origin profile`);
+    if (!s.graded_by) errors.push(`cupping_score needs graded_by (who scored it, e.g. "Licensed Q Grader")`);
+    if (!Number.isInteger(s.cupping_year)) errors.push(`cupping_score needs cupping_year (the harvest year)`);
   }
   if (s.photo !== undefined && !s.photo_credit) errors.push(`photo needs a photo_credit`);
   if (!s.body || s.body.length < 200) errors.push(`the story itself is too short (at least a few sentences)`);
