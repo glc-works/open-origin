@@ -19,6 +19,16 @@ You don't need to know code. **[Fill in the story form](https://github.com/glc-w
 | `scripts/issue-to-story.mjs` | Turns an approved story form into a story file |
 | `site/style.css` | The website's stylesheet |
 
+## Open data
+
+Every build also publishes the collection as a [Frictionless Data Package](https://datapackage.org), the Open Knowledge Foundation's open data format:
+
+- `datapackage.json`: the package description, licence and column schema
+- `data/stories.csv`: one row per story, ready for spreadsheets and analysis
+- `data/stories.json`: every story with its full text, farm-to-cup journey and translations
+
+Story pages also carry schema.org (JSON-LD) metadata so search engines understand the place and the story.
+
 ## Run it locally
 
 ```sh

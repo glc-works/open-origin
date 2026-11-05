@@ -32,7 +32,7 @@ const dirOf = (lang) => (RTL.includes(String(lang).split("-")[0]) ? "rtl" : "ltr
 const href = (s) => `stories/${s.crop}/${s.pathCountry}/${s.slug}/`;
 const photoSrc = (s, prefix) => (/^https?:\/\//.test(s.photo) ? s.photo : prefix + String(s.photo).replace(/^\/+/, ""));
 
-function head(title, description, prefix) {
+function head(title, description, prefix, extra = "") {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -46,11 +46,11 @@ function head(title, description, prefix) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="${prefix}style.css">
-</head>
+${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" href="${prefix}">Open<span>·</span>Origin</a>
-  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#contribute">Contribute</a><a href="${REPO}">GitHub</a></nav>
+  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}datapackage.json">Open data</a><a href="${REPO}">GitHub</a></nav>
 </div></header>`;
 }
 
@@ -178,7 +178,26 @@ function storyPage(s, t = null) {
         : `<a href="${l.href}" hreflang="${esc(l.lang)}" lang="${esc(l.lang)}">${esc(nativeName(l.lang))}</a>`).join("")}</nav>`
     : "";
   const dir = dirOf(v.language);
-  return `${head(`${v.title} · Open Origin`, v.summary, prefix)}
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: v.title,
+    description: v.summary,
+    inLanguage: v.language,
+    license: "https://creativecommons.org/licenses/by/4.0/",
+    isPartOf: { "@type": "WebSite", name: "Open Origin" },
+    about: { "@type": "Thing", name: CROPS[s.crop].label },
+    author: { "@type": s.told_by === "farmer" ? "Person" : "Organization", name: s.producer },
+    contentLocation: {
+      "@type": "Place",
+      name: s.region,
+      address: { "@type": "PostalAddress", addressRegion: s.region, addressCountry: s.country },
+      ...(s.coords && { geo: { "@type": "GeoCoordinates", latitude: s.coords[0], longitude: s.coords[1] } }),
+    },
+    ...(t && { translator: { "@type": "Person", name: t.translator }, translationOfWork: { "@type": "Article", headline: s.title, inLanguage: s.language } }),
+  };
+  const ldTag = `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>\n`;
+  return `${head(`${v.title} · Open Origin`, v.summary, prefix, ldTag)}
 <main><div class="wrap">
 <article class="story">
   <div>
@@ -233,5 +252,55 @@ for (const s of stories) {
   }
 }
 await writeFile(path.join(DIST, ".nojekyll"), "");
+await exportData();
+
+// Open data export: a Frictionless Data Package (https://datapackage.org) with CSV + JSON, regenerated on every build.
+async function exportData() {
+  const FIELDS = [
+    ["id", "string", "crop/country/slug, unique"], ["kind", "string", "origin, farm or movement"], ["origin", "string", "id of the origin profile a farm or movement belongs to"],
+    ["crop", "string", "coffee, cocoa, tea, spice, vanilla, honey or sugar"], ["country", "string", "ISO 3166-1 alpha-2"], ["region", "string", ""],
+    ["producer", "string", ""], ["species", "string", ""], ["altitude_min_masl", "integer", ""], ["altitude_max_masl", "integer", ""],
+    ["varieties", "string", "separated by ; "], ["process", "string", "separated by ; "], ["harvest", "string", ""],
+    ["tasting_notes", "string", "separated by ; "], ["latitude", "number", "rounded to 2 decimals"], ["longitude", "number", "rounded to 2 decimals"],
+    ["title", "string", ""], ["summary", "string", ""], ["language", "string", "BCP 47 code of the original story"],
+    ["translations", "string", "available translation languages, separated by ; "], ["told_by", "string", ""], ["contributor", "string", ""],
+    ["url", "string", "path of the story page, relative to the site root"],
+  ];
+  const id = (s) => `${s.crop}/${s.pathCountry}/${s.slug}`;
+  const rows = stories.map((s) => ({
+    id: id(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : "", crop: s.crop, country: s.country, region: s.region,
+    producer: s.producer, species: s.species || "", altitude_min_masl: s.altitude_masl?.[0] ?? "", altitude_max_masl: s.altitude_masl?.[1] ?? "",
+    varieties: (s.varieties || []).join("; "), process: (s.process || []).join("; "), harvest: s.harvest || "",
+    tasting_notes: (s.tasting_notes || []).join("; "), latitude: s.coords?.[0] ?? "", longitude: s.coords?.[1] ?? "",
+    title: s.title, summary: s.summary, language: s.language, translations: s.translations.map((t) => t.language).join("; "),
+    told_by: s.told_by, contributor: s.contributor, url: href(s),
+  }));
+  const cell = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
+  const csv = [FIELDS.map((f) => f[0]).join(","), ...rows.map((r) => FIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n";
+  const full = stories.map((s) => ({
+    id: id(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
+    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+    story: s.body, url: href(s),
+    translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
+  }));
+  await mkdir(path.join(DIST, "data"), { recursive: true });
+  await writeFile(path.join(DIST, "data", "stories.csv"), csv);
+  await writeFile(path.join(DIST, "data", "stories.json"), JSON.stringify(full, null, 2));
+  const pkg = {
+    name: "open-origin-stories",
+    title: "Open Origin stories",
+    description: "Community-written stories of coffee and other crops, told from where they grow.",
+    homepage: REPO,
+    version: new Date().toISOString().slice(0, 10).replace(/-/g, "."),
+    licenses: [{ name: "CC-BY-4.0", path: "https://creativecommons.org/licenses/by/4.0/", title: "Creative Commons Attribution 4.0" }],
+    resources: [
+      { name: "stories", path: "data/stories.csv", format: "csv", mediatype: "text/csv", encoding: "utf-8",
+        schema: { fields: FIELDS.map(([name, type, description]) => ({ name, type, ...(description && { description }) })), primaryKey: "id" } },
+      { name: "stories-full", path: "data/stories.json", format: "json", mediatype: "application/json",
+        description: "Every story with its full text, farm-to-cup journey and translations." },
+    ],
+  };
+  await writeFile(path.join(DIST, "datapackage.json"), JSON.stringify(pkg, null, 2));
+}
 const nT = stories.reduce((n, s) => n + s.translations.length, 0);
 console.log(`✓ Built ${stories.length} stories and ${nT} translations into dist/`);
