@@ -2,9 +2,10 @@
 // The story format is documented in CONTRIBUTING.md; keep the two in sync.
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 
-export const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const STORIES_DIR = path.join(ROOT, "stories");
 
 // Crops that are open for stories. Add a crop here (and a folder under stories/) to open it.
@@ -131,6 +132,7 @@ export function validateTranslation(t) {
   return errors;
 }
 
+export const isHttpUrl = (u) => { try { return ["http:", "https:"].includes(new URL(String(u)).protocol); } catch { return false; } };
 const isNum = (n) => typeof n === "number" && Number.isFinite(n);
 const isStrList = (v) => Array.isArray(v) && v.every((s) => typeof s === "string" && s.trim());
 
@@ -194,6 +196,13 @@ export function validateStory(s) {
     if (s.kind === "origin") errors.push(`cupping_score belongs to one lot and harvest; add it to a farm story, not an origin profile`);
     if (!s.graded_by) errors.push(`cupping_score needs graded_by (who scored it, e.g. "Licensed Q Grader")`);
     if (!Number.isInteger(s.cupping_year)) errors.push(`cupping_score needs cupping_year (the harvest year)`);
+  }
+  if (s.sources !== undefined) {
+    if (!Array.isArray(s.sources)) errors.push(`sources must be a list of links, e.g. [https://example.org/page]`);
+    else for (const u of s.sources) if (!isHttpUrl(u)) errors.push(`source "${u}" must be an http(s) link`);
+  }
+  if (s.photo !== undefined && !(isHttpUrl(s.photo) && String(s.photo).startsWith("https:")) && !/^photos\/[a-z0-9/_-]+\.(jpe?g|png|webp)$/i.test(String(s.photo))) {
+    errors.push(`photo must be an https link or a file in photos/, e.g. photos/id/gayo.jpg`);
   }
   if (s.photo !== undefined && !s.photo_credit) errors.push(`photo needs a photo_credit`);
   if (!s.body || s.body.length < 200) errors.push(`the story itself is too short (at least a few sentences)`);

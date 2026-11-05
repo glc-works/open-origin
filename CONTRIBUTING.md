@@ -24,7 +24,7 @@ Thank you for helping tell the stories behind what we drink and eat. Stories can
 | `farm` | One farmer, farm or cooperative in their own words. Two farms in Gayo can taste completely different | Many per origin |
 | `movement` | A community, cooperative or initiative and what it changes. e.g. Subak Abian in Kintamani | Many per origin |
 
-Link a farm or movement to its region with `origin: <file name of the origin>`, e.g. `origin: gayo`. The origin page then lists it under "Farmers from this origin".
+Farm and movement stories (never origin profiles) link to their region with `origin: <file name of the origin>`, e.g. `origin: gayo`. The origin page then lists it under "Farmers from this origin".
 
 ## From farm to cup
 
@@ -67,7 +67,6 @@ The translated story.
 ---
 title: Gayo, kopi dari tepi Danau Laut Tawar
 kind: origin                  # origin | farm | movement (default: farm)
-origin: gayo                  # farm and movement only: the origin profile it belongs to
 crop: coffee                  # coffee | cocoa | tea | spice | vanilla | honey | sugar
 country: ID                   # ISO 3166 two-letter code, matches the folder name
 region: Aceh Tengah & Bener Meriah, Aceh

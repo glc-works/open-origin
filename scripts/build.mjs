@@ -2,7 +2,7 @@
 import { mkdir, writeFile, copyFile, cp, rm, access } from "node:fs/promises";
 import path from "node:path";
 import { marked } from "marked";
-import { ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { isHttpUrl, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 
 const STAGE_LABEL = { farm: "On the farm", harvest: "Harvest", process: "Processing", dry: "Drying", sort: "Sorting", roast: "Roasting", brew: "In the cup", market: "To market", other: "Along the way" };
 const tagFor = (s) => (s.kind === "movement"
@@ -10,6 +10,24 @@ const tagFor = (s) => (s.kind === "movement"
   : `<span class="species ${esc(s.species)}">${esc(s.species)}</span>`);
 
 const DIST = path.join(ROOT, "dist");
+
+// Stories come from the public, so Markdown is rendered without raw HTML and with only safe link targets.
+const safeHref = (h) => /^(https?:|mailto:|#|\/|\.\/|\.\.\/)/i.test(String(h).trim()) && !/^\s*(javascript|data|vbscript):/i.test(String(h));
+marked.use({
+  renderer: {
+    html(token) { return esc(typeof token === "string" ? token : token.text ?? token.raw ?? ""); },
+    link(href, title, text) {
+      const h = typeof href === "object" ? href.href : href;
+      const label = typeof href === "object" ? href.text : text;
+      return safeHref(h) ? `<a href="${esc(h)}">${label}</a>` : label;
+    },
+    image(href, title, text) {
+      const h = typeof href === "object" ? href.href : href;
+      const alt = typeof href === "object" ? href.text : text;
+      return /^https:/i.test(String(h)) ? `<img src="${esc(h)}" alt="${esc(alt)}" loading="lazy">` : esc(alt);
+    },
+  },
+});
 const REPO = "https://github.com/glc-works/open-origin";
 const SUBMIT = `${REPO}/issues/new?template=story.yml`;
 const countryName = new Intl.DisplayNames(["en"], { type: "region" });
@@ -208,7 +226,7 @@ function storyPage(s, t = null) {
   const journeyText = (j, i) => (t?.journey ? t.journey[i] : j.text);
   const row = (k, val) => (val ? `<div><dt>${k}</dt><dd>${esc(val)}</dd></div>` : "");
   const rowHtml = (k, html) => (html ? `<div><dt>${k}</dt><dd>${html}</dd></div>` : "");
-  const sources = (s.sources || []).filter(Boolean);
+  const sources = (Array.isArray(s.sources) ? s.sources : []).filter(isHttpUrl);
   const storyRoot = t ? "../" : "";
   const langs = [{ lang: s.language, href: storyRoot || "./" }, ...s.translations.map((x) => ({ lang: x.language, href: `${storyRoot}${x.language}/` }))];
   const switcher = langs.length > 1
