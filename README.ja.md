@@ -1,4 +1,4 @@
-<p align="center"><img src="site/logo.svg" width="72" alt="Open Origin"></p>
+<p align="center"><img src="site/brand/lockup.svg" width="280" alt="Open Origin"></p>
 <h1 align="center">Open Origin</h1>
 <p align="center"><b>育つ場所から届く物語。</b></p>
 <p align="center"><a href="README.md">English</a> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.zh-CN.md">简体中文</a> · <b>日本語</b> · <a href="README.ar.md">العربية</a></p>
