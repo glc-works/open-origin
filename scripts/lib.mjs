@@ -5,7 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 
-export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// OPEN_ORIGIN_ROOT points the scripts at another content folder, e.g. the test fixtures.
+export const ROOT = process.env.OPEN_ORIGIN_ROOT ? path.resolve(process.env.OPEN_ORIGIN_ROOT) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const STORIES_DIR = path.join(ROOT, "stories");
 
 // Crops that are open for stories. Add a crop here (and a folder under stories/) to open it.
@@ -22,23 +23,36 @@ export const QUALITY = {
   spice: [GRADE, MOISTURE, ["density_g_l", "Density", "g/L", 100, 1000], ["volatile_oil_pct", "Volatile oil", "%", 0, 30]],
   vanilla: [GRADE, MOISTURE, ["pod_length_cm", "Pod length", "cm", 5, 35], ["vanillin_pct", "Vanillin", "%", 0, 10]],
   honey: [["botanical_source", "Nectar source", "", null], MOISTURE, ["hmf_mg_kg", "HMF", "mg/kg", 0, 500], ["diastase_schade", "Diastase", "Schade", 0, 100]],
-  sugar: [["form", "Form", "", null], MOISTURE, ["colour", "Colour", "", null], ["sucrose_pct", "Sucrose", "%", 0, 100]],
+  sugar: [MOISTURE, ["colour", "Colour", "", null], ["sucrose_pct", "Sucrose", "%", 0, 100]],
 };
 
-// `species` lists the allowed values for the species field of that crop.
+// Per crop: allowed `species`, `processes` (how it is made) and `forms` (the state a lot is sold in),
+// plus the words the site uses for the end of its journey. Add a crop here (and a folder under stories/) to open it.
 export const CROPS = {
-  coffee: { label: "Coffee", species: ["arabica", "robusta", "liberica", "excelsa"] },
-  cocoa: { label: "Cocoa", species: ["criollo", "forastero", "trinitario", "nacional"] },
-  tea: { label: "Tea", species: ["sinensis", "assamica"] },
-  spice: { label: "Spices", species: ["nutmeg", "clove", "pepper", "cinnamon", "cardamom", "ginger", "turmeric", "other"] },
-  vanilla: { label: "Vanilla", species: ["planifolia", "tahitensis", "pompona"] },
-  honey: { label: "Honey", species: ["apis-mellifera", "apis-cerana", "apis-dorsata", "stingless-bee", "other"] },
-  sugar: { label: "Palm & coconut sugar", species: ["aren", "coconut", "lontar", "nipa", "other"] },
+  coffee: { label: "Coffee", species: ["arabica", "robusta", "liberica", "excelsa"],
+    processes: ["washed", "natural", "honey", "wet-hulled", "anaerobic", "fermented", "other"],
+    forms: ["cherry", "parchment", "green", "roasted"], journey: "From farm to cup", use: "In the cup" },
+  cocoa: { label: "Cocoa", species: ["criollo", "forastero", "trinitario", "nacional"],
+    processes: ["fermented", "unfermented", "sun-dried", "machine-dried", "other"],
+    forms: ["pods", "wet-beans", "dried-beans", "nibs", "chocolate"], journey: "From tree to bar", use: "Into chocolate" },
+  tea: { label: "Tea", species: ["sinensis", "assamica"],
+    processes: ["white", "green", "oolong", "black", "dark", "other"],
+    forms: ["fresh-leaf", "made-tea"], journey: "From garden to cup", use: "In the cup" },
+  spice: { label: "Spices", species: ["nutmeg", "clove", "pepper", "cinnamon", "cardamom", "ginger", "turmeric", "other"],
+    processes: ["sun-dried", "machine-dried", "fermented", "other"],
+    forms: ["fresh", "dried", "ground", "oil"], journey: "From farm to kitchen", use: "In the kitchen" },
+  vanilla: { label: "Vanilla", species: ["planifolia", "tahitensis", "pompona"],
+    processes: ["sun-cured", "oven-cured", "other"],
+    forms: ["green-pods", "cured-pods", "extract", "powder"], journey: "From vine to kitchen", use: "In the kitchen" },
+  honey: { label: "Honey", species: ["apis-mellifera", "apis-cerana", "apis-dorsata", "stingless-bee", "other"],
+    processes: ["raw", "filtered", "dehumidified", "creamed", "other"],
+    forms: ["comb", "liquid", "crystallised"], journey: "From hive to jar", use: "On the table" },
+  sugar: { label: "Palm & coconut sugar", species: ["aren", "coconut", "lontar", "nipa", "other"],
+    processes: ["open-pan", "vacuum", "other"],
+    forms: ["sap", "block", "granulated", "liquid"], journey: "From tree to kitchen", use: "In the kitchen" },
 };
-
-export const PROCESSES = [
-  "washed", "natural", "honey", "wet-hulled", "anaerobic", "fermented", "sun-dried", "other",
-];
+const processesFor = (crop) => CROPS[crop]?.processes || [];
+const formsFor = (crop) => CROPS[crop]?.forms || [];
 
 export const TOLD_BY = ["farmer", "producer-group", "roaster", "researcher", "editor", "other"];
 
@@ -225,8 +239,6 @@ export function citationErrors(body, sources) {
 // Lots: lots/<crop>/<country>/<story-slug>/<name>.md. A lot is one harvest, shipment or production run
 // (what a buyer actually buys); process, variety, form and quality belong to it, not to the story or the origin.
 export const LOTS_DIR = path.join(ROOT, "lots");
-// The state a lot is sold or measured in.
-export const FORMS = ["cherry", "parchment", "green", "roasted", "raw", "dried", "processed"];
 
 export async function loadLots() {
   let files = [];
@@ -274,10 +286,10 @@ export function validateLot(l, stories, producers = []) {
   if (l.name !== undefined && !(typeof l.name === "string" && l.name.trim())) errors.push(`name must be text, e.g. "Gayo Honey"`);
   if (l.process !== undefined) {
     if (!isStrList(l.process)) errors.push(`process must be a word or a list, e.g. honey`);
-    else for (const p of l.process) if (!PROCESSES.includes(p)) errors.push(`process "${p}" is not one of: ${PROCESSES.join(", ")}`);
+    else for (const p of l.process) if (!processesFor(l.pathCrop).includes(p)) errors.push(`process "${p}" is not a ${l.pathCrop} process (${processesFor(l.pathCrop).join(", ")})`);
   }
   if (l.varieties !== undefined && !isStrList(l.varieties)) errors.push(`varieties must be a list of names`);
-  if (l.form !== undefined && !FORMS.includes(l.form)) errors.push(`form must be one of: ${FORMS.join(", ")}`);
+  if (l.form !== undefined && !formsFor(l.pathCrop).includes(l.form)) errors.push(`form must be one of: ${formsFor(l.pathCrop).join(", ")}`);
   errors.push(...["processed_by", "roasted_by", "sold_by"].flatMap((k) => partyErrors(k, l[k], producers)));
   if (l.traceability !== undefined && !TRACEABILITY.includes(l.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
   if (l.quantity_kg !== undefined && !(isNum(l.quantity_kg) && l.quantity_kg > 0)) errors.push(`quantity_kg must be a positive number`);
@@ -368,7 +380,7 @@ export function validateStory(s) {
   }
   if (s.process !== undefined) {
     if (!isStrList(s.process)) errors.push(`process must be a list, e.g. [washed]`);
-    else for (const p of s.process) if (!PROCESSES.includes(p)) errors.push(`process "${p}" is not one of: ${PROCESSES.join(", ")}`);
+    else for (const p of s.process) if (!processesFor(s.crop).includes(p)) errors.push(`process "${p}" is not a ${s.crop} process (${processesFor(s.crop).join(", ")})`);
   }
   if (s.varieties !== undefined && !isStrList(s.varieties)) errors.push(`varieties must be a list of names`);
   if (s.tasting_notes !== undefined) {

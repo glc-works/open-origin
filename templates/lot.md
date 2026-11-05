@@ -6,8 +6,8 @@
 id: L-Q4ZK8M2P                     # L- + 8 karakter, tidak pernah diubah. Buat baru: npm run new-id / never changes
 name: Gayo Honey                   # nama jual lot / the name the lot is sold under
 date: 2025-06                      # panen atau produksi: YYYY, YYYY-MM atau YYYY-MM-DD / harvest or production date
-form: green                        # cherry | parchment | green | roasted | raw | dried | processed
-process: honey                     # washed | natural | honey | wet-hulled | anaerobic | fermented | sun-dried | other
+form: green                        # kopi: cherry | parchment | green | roasted; lainnya lihat CONTRIBUTING / other crops: see CONTRIBUTING
+process: honey                     # tergantung komoditas / depends on the crop, see CONTRIBUTING
 varieties: [Gayo 1, Ateng Super]
 quantity_kg: 300
 traceability: farm                 # jika beda dari cerita / only if it differs from the story

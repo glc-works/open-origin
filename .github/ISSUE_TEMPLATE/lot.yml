@@ -22,11 +22,12 @@ body:
       label: Harvest or production date (YYYY, YYYY-MM or YYYY-MM-DD)
       placeholder: 2025-06
     validations: { required: true }
-  - type: dropdown
+  - type: input
     id: form
     attributes:
-      label: Form
-      options: [cherry, parchment, green, roasted, raw, dried, processed]
+      label: Form (optional)
+      description: "The state it is sold in. Coffee: cherry, parchment, green, roasted. Cocoa: pods, wet-beans, dried-beans, nibs, chocolate. Others: see the contributor guide."
+      placeholder: green
   - type: input
     id: process
     attributes:

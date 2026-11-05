@@ -73,12 +73,12 @@ body:
     attributes:
       label: Varieties (optional, separate with commas)
       placeholder: "Tim Tim, Ateng Super"
-  - type: dropdown
+  - type: input
     id: process
     attributes:
       label: Process (optional)
-      multiple: true
-      options: [washed, natural, honey, wet-hulled, anaerobic, fermented, sun-dried, other]
+      description: "Separate with commas. Coffee: washed, natural, honey, wet-hulled, anaerobic, fermented. Cocoa: fermented, unfermented, sun-dried, machine-dried. Tea: white, green, oolong, black, dark. Others: see the contributor guide."
+      placeholder: washed
   - type: input
     id: harvest
     attributes:

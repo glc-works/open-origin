@@ -2,12 +2,14 @@
 import { mkdir, writeFile, copyFile, cp, rm, access } from "node:fs/promises";
 import path from "node:path";
 import { marked } from "marked";
-import { isHttpUrl, QUALITY, FORMS, TRACEABILITY, loadLots, validateLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 
 const STAGE_LABEL = { farm: "On the farm", harvest: "Harvest", process: "Processing", dry: "Drying", sort: "Sorting", roast: "Roasting", brew: "In the cup", market: "To market", other: "Along the way" };
+// "apis-dorsata" -> "Apis dorsata", "dried-beans" -> "Dried beans"
+const pretty = (x) => { const t = String(x).replace(/-/g, " "); return t[0].toUpperCase() + t.slice(1); };
 const tagFor = (s) => (s.kind === "movement"
   ? `<span class="species movement">Movement</span>`
-  : `<span class="species ${esc(s.species)}">${esc(s.species)}</span>`);
+  : `<span class="species ${esc(s.species)}">${esc(pretty(s.species))}</span>`);
 
 const DIST = path.join(ROOT, "dist");
 
@@ -135,9 +137,11 @@ function strip() {
   const pct = (lon) => ((lon - MIN) / (MAX - MIN)) * 100;
   const byCountry = new Map();
   for (const s of stories) {
-    if (!s.coords) continue;
+    // A story without its own coordinates is placed at its origin profile's.
+    const coords = s.coords || s.originStory?.coords;
+    if (!coords) continue;
     const c = byCountry.get(s.country) || { lons: [], n: 0 };
-    c.lons.push(s.coords[1]); c.n++;
+    c.lons.push(coords[1]); c.n++;
     byCountry.set(s.country, c);
   }
   const ticks = [];
@@ -253,10 +257,9 @@ ${foot}`;
 // Renders a story in its original language (t = null) or in one of its translations.
 // A party (processed_by, sold_by) is a name, or a producer id that links to the profile.
 const party = (v, prefix) => { const p = producers.find((x) => String(x.id) === String(v)); return p ? `<a href="${prefix}${producerHref(p)}">${esc(p.name)}</a>` : esc(v); };
-const FORM_LABEL = { cherry: "Cherry", parchment: "Parchment", green: "Green", roasted: "Roasted", raw: "Raw", dried: "Dried", processed: "Processed" };
 const lotTable = (list, crop, prefix) => `<div class="table-wrap"><table class="lots"><thead><tr><th>Lot</th><th>What it is</th><th>Quality</th><th>Tested by</th></tr></thead><tbody>
     ${list.map((l) => `<tr id="${esc(l.id)}"><td><strong>${esc(l.name || l.date)}</strong><br><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}<code>${esc(l.id)}</code>${l.quantity_kg ? ` · ${esc(l.quantity_kg)} kg` : ""}${l.traceability ? ` · ${esc(TRACE_LABEL[l.traceability])}` : ""}</span></td>
-      <td>${[l.form ? FORM_LABEL[l.form] : "", (l.process || []).map((x) => x[0].toUpperCase() + x.slice(1)).join(" · "), (l.varieties || []).map((v) => { const k = varietyFor(crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", ")].filter(Boolean).map((x) => `<div>${x.startsWith("<") ? x : esc(x)}</div>`).join("")}
+      <td>${[l.form ? pretty(l.form) : "", (l.process || []).map(pretty).join(" · "), (l.varieties || []).map((v) => { const k = varietyFor(crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", ")].filter(Boolean).map((x) => `<div>${x.startsWith("<") ? x : esc(x)}</div>`).join("")}
         ${l.processed_by ? `<div class="muted">Processed by ${party(l.processed_by, prefix)}</div>` : ""}${l.roasted_by ? `<div class="muted">Roasted by ${party(l.roasted_by, prefix)}</div>` : ""}${l.sold_by ? `<div class="muted">Sold by ${party(l.sold_by, prefix)}</div>` : ""}</td>
       <td>${Object.entries(l.quality || {}).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("") || `<span class="muted">Not measured</span>`}${l.notes ? `<div class="muted">${esc(l.notes)}</div>` : ""}</td>
       <td>${l.quality && Object.keys(l.quality).length ? esc(l.tested_by || "Self-reported") : ""}${l.certificate ? `<br><a href="${esc(l.certificate)}">Certificate</a>` : ""}${(l.sources || []).map((u, i) => `<br><a href="${esc(u)}">Source${l.sources.length > 1 ? ` ${i + 1}` : ""}</a>`).join("")}</td></tr>`).join("")}
@@ -305,13 +308,13 @@ function storyPage(s, t = null) {
     <div class="where">${flag(s.country)} ${esc(countryName.of(s.country))}${v.region ? ` · <span lang="${esc(v.language)}">${esc(v.region)}</span>` : ""}</div>
     ${s.kind === "movement"
       ? `<span class="species movement">${esc(CROPS[s.crop].label)} · Movement</span>`
-      : `<span class="species ${esc(s.species)}">${esc(CROPS[s.crop].label)} · ${esc(s.species)}</span>`}
+      : `<span class="species ${esc(s.species)}">${esc(CROPS[s.crop].label)} · ${esc(pretty(s.species))}</span>`}
     ${switcher}
     <dl class="passport">
       ${rowHtml("Producer", s.producerProfile ? `<a class="term" href="${prefix}${producerHref(s.producerProfile)}">${esc(s.producer)}</a>` : esc(s.producer))}
       ${row("Altitude", fmtAlt(s.altitude_masl))}
       ${rowHtml("Varieties", (s.varieties || []).map((v) => { const k = varietyFor(s.crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", "))}
-      ${rowHtml("Species", s.species ? termLink(s.crop, s.species, prefix) : "")}
+      ${rowHtml("Species", s.species ? termLink(s.crop, s.species, prefix, pretty(s.species)) : "")}
       ${rowHtml("Process", (s.process || []).map((p) => termLink(s.crop, p, prefix)).join(", "))}
       ${row("Harvest", s.harvest)}
       ${row("Traceability", s.traceability && TRACE_LABEL[s.traceability])}
@@ -326,9 +329,9 @@ function storyPage(s, t = null) {
   <div class="prose">
     ${s.photo ? `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(s, prefix))}" alt=""><figcaption>Photo: ${esc(s.photo_credit)}</figcaption></figure>` : ""}
     <div class="text" lang="${esc(v.language)}" dir="${dir}">${cite(marked.parse(v.body), sources.length)}</div>
-    ${s.journey?.length ? `<h2 class="journey-title">From farm to cup</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage">${esc(STAGE_LABEL[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
+    ${s.journey?.length ? `<h2 class="journey-title">${esc(CROPS[s.crop].journey)}</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage">${esc(j.stage === "brew" ? CROPS[s.crop].use : STAGE_LABEL[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
     ${s.lots.length ? `<h2 class="journey-title">Lots</h2>
-    <p class="part-of">A lot is one harvest, shipment or production run, the thing a buyer actually buys. Process, variety and quality belong to the lot, so each one is listed on its own. ${termLink(s.crop, "cupping-and-q-grading", prefix, "How coffee is scored")}</p>
+    <p class="part-of">A lot is one harvest, shipment or production run, the thing a buyer actually buys. Process, variety and quality belong to the lot, so each one is listed on its own. ${learnHref(s.crop, "cupping-and-q-grading") ? termLink(s.crop, "cupping-and-q-grading", prefix, "How coffee is scored") : ""}</p>
     ${lotTable(s.lots, s.crop, prefix)}` : ""}
     ${s.kind === "origin" ? `<h2 class="journey-title">Farmers from this origin</h2>${s.farms.length
       ? `<div class="cards">${s.farms.map((f) => card(f).replace(`href="${href(f)}"`, `href="${prefix}${href(f)}"`)).join("")}</div>`
@@ -461,7 +464,7 @@ async function exportData() {
   await writeFile(path.join(DIST, "data", "stories.json"), JSON.stringify(full, null, 2));
   // Lots: one row per lot, plus quality in long format (one row per measured value) so every crop fits one table.
   const LFIELDS = [["id", "string", "permanent lot id, e.g. L-K7M2XQ9P"], ["story_id", "string", ""], ["crop", "string", ""], ["name", "string", ""],
-    ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"], ["form", "string", FORMS.join(", ")], ["process", "string", "separated by ; "], ["varieties", "string", "separated by ; "],
+    ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"], ["form", "string", "state the lot is sold in; the options depend on the crop"], ["process", "string", "separated by ; "], ["varieties", "string", "separated by ; "],
     ["quantity_kg", "number", ""], ["traceability", "string", ""], ["processed_by", "string", "name or producer id"], ["roasted_by", "string", "name or producer id"], ["sold_by", "string", "name or producer id"],
     ["tested_by", "string", ""], ["certificate", "string", ""]];
   const lrows = lots.map((l) => ({ id: l.id, story_id: id(l.story), crop: l.story.crop, name: l.name || "", date: String(l.date), form: l.form || "",

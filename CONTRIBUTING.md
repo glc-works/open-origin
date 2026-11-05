@@ -61,7 +61,7 @@ Every story, producer profile and lot has an `id` that never changes: a prefix, 
 
 ## Producer profiles
 
-Everyone who shapes a lot can have one profile page: a farmer, producer group or estate, a processing facility (mill or washing station) or a roaster. The page that gathers all their stories, lots and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent` are required. The `id` is `P-` and 8 capital letters or digits, e.g. `P-H7FAQRHQ` (see [Permanent ids](#permanent-ids)). Fill in whatever else the producer is happy to share: `type` (farmer, group, estate, processor, roaster), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo`, `crops` and `sources`. The text below the frontmatter is an optional short introduction.
+Everyone who shapes a lot can have one profile page: a farmer, producer group or estate, a processing facility (mill or washing station) or a roaster. The page gathers all their stories, lots and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent` are required. The `id` is `P-` and 8 capital letters or digits, e.g. `P-H7FAQRHQ` (see [Permanent ids](#permanent-ids)). Fill in whatever else the producer is happy to share: `type` (farmer, group, estate, processor, roaster), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo`, `crops` and `sources`. The text below the frontmatter is an optional short introduction.
 
 `consent: true` means the people named agreed. `consent: public` is allowed only for an organisation (any type except `farmer`), and only when every fact has already been published, by the organisation itself or by its buyers, with those links in `sources`. Stories may use `consent: public` on the same terms, except a story told by a farmer. The page then says it was put together from published sources and invites the organisation to correct or remove it.
 
@@ -92,8 +92,7 @@ lots/<crop>/<country>/<story-slug>/<lot-name>.md
 Copy [`templates/lot.md`](templates/lot.md). Only `id` (`L-` plus 8 characters, see [Permanent ids](#permanent-ids)) and `date` are required. Everything else is optional:
 
 - `name`: the name it is sold under, e.g. `Gayo Honey`
-- `form`: cherry, parchment, green, roasted, raw, dried or processed
-- `process`: washed, natural, honey, wet-hulled, anaerobic, fermented, sun-dried or other
+- `form`: the state it is sold in, and `process` (also used on stories). Both depend on the crop, see [Processes and forms per crop](#processes-and-forms-per-crop)
 - `varieties`, `quantity_kg`, and `traceability` if it differs from the story
 - `processed_by`: leave it out when the farmer or producer processed the lot themselves. Fill it in when someone else did, such as a cooperative, collector or washing station. In Gayo, for example, farmers often sell wet parchment and a processor does the wet-hulling and drying.
 - `roasted_by` and `sold_by`: who roasted and who sells it
@@ -111,9 +110,23 @@ Quality fields per crop:
 | spice | grade, moisture_pct, density_g_l, volatile_oil_pct |
 | vanilla | grade, moisture_pct, pod_length_cm, vanillin_pct |
 | honey | botanical_source, moisture_pct, hmf_mg_kg, diastase_schade |
-| sugar | form, moisture_pct, colour, sucrose_pct |
+| sugar | moisture_pct, colour, sucrose_pct |
 
 The story page lists every lot, newest first, and marks results without `tested_by` as self-reported. `/s/<lot id>/` jumps straight to a lot. The fields are set in `scripts/lib.mjs` (`QUALITY`).
+
+### Processes and forms per crop
+
+| Crop | `process` | Lot `form` |
+|---|---|---|
+| coffee | washed, natural, honey, wet-hulled, anaerobic, fermented, other | cherry, parchment, green, roasted |
+| cocoa | fermented, unfermented, sun-dried, machine-dried, other | pods, wet-beans, dried-beans, nibs, chocolate |
+| tea | white, green, oolong, black, dark, other | fresh-leaf, made-tea |
+| spice | sun-dried, machine-dried, fermented, other | fresh, dried, ground, oil |
+| vanilla | sun-cured, oven-cured, other | green-pods, cured-pods, extract, powder |
+| honey | raw, filtered, dehumidified, creamed, other | comb, liquid, crystallised |
+| sugar | open-pan, vacuum, other | sap, block, granulated, liquid |
+
+The lists live in `scripts/lib.mjs` (`CROPS`). If something real does not fit, use `other` and open an issue so we can add it.
 
 ## Translations
 
