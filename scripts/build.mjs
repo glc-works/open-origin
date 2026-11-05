@@ -1,0 +1,237 @@
+// Builds the static site into dist/ from the story files. No framework: plain HTML + one stylesheet.
+import { mkdir, writeFile, copyFile, cp, rm, access } from "node:fs/promises";
+import path from "node:path";
+import { marked } from "marked";
+import { ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins } from "./lib.mjs";
+
+const STAGE_LABEL = { farm: "On the farm", harvest: "Harvest", process: "Processing", dry: "Drying", sort: "Sorting", roast: "Roasting", brew: "In the cup", market: "To market", other: "Along the way" };
+const tagFor = (s) => (s.kind === "movement"
+  ? `<span class="species movement">Movement</span>`
+  : `<span class="species ${esc(s.species)}">${esc(s.species)}</span>`);
+
+const DIST = path.join(ROOT, "dist");
+const REPO = "https://github.com/glc-works/open-origin";
+const SUBMIT = `${REPO}/issues/new?template=story.yml`;
+const countryName = new Intl.DisplayNames(["en"], { type: "region" });
+const langName = new Intl.DisplayNames(["en"], { type: "language" });
+
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const flag = (cc) => String(cc).toUpperCase().replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
+const fmtAlt = (a) => (Array.isArray(a) ? `${a[0].toLocaleString("en")}–${a[1].toLocaleString("en")} masl` : "");
+const TOLD = { farmer: "the farmer", "producer-group": "the producer group", roaster: "a roaster", researcher: "a researcher", editor: "the editors", other: "a contributor" };
+
+const loaded = await loadStories();
+const stories = loaded.stories.filter((s) => validateStory(s).length === 0);
+for (const s of stories) s.translations = s.translations.filter((t) => validateTranslation(t).length === 0);
+linkOrigins(stories);
+const origins = stories.filter((s) => s.kind === "origin");
+const voices = stories.filter((s) => s.kind !== "origin");
+const submitFor = (o) => `${SUBMIT}&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region)}`;
+const nativeName = (code) => { try { return new Intl.DisplayNames([code], { type: "language" }).of(code); } catch { return code; } };
+const dirOf = (lang) => (RTL.includes(String(lang).split("-")[0]) ? "rtl" : "ltr");
+const href = (s) => `stories/${s.crop}/${s.pathCountry}/${s.slug}/`;
+const photoSrc = (s, prefix) => (/^https?:\/\//.test(s.photo) ? s.photo : prefix + String(s.photo).replace(/^\/+/, ""));
+
+function head(title, description, prefix) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(description)}">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(description)}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="${prefix}style.css">
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <a class="brand" href="${prefix}">Open<span>·</span>Origin</a>
+  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#contribute">Contribute</a><a href="${REPO}">GitHub</a></nav>
+</div></header>`;
+}
+
+const foot = `<footer class="site-footer"><div class="wrap">
+  <p>Open Origin · stories from where it grows.</p>
+  <p>Stories are CC BY 4.0, credited to the people who told them. Code is MIT. Altitude and tasting notes are typical ranges; every harvest is different.</p>
+</div></footer>
+</body>
+</html>`;
+
+function card(s) {
+  const cover = s.photo
+    ? `<img src="${esc(photoSrc(s, ""))}" alt="" loading="lazy">`
+    : s.altitude_masl ? `<span class="alt">${esc(s.altitude_masl[1].toLocaleString("en"))}<small> masl</small></span>` : "";
+  const facts = [fmtAlt(s.altitude_masl), (s.varieties || []).slice(0, 2).join(", "), (s.process || []).join(" · ")].filter(Boolean);
+  return `<a class="card" href="${href(s)}" data-crop="${esc(s.crop)}" data-country="${esc(s.country)}" data-kind="${esc(s.kind)}">
+  <div class="cover">${cover}${tagFor(s)}</div>
+  <div class="body">
+    <div class="place">${flag(s.country)} ${esc(countryName.of(s.country))} · ${esc(s.region)}</div>
+    <h3>${esc(s.title)}</h3>
+    <p>${esc(s.summary)}</p>
+    ${facts.length ? `<div class="facts">${facts.map((f) => `<span>${esc(f)}</span>`).join("")}</div>` : ""}
+    ${s.tasting_notes?.length ? `<div class="notes">${s.tasting_notes.map((n) => `<span>${esc(n)}</span>`).join("")}</div>` : ""}
+    ${s.translations.length ? `<div class="facts"><span>Also in: ${s.translations.map((t) => esc(nativeName(t.language))).join(", ")}</span></div>` : ""}
+    <footer>${s.kind === "origin"
+      ? `Origin profile · ${s.farms.length ? `${s.farms.length} local ${s.farms.length === 1 ? "story" : "stories"}` : "waiting for farmer stories"}`
+      : `${s.originStory ? `Part of ${esc(s.originStory.title.split(",")[0])} · ` : ""}Told by ${esc(TOLD[s.told_by])} · ${esc(s.producer)}`}</footer>
+  </div>
+</a>`;
+}
+
+function strip() {
+  // One stop per country, placed by the average longitude of its stories.
+  const MIN = -120, MAX = 160;
+  const pct = (lon) => ((lon - MIN) / (MAX - MIN)) * 100;
+  const byCountry = new Map();
+  for (const s of stories) {
+    if (!s.coords) continue;
+    const c = byCountry.get(s.country) || { lons: [], n: 0 };
+    c.lons.push(s.coords[1]); c.n++;
+    byCountry.set(s.country, c);
+  }
+  const ticks = [];
+  for (let l = -90; l <= 150; l += 30) ticks.push(`<div class="tick" style="left:${pct(l)}%">${Math.abs(l)}°${l < 0 ? "W" : l > 0 ? "E" : ""}</div>`);
+  const stops = [...byCountry].map(([cc, c]) => {
+    const lon = c.lons.reduce((a, b) => a + b, 0) / c.lons.length;
+    return `<a class="stop" style="left:${pct(lon).toFixed(2)}%" href="#stories" data-jump="${esc(cc)}"><span>${esc(countryName.of(cc))}</span><span class="count">${c.n} ${c.n === 1 ? "story" : "stories"}</span><span class="stem"></span><span class="dot"></span></a>`;
+  });
+  return `<nav class="route" aria-label="Stories by longitude"><div class="route-inner">${ticks.join("")}<div class="route-belt"></div>${stops.join("")}</div></nav>
+<p class="route-note">Each dot is a country, placed by longitude. The empty stretches are waiting for your stories.</p>`;
+}
+
+function indexPage() {
+  const crops = [...new Set(stories.map((s) => s.crop))];
+  const countries = [...new Set(stories.map((s) => s.country))].sort();
+  const btn = (key, val, label, on = false) => `<button type="button" data-${key}="${esc(val)}" aria-pressed="${on}">${esc(label)}</button>`;
+  return `${head("Open Origin", "Open, community-written stories of coffee and other crops, told from where they grow.", "")}
+<main>
+<section class="hero" style="border-top:0"><div class="wrap">
+  <div class="eyebrow">An open collection · ${stories.length} stories · ${countries.length} ${countries.length === 1 ? "country" : "countries"}</div>
+  <h1>Every cup starts with <em>someone's</em> harvest.</h1>
+  <p class="lede">Open Origin collects the stories behind coffee, cocoa, tea, spices, vanilla, honey and palm sugar: the land, the process and the people, told in their own words. Anyone can read them, reuse them and add their own.</p>
+  <div class="cta"><a class="btn primary" href="${SUBMIT}">Share a story</a><a class="btn" href="#stories">Read the stories</a></div>
+  ${strip()}
+</div></section>
+
+<section id="stories"><div class="wrap">
+  <div class="section-head"><div class="eyebrow">The collection</div><h2>Stories from the farms</h2>
+  <p>Each origin has a profile of its land and history, and below it the stories of the farmers and movements who work there. We are starting with coffee from the Indonesian archipelago.</p></div>
+  <div class="filters" role="group" aria-label="Filter stories">
+    ${btn("country", "all", "All", true)}
+    ${countries.map((c) => btn("country", c, `${flag(c)} ${countryName.of(c)}`)).join("")}
+    ${crops.length > 1 ? crops.map((c) => btn("crop", c, CROPS[c].label)).join("") : ""}
+  </div>
+  <h3 class="group-title">Origins <span>Profiles of growing regions</span></h3>
+  <div class="cards">${origins.map(card).join("\n")}</div>
+  <h3 class="group-title" id="voices">Farmers &amp; movements <span>Each farm tells its origin differently</span></h3>
+  ${voices.length
+    ? `<div class="cards">${voices.map(card).join("\n")}</div>`
+    : `<div class="empty"><p><strong>The first farmer stories are still to come.</strong> Two farms in Gayo can taste completely different: another hill, another process, another family. That difference is what Open Origin is for. Grow coffee, or work with people who do? Tell their story.</p><a class="btn primary" href="${SUBMIT}">Share a farmer story</a></div>`}
+</div></section>
+
+<section id="contribute"><div class="wrap">
+  <div class="section-head"><div class="eyebrow">Contribute</div><h2>Tell us where it grows</h2>
+  <p>Farmers, cooperatives, roasters and researchers are all welcome. You don't need to know code: fill in a form and we turn it into a page.</p></div>
+  <div class="steps">
+    <div><b>Step 1</b><h3>Fill in the form</h3><p>Where it grows, who grows it, how it is processed, and the story in any language.</p></div>
+    <div><b>Step 2</b><h3>Ask for consent</h3><p>Everyone named or pictured must agree. Locations are rounded so no one's home can be found.</p></div>
+    <div><b>Step 3</b><h3>We review</h3><p>A maintainer checks the details with you and turns your submission into a story page.</p></div>
+    <div><b>Step 4</b><h3>It goes live</h3><p>Your story is published under CC BY 4.0 with your name on it.</p></div>
+  </div>
+  <div class="cta"><a class="btn primary" href="${SUBMIT}">Share a story</a><a class="btn" href="${REPO}/blob/main/CONTRIBUTING.md">Contributor guide</a></div>
+</div></section>
+</main>
+<script>
+const buttons = document.querySelectorAll(".filters button");
+function apply(btn) {
+  buttons.forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+  const country = btn.dataset.country, crop = btn.dataset.crop;
+  document.querySelectorAll("#stories .card").forEach((c) => {
+    c.hidden = (country && country !== "all" && c.dataset.country !== country) || (crop && c.dataset.crop !== crop);
+  });
+}
+buttons.forEach((b) => b.addEventListener("click", () => apply(b)));
+document.querySelectorAll("[data-jump]").forEach((a) => a.addEventListener("click", () => {
+  const b = document.querySelector('.filters button[data-country="' + a.dataset.jump + '"]');
+  if (b) apply(b);
+}));
+</script>
+${foot}`;
+}
+
+// Renders a story in its original language (t = null) or in one of its translations.
+function storyPage(s, t = null) {
+  const prefix = t ? "../../../../../" : "../../../../";
+  const v = t ? { ...s, ...Object.fromEntries(["title", "summary", "region", "tasting_notes"].filter((k) => t[k]).map((k) => [k, t[k]])), body: t.body, language: t.language } : s;
+  const journeyText = (j, i) => (t?.journey ? t.journey[i] : j.text);
+  const row = (k, val) => (val ? `<div><dt>${k}</dt><dd>${esc(val)}</dd></div>` : "");
+  const sources = (s.sources || []).filter(Boolean);
+  const storyRoot = t ? "../" : "";
+  const langs = [{ lang: s.language, href: storyRoot || "./" }, ...s.translations.map((x) => ({ lang: x.language, href: `${storyRoot}${x.language}/` }))];
+  const switcher = langs.length > 1
+    ? `<nav class="langs" aria-label="Read in another language">${langs.map((l) => l.lang === v.language
+        ? `<span aria-current="page">${esc(nativeName(l.lang))}</span>`
+        : `<a href="${l.href}" hreflang="${esc(l.lang)}" lang="${esc(l.lang)}">${esc(nativeName(l.lang))}</a>`).join("")}</nav>`
+    : "";
+  const dir = dirOf(v.language);
+  return `${head(`${v.title} · Open Origin`, v.summary, prefix)}
+<main><div class="wrap">
+<article class="story">
+  <div>
+    <a class="back" href="${prefix}#stories">← All stories</a>
+    <h1 style="margin-top:18px" lang="${esc(v.language)}" dir="${dir}">${esc(v.title)}</h1>
+    <div class="where">${flag(s.country)} ${esc(countryName.of(s.country))} · <span lang="${esc(v.language)}">${esc(v.region)}</span></div>
+    ${s.kind === "movement"
+      ? `<span class="species movement">${esc(CROPS[s.crop].label)} · Movement</span>`
+      : `<span class="species ${esc(s.species)}">${esc(CROPS[s.crop].label)} · ${esc(s.species)}</span>`}
+    ${switcher}
+    <dl class="passport">
+      ${row("Producer", s.producer)}
+      ${row("Altitude", fmtAlt(s.altitude_masl))}
+      ${row("Varieties", (s.varieties || []).join(", "))}
+      ${row("Process", (s.process || []).join(", "))}
+      ${row("Harvest", s.harvest)}
+      ${row("Tastes of", (v.tasting_notes || []).join(", "))}
+      ${row("Told by", TOLD[s.told_by])}
+      ${row("Told in", nativeName(s.language))}
+      ${t ? row("Translated by", t.translator) : ""}
+      ${row("Added by", s.contributor)}
+    </dl>
+  </div>
+  <div class="prose">
+    ${s.photo ? `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(s, prefix))}" alt=""><figcaption>Photo: ${esc(s.photo_credit)}</figcaption></figure>` : ""}
+    <div class="text" lang="${esc(v.language)}" dir="${dir}">${marked.parse(v.body)}</div>
+    ${s.journey?.length ? `<h2 class="journey-title">From farm to cup</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage">${esc(STAGE_LABEL[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
+    ${s.kind === "origin" ? `<h2 class="journey-title">Farmers from this origin</h2>${s.farms.length
+      ? `<div class="cards">${s.farms.map((f) => card(f).replace(`href="${href(f)}"`, `href="${prefix}${href(f)}"`)).join("")}</div>`
+      : `<div class="empty"><p>No farmer has told their own story from here yet. Every farm in this region grows it a little differently.</p><a class="btn primary" href="${submitFor(s)}">Tell a farm's story</a></div>`}` : ""}
+    ${s.originStory ? `<p class="part-of">Part of the origin <a href="${prefix}${href(s.originStory)}">${esc(s.originStory.title)}</a></p>` : ""}
+    ${sources.length ? `<p class="eyebrow" style="margin-top:2em">Sources</p><ul>${sources.map((u) => `<li><a href="${esc(u)}">${esc(u)}</a></li>`).join("")}</ul>` : ""}
+    <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc((t || s).file)}">Suggest an edit</a> · <a href="${REPO}/issues/new?template=translation.yml&amp;title=${encodeURIComponent(`[Translation] ${s.title}`)}">Translate this story</a></p>
+  </div>
+</article>
+</div></main>
+${foot}`;
+}
+
+await rm(DIST, { recursive: true, force: true });
+await mkdir(DIST, { recursive: true });
+await copyFile(path.join(ROOT, "site", "style.css"), path.join(DIST, "style.css"));
+try { await access(path.join(ROOT, "photos")); await cp(path.join(ROOT, "photos"), path.join(DIST, "photos"), { recursive: true }); } catch {}
+await writeFile(path.join(DIST, "index.html"), indexPage());
+for (const s of stories) {
+  const dir = path.join(DIST, href(s));
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, "index.html"), storyPage(s));
+  for (const t of s.translations) {
+    await mkdir(path.join(dir, t.language), { recursive: true });
+    await writeFile(path.join(dir, t.language, "index.html"), storyPage(s, t));
+  }
+}
+await writeFile(path.join(DIST, ".nojekyll"), "");
+const nT = stories.reduce((n, s) => n + s.translations.length, 0);
+console.log(`✓ Built ${stories.length} stories and ${nT} translations into dist/`);

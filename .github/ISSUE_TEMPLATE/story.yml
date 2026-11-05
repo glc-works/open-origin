@@ -1,0 +1,148 @@
+name: Share a story
+description: Tell the story of a coffee (or other crop) from where it grows. No coding needed.
+title: "[Story] "
+labels: ["story"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for sharing. Write in any language you like (Bahasa Indonesia, English, Español, ...).
+        A maintainer will review your story with you, then publish it under CC BY 4.0 with your name on it.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of story?
+      description: "farm: one farmer, farm or cooperative. movement: a community or initiative and what it changes. origin: a profile of a whole growing region."
+      options: [farm, movement, origin]
+    validations: { required: true }
+  - type: dropdown
+    id: crop
+    attributes:
+      label: Crop
+      options: [coffee, cocoa, tea, spice, vanilla, honey, sugar]
+    validations: { required: true }
+  - type: input
+    id: title
+    attributes:
+      label: Story title
+      placeholder: "Gayo, coffee from the shores of Lake Laut Tawar"
+    validations: { required: true }
+  - type: input
+    id: country
+    attributes:
+      label: Country code
+      description: Two letters, e.g. ID (Indonesia), ET (Ethiopia), CO (Colombia), BR (Brazil).
+      placeholder: ID
+    validations: { required: true }
+  - type: input
+    id: region
+    attributes:
+      label: Region
+      placeholder: "Bener Meriah, Aceh"
+    validations: { required: true }
+  - type: input
+    id: origin
+    attributes:
+      label: Which origin is this part of? (optional)
+      description: The short name of an origin already on the site, e.g. gayo, toraja, kintamani. Leave empty if it is new.
+  - type: input
+    id: producer
+    attributes:
+      label: Farmer, farm or cooperative
+      description: Use a name only if that person agreed. "A family farm near ..." is fine too.
+    validations: { required: true }
+  - type: input
+    id: species
+    attributes:
+      label: Species or type
+      description: "Coffee: arabica, robusta, liberica, excelsa. Cocoa: criollo, forastero, trinitario, nacional. Others: see the contributor guide. Optional for movements."
+      placeholder: arabica
+  - type: input
+    id: altitude
+    attributes:
+      label: Altitude in metres (optional)
+      placeholder: "1200-1600"
+  - type: input
+    id: varieties
+    attributes:
+      label: Varieties (optional, separate with commas)
+      placeholder: "Tim Tim, Ateng Super"
+  - type: dropdown
+    id: process
+    attributes:
+      label: Process (optional)
+      multiple: true
+      options: [washed, natural, honey, wet-hulled, anaerobic, fermented, sun-dried, other]
+  - type: input
+    id: harvest
+    attributes:
+      label: Harvest months (optional)
+      placeholder: "Oct–Jun"
+  - type: input
+    id: tasting_notes
+    attributes:
+      label: Tasting notes (optional, up to 4, separate with commas)
+      placeholder: "dark chocolate, spice, herbs"
+  - type: input
+    id: town
+    attributes:
+      label: Nearest town or village (optional)
+      description: Used to place the story on the map. We round it so no one's home can be found.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Short summary
+      description: One or two sentences, up to 200 characters. Shown on the story card.
+    validations: { required: true }
+  - type: textarea
+    id: story
+    attributes:
+      label: The story
+      description: The land, the people, the process, the history. A few paragraphs is perfect.
+    validations: { required: true }
+  - type: textarea
+    id: journey
+    attributes:
+      label: From farm to cup (optional)
+      description: |
+        The steps from the tree to the cup, one per line, starting with the stage. Stages: farm, harvest, process, dry, sort, roast, brew, market, other.
+      placeholder: |
+        harvest: We pick only red cherries, three rounds per season.
+        process: Pulped the same day and fermented overnight in buckets.
+        dry: Dried on raised beds for 3 weeks.
+  - type: textarea
+    id: photo
+    attributes:
+      label: Photo (optional)
+      description: Drag one photo here. Only photos you took or have permission to share.
+  - type: input
+    id: photo_credit
+    attributes:
+      label: Photo credit (optional)
+  - type: dropdown
+    id: told_by
+    attributes:
+      label: Who is telling this story?
+      options: [farmer, producer-group, roaster, researcher, other]
+    validations: { required: true }
+  - type: input
+    id: language
+    attributes:
+      label: Language of the story
+      description: Two-letter code, e.g. id, en, es, pt, am.
+      placeholder: id
+    validations: { required: true }
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources (optional)
+      description: Links that back up historical facts, one per line.
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Consent
+      options:
+        - label: Everyone named or pictured in this story agreed to have it published.
+          required: true
+        - label: I agree to publish this story and photo under CC BY 4.0.
+          required: true
