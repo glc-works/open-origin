@@ -43,7 +43,7 @@ for (const b of batches) {
   }
 }
 if (failed) {
-  console.error(`\n${failed} of ${stories.length + translations.length} files need fixes.`);
+  console.error(`\n${failed} of ${stories.length + translations.length + knowledge.length + batches.length} files need fixes.`);
   process.exit(1);
 }
 console.log(`✓ ${stories.length} stories, ${translations.length} translations, ${knowledge.length} Learn entries and ${batches.length} batches valid.`);

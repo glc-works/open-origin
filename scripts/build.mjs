@@ -61,7 +61,7 @@ const qField = (crop, k) => (QUALITY[crop] || []).find((f) => f[0] === k);
 const qText = (crop, k, v) => { const f = qField(crop, k); return f ? `${f[1]} ${v}${f[2] ? ` ${f[2]}` : ""}` : `${k} ${v}`; };
 const origins = stories.filter((s) => s.kind === "origin");
 const voices = stories.filter((s) => s.kind !== "origin");
-const submitFor = (o) => `${SUBMIT}&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region)}`;
+const submitFor = (o) => `${SUBMIT}&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region || "")}`;
 const nativeName = (code) => { try { return new Intl.DisplayNames([code], { type: "language" }).of(code); } catch { return code; } };
 const dirOf = (lang) => (RTL.includes(String(lang).split("-")[0]) ? "rtl" : "ltr");
 const href = (s) => `stories/${s.crop}/${s.pathCountry}/${s.slug}/`;
@@ -105,7 +105,7 @@ function card(s) {
   return `<a class="card" href="${href(s)}" data-crop="${esc(s.crop)}" data-country="${esc(s.country)}" data-kind="${esc(s.kind)}">
   <div class="cover">${cover}${tagFor(s)}</div>
   <div class="body">
-    <div class="place">${flag(s.country)} ${esc(countryName.of(s.country))} · ${esc(s.region)}</div>
+    <div class="place">${flag(s.country)} ${esc(countryName.of(s.country))}${s.region ? ` · ${esc(s.region)}` : ""}</div>
     <h3>${esc(s.title)}</h3>
     <p>${esc(s.summary)}</p>
     ${facts.length ? `<div class="facts">${facts.map((f) => `<span>${esc(f)}</span>`).join("")}</div>` : ""}
@@ -267,7 +267,7 @@ function storyPage(s, t = null) {
     author: { "@type": s.told_by === "farmer" ? "Person" : "Organization", name: s.producer },
     contentLocation: {
       "@type": "Place",
-      name: s.region,
+      name: s.region || countryName.of(s.country),
       address: { "@type": "PostalAddress", addressRegion: s.region, addressCountry: s.country },
       ...(s.coords && { geo: { "@type": "GeoCoordinates", latitude: s.coords[0], longitude: s.coords[1] } }),
     },
@@ -280,7 +280,7 @@ function storyPage(s, t = null) {
   <div>
     <a class="back" href="${prefix}#stories">← All stories</a>
     <h1 style="margin-top:18px" lang="${esc(v.language)}" dir="${dir}">${esc(v.title)}</h1>
-    <div class="where">${flag(s.country)} ${esc(countryName.of(s.country))} · <span lang="${esc(v.language)}">${esc(v.region)}</span></div>
+    <div class="where">${flag(s.country)} ${esc(countryName.of(s.country))}${v.region ? ` · <span lang="${esc(v.language)}">${esc(v.region)}</span>` : ""}</div>
     ${s.kind === "movement"
       ? `<span class="species movement">${esc(CROPS[s.crop].label)} · Movement</span>`
       : `<span class="species ${esc(s.species)}">${esc(CROPS[s.crop].label)} · ${esc(s.species)}</span>`}
@@ -360,7 +360,7 @@ async function exportData() {
   ];
   const id = (s) => `${s.crop}/${s.pathCountry}/${s.slug}`;
   const rows = stories.map((s) => ({
-    id: id(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : "", crop: s.crop, country: s.country, region: s.region,
+    id: id(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : "", crop: s.crop, country: s.country, region: s.region || "",
     producer: s.producer, species: s.species || "", altitude_min_masl: s.altitude_masl?.[0] ?? "", altitude_max_masl: s.altitude_masl?.[1] ?? "",
     varieties: (s.varieties || []).join("; "), process: (s.process || []).join("; "), harvest: s.harvest || "",
     tasting_notes: (s.tasting_notes || []).join("; "), latitude: s.coords?.[0] ?? "", longitude: s.coords?.[1] ?? "",

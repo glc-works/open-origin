@@ -142,6 +142,8 @@ export async function loadBatches() {
     const { data, content } = matter(await readFile(file, "utf8"));
     const parts = path.relative(BATCHES_DIR, file).split(path.sep);
     const [crop, country, storySlug, name] = parts;
+    // YAML reads an unquoted 2025-06-01 as a Date; keep it as the written YYYY-MM-DD text.
+    if (data.date instanceof Date) data.date = data.date.toISOString().slice(0, 10);
     out.push({ ...data, notes: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCrop: crop, pathCountry: country, storySlug, id: name ? name.replace(/\.md$/, "") : "" });
   }
   return out;
