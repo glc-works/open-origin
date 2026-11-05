@@ -11,7 +11,7 @@ The mark is three contour lines of a hill around the point of origin, in forest 
 | `badge.svg` | App icon, sticker, pin, social avatar |
 | `origin-*.svg` | Section names: origin stories, lots, producers, codes, learn, data |
 | `../logo.svg` | Favicon; follows the browser's light or dark mode |
-| `motion/intro.svg` | Animated mark: the point of origin appears, then the contour lines ripple out. For video intros and splash screens |
+| `motion/intro.svg` / `motion/intro-lockup.svg` | Animated mark (and mark + wordmark): the point of origin appears, closed contour rings draw around it, then a path opens through them from the outside in to the origin. For video intros and splash screens |
 | `motion/loading.svg` | Loading indicator for data: the contours build up from data points, then the point of origin lights up. Loops |
 
 Colours: forest `#26432E`, leaf `#355E40`, teal `#1F5F6B`, ink `#1C1D18`, muted `#5B5E52`. On dark backgrounds: `#7FB08A`, `#7FB6C2`, `#E6E6DC`, `#A1A496`.
