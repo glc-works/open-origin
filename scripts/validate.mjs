@@ -1,5 +1,5 @@
 // Checks every story file and exits non-zero with readable messages if any are invalid.
-import { loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge, loadBatches, validateBatch, loadProducers, validateProducer, linkProducers } from "./lib.mjs";
+import { loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge, loadBatches, validateBatch, loadProducers, validateProducer, linkProducers, duplicateIds } from "./lib.mjs";
 
 const { stories, translations } = await loadStories();
 let failed = 0;
@@ -44,8 +44,9 @@ for (const b of batches) {
     for (const e of errors) console.error(`  - ${e}`);
   }
 }
+const dupIds = duplicateIds(producers);
 for (const p of producers) {
-  const errors = validateProducer(p);
+  const errors = [...validateProducer(p), ...(dupIds.get(p.file) || [])];
   if (errors.length) {
     failed++;
     console.error(`\n✗ ${p.file}`);

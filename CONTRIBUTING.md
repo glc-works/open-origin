@@ -57,9 +57,9 @@ Write entries in your own words. Facts from catalogues such as World Coffee Rese
 
 ## Producer profiles
 
-A farmer, producer group or estate can have one profile page that gathers all their stories, batches and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `name` and `consent: true` are required; fill in whatever else the producer is happy to share: `type` (farmer, group, estate), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo` and `crops`. The text below the frontmatter is an optional short introduction.
+A farmer, producer group or estate can have one profile page that gathers all their stories, batches and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent: true` are required. The `id` is 8 characters (lowercase letters and digits, starting with a letter), e.g. `k7m2xq9p`; run `npm run new-id` for a fresh one, or leave it out and the check will suggest one. It never changes, so the name and the file can be renamed without breaking anything. Fill in whatever else the producer is happy to share: `type` (farmer, group, estate), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo` and `crops`. The text below the frontmatter is an optional short introduction.
 
-To link a story to the profile, add `profile: <name>` to the story, e.g. `profile: koperasi-gayo`. Do not publish phone numbers or home addresses.
+To link a story to the profile, add the profile's id to the story, e.g. `profile: k7m2xq9p`. The profile page lives at `/producers/<id>/`. Do not publish phone numbers or home addresses.
 
 ## Traceability
 

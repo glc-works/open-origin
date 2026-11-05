@@ -132,7 +132,16 @@ export function validateKnowledge(k) {
   return errors;
 }
 
-// Producer profiles: producers/<country>/<slug>.md. Only the name and consent are required.
+// Producer profiles: producers/<country>/<slug>.md. Only id, name and consent are required.
+// The id is 8 random characters that never change, so the name and file can be renamed freely.
+// It starts with a letter so YAML always reads it as text, never as a number.
+export const ID_RE = /^[a-z][a-z0-9]{7}$/;
+const ID_CHARS = "23456789abcdefghjkmnpqrstuvwxyz"; // no 0/o, 1/l/i, easy to read aloud
+export function newId() {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const letters = ID_CHARS.replace(/[0-9]/g, "");
+  return [...bytes].map((b, i) => (i === 0 ? letters[b % letters.length] : ID_CHARS[b % ID_CHARS.length])).join("");
+}
 export const PRODUCERS_DIR = path.join(ROOT, "producers");
 export const PRODUCER_TYPES = ["farmer", "group", "estate"];
 
@@ -155,6 +164,8 @@ export function validateProducer(p) {
   if (p.depth !== 2) return [`producer files go in producers/<country>/<name>.md`];
   if (!/^[a-z]{2}$/.test(p.pathCountry)) errors.push(`folder must be a two-letter country code, e.g. producers/id/`);
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug)) errors.push(`file name must be lowercase words joined by hyphens, e.g. producers/id/koperasi-gayo.md`);
+  if (p.id === undefined) errors.push(`missing required field "id": add a permanent id such as id: ${newId()}`);
+  else if (typeof p.id !== "string" || !ID_RE.test(p.id)) errors.push(`id must be 8 lowercase letters or digits starting with a letter, e.g. ${newId()}`);
   if (!p.name || typeof p.name !== "string") errors.push(`missing required field "name"`);
   if (p.consent !== true) errors.push(`consent must be true: the producer agreed to have this profile published`);
   if (p.type !== undefined && !PRODUCER_TYPES.includes(p.type)) errors.push(`type must be one of: ${PRODUCER_TYPES.join(", ")}`);
@@ -168,14 +179,24 @@ export function validateProducer(p) {
   return errors;
 }
 
-// Connects stories to producer profiles through the story's "profile" field. Returns errors keyed by file.
+// Two profiles may never share an id. Returns errors keyed by file.
+export function duplicateIds(producers) {
+  const errors = new Map();
+  for (const p of producers) {
+    const other = producers.find((x) => x !== p && x.id !== undefined && String(x.id) === String(p.id));
+    if (other) errors.set(p.file, [`id "${p.id}" is also used by ${other.file}; give this profile a new one, e.g. ${newId()}`]);
+  }
+  return errors;
+}
+
+// Connects stories to producer profiles through the story's "profile" field (the profile's id). Returns errors keyed by file.
 export function linkProducers(stories, producers) {
   const errors = new Map();
   for (const p of producers) p.stories = [];
   for (const s of stories) {
     if (s.profile === undefined) continue;
-    const p = producers.find((x) => x.pathCountry === s.pathCountry && x.slug === s.profile);
-    if (!p) errors.set(s.file, [`profile "${s.profile}" not found: add producers/${s.pathCountry}/${s.profile}.md`]);
+    const p = producers.find((x) => String(x.id) === String(s.profile));
+    if (!p) errors.set(s.file, [`profile "${s.profile}" not found: use the id of a profile in producers/`]);
     else { s.producerProfile = p; p.stories.push(s); }
   }
   return errors;

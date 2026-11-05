@@ -2,7 +2,7 @@
 import { mkdir, writeFile, copyFile, cp, rm, access } from "node:fs/promises";
 import path from "node:path";
 import { marked } from "marked";
-import { isHttpUrl, QUALITY, TRACEABILITY, loadBatches, validateBatch, loadProducers, validateProducer, linkProducers, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { isHttpUrl, QUALITY, TRACEABILITY, loadBatches, validateBatch, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 
 const STAGE_LABEL = { farm: "On the farm", harvest: "Harvest", process: "Processing", dry: "Drying", sort: "Sorting", roast: "Roasting", brew: "In the cup", market: "To market", other: "Along the way" };
 const tagFor = (s) => (s.kind === "movement"
@@ -42,7 +42,9 @@ const loaded = await loadStories();
 const stories = loaded.stories.filter((s) => validateStory(s).length === 0);
 for (const s of stories) s.translations = s.translations.filter((t) => validateTranslation(t).length === 0);
 linkOrigins(stories);
-const producers = (await loadProducers()).filter((p) => validateProducer(p).length === 0);
+const allProducers = await loadProducers();
+const dupIds = duplicateIds(allProducers);
+const producers = allProducers.filter((p) => validateProducer(p).length === 0 && !dupIds.has(p.file));
 linkProducers(stories, producers);
 const knowledge = (await loadKnowledge()).filter((k) => validateKnowledge(k).length === 0);
 const learnHref = (crop, slug) => (knowledge.some((k) => k.crop === crop && k.slug === slug) ? `learn/${crop}/${slug}/` : null);
@@ -70,7 +72,7 @@ const submitFor = (o) => `${SUBMIT}&crop=${encodeURIComponent(o.crop)}&country=$
 const nativeName = (code) => { try { return new Intl.DisplayNames([code], { type: "language" }).of(code); } catch { return code; } };
 const dirOf = (lang) => (RTL.includes(String(lang).split("-")[0]) ? "rtl" : "ltr");
 const href = (s) => `stories/${s.crop}/${s.pathCountry}/${s.slug}/`;
-const producerHref = (p) => `producers/${p.pathCountry}/${p.slug}/`;
+const producerHref = (p) => `producers/${p.id}/`;
 const photoSrc = (s, prefix) => (/^https?:\/\//.test(s.photo) ? s.photo : prefix + String(s.photo).replace(/^\/+/, ""));
 
 function head(title, description, prefix, extra = "") {
@@ -333,7 +335,7 @@ ${foot}`;
 
 const PTYPE = { farmer: "Farmer", group: "Producer group", estate: "Estate" };
 function producerPage(p) {
-  const prefix = "../../../";
+  const prefix = "../../";
   const row = (k, val) => (val ? `<div><dt>${k}</dt><dd>${esc(val)}</dd></div>` : "");
   const rowHtml = (k, html) => (html ? `<div><dt>${k}</dt><dd>${html}</dd></div>` : "");
   const crops = [...new Set([...(p.crops || []), ...p.stories.map((s) => s.crop)])];
@@ -446,7 +448,7 @@ async function exportData() {
   }));
   await writeFile(path.join(DIST, "data", "varieties.json"), JSON.stringify(varieties, null, 2));
   const prods = producers.map((p) => ({
-    id: `${p.pathCountry}/${p.slug}`, name: p.name, country: p.pathCountry.toUpperCase(), type: p.type ?? null, region: p.region ?? null, village: p.village ?? null,
+    id: String(p.id), file: p.file, name: p.name, country: p.pathCountry.toUpperCase(), type: p.type ?? null, region: p.region ?? null, village: p.village ?? null,
     since: p.since ?? null, farm_size_ha: p.farm_size_ha ?? null, members: p.members ?? null, website: p.website ?? null, about: p.body || null,
     stories: p.stories.map((s) => id(s)), url: producerHref(p),
   }));

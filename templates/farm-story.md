@@ -10,7 +10,7 @@ crop: coffee
 country: ID
 region: Bener Meriah, Aceh
 producer: Pak Rahman dan keluarga  # hanya dengan izin / only with consent
-profile: pak-rahman                # opsional: producers/id/pak-rahman.md / optional producer profile
+profile: k7m2xq9p                  # opsional: id profil produsen / optional producer profile id
 species: arabica
 altitude_masl: [1450, 1550]
 varieties: [Ateng Super, Tim Tim]
