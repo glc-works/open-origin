@@ -235,6 +235,8 @@ export function areaErrors(s) {
   if (!s.area || typeof s.area !== "object" || Array.isArray(s.area)) return [`area must list codes, e.g. area: { iso3166_2: ID-AC, admin_codes: ["11.17"] }`];
   const errors = [];
   for (const k of Object.keys(s.area)) if (!AREA_KEYS[k]) errors.push(`area.${k} is not known (use ${Object.keys(AREA_KEYS).join(", ")})`);
+  // An unquoted admin code is read by YAML as a number (11.10 becomes 11.1), which would no longer match.
+  for (const v of asList(s.area.admin_codes)) if (typeof v !== "string") errors.push(`area.admin_codes ${v} must be in quotes, e.g. ["${v}"], or a code like 11.10 loses its last 0`);
   const a = areaOf(s);
   for (const [k, [re, what]] of Object.entries(AREA_KEYS)) for (const v of a[k]) if (!re.test(v)) errors.push(`area.${k} "${v}" must be ${what}`);
   for (const v of a.iso3166_2) if (re0(v) && s.country && !v.startsWith(`${s.country}-`)) errors.push(`area.iso3166_2 "${v}" is not in country ${s.country}`);

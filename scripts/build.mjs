@@ -306,17 +306,20 @@ function areaHtml(s) {
   ].filter(Boolean);
   return parts.length ? `<span class="area-codes">${parts.join(" ")}</span>` : "";
 }
+// What a producer grows or works with: its own list, its stories and the lots filed under it.
+const producerCrops = (p) => [...new Set([...(p.crops || []), ...p.stories.map((x) => x.crop), ...lots.filter((l) => l.owner === p).map((l) => l.pathCrop)])];
 // A code is always shown with its crop beside it (L-KPBJF525-D · COFFEE): the code itself carries no meaning,
 // so it never has to change, but a reader still sees at once what it is.
 const codeTag = (id, crops) => `<code class="code">${esc(id)}</code>${[].concat(crops || []).map((c) => `<span class="crop-tag">${esc(CROPS[c]?.label || c)}</span>`).join("")}`;
 const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table class="lots"><thead><tr><th>Lot</th><th>What it is</th><th>Quality</th><th>Tested by</th></tr></thead><tbody>
-    ${list.map((l) => { const crop = l.pathCrop; const from = l.linked.filter((x) => x !== here); return `<tr id="${esc(l.id)}"><td class="lot-name"><strong>${esc(l.name || l.date)}</strong><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}${codeTag(l.id, crop)}${l.quantity_kg ? ` · ${esc(l.quantity_kg)} kg` : ""}${l.traceability ? ` · ${esc(TRACE_LABEL[l.traceability])}` : ""}</span></td>
-      <td>${[l.form ? pretty(l.form) : "", (l.process || []).map(pretty).join(" · "), (l.varieties || []).map((v) => { const k = varietyFor(crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", ")].filter(Boolean).map((x) => `<div>${x.startsWith("<") ? x : esc(x)}</div>`).join("")}
+    ${list.map((l) => { const crop = l.pathCrop; const from = l.linked.filter((x) => x !== here); return `<tr id="${esc(l.id)}"><td class="lot-name" data-label="Lot"><strong>${esc(l.name || l.date)}</strong><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}${codeTag(l.id, crop)}${l.quantity_kg ? ` · ${esc(l.quantity_kg)} kg` : ""}${l.traceability ? ` · ${esc(TRACE_LABEL[l.traceability])}` : ""}</span></td>
+      <td data-label="What it is">${[l.form ? pretty(l.form) : "", (l.process || []).map(pretty).join(" · "), (l.varieties || []).map((v) => { const k = varietyFor(crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", ")].filter(Boolean).map((x) => (x.startsWith("<") ? x : esc(x))).join(" · ")}
         ${from.length ? `<div class="muted">${l.linked.length > 1 ? "Blend of" : "From"} ${from.map((x) => `<a href="${prefix}${href(x)}">${esc(x.producer)}</a>`).join(", ")}${here && l.linked.length > 1 ? " and this one" : ""}</div>` : ""}
         ${here && l.owner ? `<div class="muted">Filed by ${party(l.owner.id, prefix)}</div>` : ""}
         ${l.processed_by ? `<div class="muted">Processed by ${party(l.processed_by, prefix)}</div>` : ""}${l.roasted_by ? `<div class="muted">Roasted by ${party(l.roasted_by, prefix)}</div>` : ""}${l.sold_by ? `<div class="muted">Sold by ${party(l.sold_by, prefix)}</div>` : ""}</td>
-      <td>${Object.entries(l.quality || {}).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("") || `<span class="muted">Not measured</span>`}</td>
-      <td>${l.quality && Object.keys(l.quality).length ? esc(l.tested_by || "Self-reported") : ""}${l.certificate ? `<br><a href="${esc(l.certificate)}">Certificate</a>` : ""}${(l.sources || []).map((u, i) => `<br><a href="${esc(u)}">Source${l.sources.length > 1 ? ` ${i + 1}` : ""}</a>`).join("")}</td></tr>
+      <td data-label="Quality">${Object.entries(l.quality || {}).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("") || `<span class="muted">Not measured</span>`}</td>
+      <td data-label="Tested by">${[l.quality && Object.keys(l.quality).length ? esc(l.tested_by || "Self-reported") : "", l.certificate ? `<a href="${esc(l.certificate)}">Certificate</a>` : "",
+        ...(l.sources || []).map((u, i) => `<a href="${esc(u)}">Source${l.sources.length > 1 ? ` ${i + 1}` : ""}</a>`)].filter(Boolean).map((x) => `<div>${x}</div>`).join("")}</td></tr>
       ${l.notes ? `<tr class="lot-notes"><td colspan="4">${esc(l.notes)}</td></tr>` : ""}`; }).join("")}
     </tbody></table></div>`;
 
@@ -350,8 +353,11 @@ function storyPage(s, t = null) {
       name: s.region || countryName.of(s.country),
       address: { "@type": "PostalAddress", addressRegion: s.region, addressCountry: s.country },
       ...(s.coords && { geo: { "@type": "GeoCoordinates", latitude: s.coords[0], longitude: s.coords[1] } }),
-      ...(() => { const a = areaOf(s); const same = [...a.wikidata.map((q) => `https://www.wikidata.org/wiki/${q}`), ...a.geonames.map((g) => `https://sws.geonames.org/${g}/`)];
-        return same.length ? { sameAs: same } : {}; })(),
+      // One public id per source means it names this same area; several (e.g. two regencies) are places within it.
+      ...(() => { const a = areaOf(s);
+        const uris = [...a.wikidata.map((q) => `https://www.wikidata.org/wiki/${q}`), ...a.geonames.map((g) => `https://sws.geonames.org/${g}/`)];
+        if (!uris.length) return {};
+        return a.wikidata.length <= 1 && a.geonames.length <= 1 ? { sameAs: uris } : { containsPlace: uris.map((u) => ({ "@type": "Place", sameAs: u })) }; })(),
     },
     ...(t && { translator: { "@type": "Person", name: t.translator }, translationOfWork: { "@type": "Article", headline: s.title, inLanguage: s.language } }),
   };
@@ -408,7 +414,7 @@ function producerPage(p) {
   const prefix = "../../";
   const row = (k, val) => (val ? `<div><dt>${k}</dt><dd>${esc(val)}</dd></div>` : "");
   const rowHtml = (k, html) => (html ? `<div><dt>${k}</dt><dd>${html}</dd></div>` : "");
-  const crops = [...new Set([...(p.crops || []), ...p.stories.map((s) => s.crop)])];
+  const crops = producerCrops(p);
   const grown = [...new Map(p.stories.flatMap((s) => (s.varieties || []).map((v) => [`${s.crop}:${v.toLowerCase()}`, { crop: s.crop, name: v }]))).values()];
   const lotsOf = p.stories.filter((s) => s.lots.length);
   // Lots this producer processed or sold for someone else's story.
@@ -564,7 +570,7 @@ ${foot}`);
 // who wants to resolve a code printed on a sack or an invoice.
 const codeIndex = {};
 for (const st of stories) codeIndex[st.id] = { kind: st.kind === "origin" ? "origin" : "story", crops: [st.crop], title: st.title, url: href(st), country: st.country, place_codes: placeCodes(st) };
-for (const p of producers) codeIndex[p.id] = { kind: "producer", crops: [...new Set([...(p.crops || []), ...p.stories.map((x) => x.crop)])], title: p.name, url: producerHref(p) };
+for (const p of producers) codeIndex[p.id] = { kind: "producer", crops: producerCrops(p), title: p.name, url: producerHref(p) };
 for (const l of lots) codeIndex[l.id] = { kind: "lot", crops: [l.pathCrop], title: l.name || `Lot ${l.date}`, url: lotHref(l) };
 for (const v of Object.values(codeIndex)) v.crop_labels = v.crops.map((c) => CROPS[c]?.label || c);
 await writeFile(path.join(DIST, "codes.json"), JSON.stringify(codeIndex, null, 1));

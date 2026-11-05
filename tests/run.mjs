@@ -31,6 +31,7 @@ if (built.status === 0) {
   const codes = JSON.parse(read("codes.json"));
   check(codes["L-TESTCQQ3-3"]?.crops[0] === "cocoa" && codes["O-TESTCQQW-P"]?.place_codes.iso3166_2[0] === "ID-SR", "codes.json lists each code with its crop and place codes");
   check(farm.includes('class="crop-tag">Cocoa'), "codes are shown with their crop");
+  check(codes["P-TESTPQQW-T"]?.crops.includes("cocoa"), "a producer's crops include the lots filed under it");
   rmSync(path.join(here, "fixtures", "good", "dist"), { recursive: true, force: true });
 }
 
@@ -56,6 +57,7 @@ for (const expected of [
   `area.iso3166_2 "MY-01" is not in country ID`,
   `area.wikidata "12345" must be a Wikidata id`,
   `area.plus is not known`,
+  `area.admin_codes 11.1 must be in quotes`,
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.

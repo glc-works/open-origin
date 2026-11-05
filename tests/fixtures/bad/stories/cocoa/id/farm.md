@@ -8,6 +8,7 @@ region: Somewhere
 area:
   iso3166_2: MY-01
   wikidata: 12345
+  admin_codes: [11.10]
   plus: 6MPRJV00+
 producer: Someone
 species: arabica
