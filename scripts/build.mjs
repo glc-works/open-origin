@@ -2,7 +2,7 @@
 import { mkdir, writeFile, copyFile, cp, rm, access } from "node:fs/promises";
 import path from "node:path";
 import { marked } from "marked";
-import { isHttpUrl, QUALITY, TRACEABILITY, loadBatches, validateBatch, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { isHttpUrl, QUALITY, FORMS, TRACEABILITY, loadLots, validateLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 
 const STAGE_LABEL = { farm: "On the farm", harvest: "Harvest", process: "Processing", dry: "Drying", sort: "Sorting", roast: "Roasting", brew: "In the cup", market: "To market", other: "Along the way" };
 const tagFor = (s) => (s.kind === "movement"
@@ -43,7 +43,8 @@ const stories = loaded.stories.filter((s) => validateStory(s).length === 0);
 for (const s of stories) s.translations = s.translations.filter((t) => validateTranslation(t).length === 0);
 linkOrigins(stories);
 const allProducers = await loadProducers();
-const dupIds = duplicateIds([...loaded.stories, ...allProducers]);
+const allLots = await loadLots();
+const dupIds = duplicateIds([...loaded.stories, ...allProducers, ...allLots]);
 const producers = allProducers.filter((p) => validateProducer(p).length === 0 && !dupIds.has(p.file));
 for (let i = stories.length - 1; i >= 0; i--) if (dupIds.has(stories[i].file)) stories.splice(i, 1);
 linkProducers(stories, producers);
@@ -61,9 +62,10 @@ const sourceList = (urls) => (urls.length ? `<p class="eyebrow" style="margin-to
 const norm = (x) => String(x).toLowerCase().replace(/[^a-z0-9]+/g, "");
 const varietyFor = (crop, name) => knowledge.find((k) => k.type === "variety" && k.crop === crop
   && [k.title, ...(k.aliases || [])].some((a) => norm(a) === norm(name)));
-const batches = (await loadBatches()).filter((b) => validateBatch(b, stories).length === 0)
+const lots = allLots.filter((l) => validateLot(l, stories, producers).length === 0 && !dupIds.has(l.file))
   .sort((a, b) => String(b.date).localeCompare(String(a.date)));
-for (const s of stories) s.batches = batches.filter((b) => b.pathCrop === s.pathCrop && b.pathCountry === s.pathCountry && b.storySlug === s.slug);
+for (const s of stories) s.lots = lots.filter((l) => l.pathCrop === s.pathCrop && l.pathCountry === s.pathCountry && l.storySlug === s.slug);
+for (const l of lots) l.story = stories.find((s) => s.lots.includes(l));
 const TRACE_LABEL = { farm: "Traced to the farm", group: "Traced to the producer group", region: "Traced to the region", country: "Traced to the country", blend: "Blend" };
 const qField = (crop, k) => (QUALITY[crop] || []).find((f) => f[0] === k);
 const qText = (crop, k, v) => { const f = qField(crop, k); return f ? `${f[1]} ${v}${f[2] ? ` ${f[2]}` : ""}` : `${k} ${v}`; };
@@ -109,7 +111,7 @@ function card(s) {
   const cover = s.photo
     ? `<img src="${esc(photoSrc(s, ""))}" alt="" loading="lazy">`
     : s.altitude_masl ? `<span class="alt">${esc(s.altitude_masl[1].toLocaleString("en"))}<small> masl</small></span>` : "";
-  const latest = s.batches?.[0];
+  const latest = s.lots?.find((l) => l.quality?.cupping_score !== undefined);
   const facts = [latest?.quality?.cupping_score ? `${latest.quality.cupping_score} pts (${latest.date})` : "", s.traceability && s.traceability !== "farm" ? TRACE_LABEL[s.traceability] : "", fmtAlt(s.altitude_masl), (s.varieties || []).slice(0, 2).join(", "), (s.process || []).join(" · ")].filter(Boolean);
   return `<a class="card" href="${href(s)}" data-crop="${esc(s.crop)}" data-country="${esc(s.country)}" data-kind="${esc(s.kind)}">
   <div class="cover">${cover}${tagFor(s)}</div>
@@ -249,10 +251,15 @@ ${foot}`;
 }
 
 // Renders a story in its original language (t = null) or in one of its translations.
-const batchTable = (list, crop) => `<div class="table-wrap"><table class="batches"><thead><tr><th>Batch</th><th>Quality</th><th>Tested by</th></tr></thead><tbody>
-    ${list.map((b) => `<tr><td><strong>${esc(b.date)}</strong><br><span class="muted">${esc(b.id)}${b.quantity_kg ? ` · ${esc(b.quantity_kg)} kg` : ""}${b.traceability ? ` · ${esc(TRACE_LABEL[b.traceability])}` : ""}</span></td>
-      <td>${Object.entries(b.quality).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("")}${b.notes ? `<div class="muted">${esc(b.notes)}</div>` : ""}</td>
-      <td>${esc(b.tested_by || "Self-reported")}${b.certificate ? `<br><a href="${esc(b.certificate)}">Certificate</a>` : ""}</td></tr>`).join("")}
+// A party (processed_by, sold_by) is a name, or a producer id that links to the profile.
+const party = (v, prefix) => { const p = producers.find((x) => String(x.id) === String(v)); return p ? `<a href="${prefix}${producerHref(p)}">${esc(p.name)}</a>` : esc(v); };
+const FORM_LABEL = { cherry: "Cherry", parchment: "Parchment", green: "Green", roasted: "Roasted", raw: "Raw", dried: "Dried", processed: "Processed" };
+const lotTable = (list, crop, prefix) => `<div class="table-wrap"><table class="lots"><thead><tr><th>Lot</th><th>What it is</th><th>Quality</th><th>Tested by</th></tr></thead><tbody>
+    ${list.map((l) => `<tr id="${esc(l.id)}"><td><strong>${esc(l.name || l.date)}</strong><br><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}<code>${esc(l.id)}</code>${l.quantity_kg ? ` · ${esc(l.quantity_kg)} kg` : ""}${l.traceability ? ` · ${esc(TRACE_LABEL[l.traceability])}` : ""}</span></td>
+      <td>${[l.form ? FORM_LABEL[l.form] : "", (l.process || []).map((x) => x[0].toUpperCase() + x.slice(1)).join(" · "), (l.varieties || []).map((v) => { const k = varietyFor(crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", ")].filter(Boolean).map((x) => `<div>${x.startsWith("<") ? x : esc(x)}</div>`).join("")}
+        ${l.processed_by ? `<div class="muted">Processed by ${party(l.processed_by, prefix)}</div>` : ""}${l.sold_by ? `<div class="muted">Sold by ${party(l.sold_by, prefix)}</div>` : ""}</td>
+      <td>${Object.entries(l.quality || {}).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("") || `<span class="muted">Not measured</span>`}${l.notes ? `<div class="muted">${esc(l.notes)}</div>` : ""}</td>
+      <td>${l.quality && Object.keys(l.quality).length ? esc(l.tested_by || "Self-reported") : ""}${l.certificate ? `<br><a href="${esc(l.certificate)}">Certificate</a>` : ""}</td></tr>`).join("")}
     </tbody></table></div>`;
 
 function storyPage(s, t = null) {
@@ -320,9 +327,9 @@ function storyPage(s, t = null) {
     ${s.photo ? `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(s, prefix))}" alt=""><figcaption>Photo: ${esc(s.photo_credit)}</figcaption></figure>` : ""}
     <div class="text" lang="${esc(v.language)}" dir="${dir}">${cite(marked.parse(v.body), sources.length)}</div>
     ${s.journey?.length ? `<h2 class="journey-title">From farm to cup</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage">${esc(STAGE_LABEL[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
-    ${s.batches.length ? `<h2 class="journey-title">Batches</h2>
-    <p class="part-of">Quality belongs to a batch: each harvest or shipment is measured on its own. ${termLink(s.crop, "cupping-and-q-grading", prefix, "How coffee is scored")}</p>
-    ${batchTable(s.batches, s.crop)}` : ""}
+    ${s.lots.length ? `<h2 class="journey-title">Lots</h2>
+    <p class="part-of">A lot is one harvest, shipment or production run, the thing a buyer actually buys. Process, variety and quality belong to the lot, so each one is listed on its own. ${termLink(s.crop, "cupping-and-q-grading", prefix, "How coffee is scored")}</p>
+    ${lotTable(s.lots, s.crop, prefix)}` : ""}
     ${s.kind === "origin" ? `<h2 class="journey-title">Farmers from this origin</h2>${s.farms.length
       ? `<div class="cards">${s.farms.map((f) => card(f).replace(`href="${href(f)}"`, `href="${prefix}${href(f)}"`)).join("")}</div>`
       : `<div class="empty"><p>No farmer has told their own story from here yet. Every farm in this region grows it a little differently.</p><a class="btn primary" href="${submitFor(s)}">Tell a farm's story</a></div>`}` : ""}
@@ -342,7 +349,9 @@ function producerPage(p) {
   const rowHtml = (k, html) => (html ? `<div><dt>${k}</dt><dd>${html}</dd></div>` : "");
   const crops = [...new Set([...(p.crops || []), ...p.stories.map((s) => s.crop)])];
   const grown = [...new Map(p.stories.flatMap((s) => (s.varieties || []).map((v) => [`${s.crop}:${v.toLowerCase()}`, { crop: s.crop, name: v }]))).values()];
-  const batchesOf = p.stories.filter((s) => s.batches.length);
+  const lotsOf = p.stories.filter((s) => s.lots.length);
+  // Lots this producer processed or sold for someone else's story.
+  const handled = lots.filter((l) => !p.stories.includes(l.story) && [l.processed_by, l.sold_by].some((v) => String(v) === String(p.id)));
   return `${head(`${p.name} · Open Origin`, p.body ? p.body.slice(0, 160) : `${p.name}, ${countryName.of(p.pathCountry.toUpperCase())}`, prefix)}
 <main><div class="wrap">
 <article class="story">
@@ -367,7 +376,8 @@ function producerPage(p) {
     <h2 class="journey-title">Stories</h2>
     ${p.stories.length ? `<div class="cards">${p.stories.map((r) => card(r).replace(`href="${href(r)}"`, `href="${prefix}${href(r)}"`)).join("")}</div>`
       : `<div class="empty"><p>No stories linked to this profile yet.</p></div>`}
-    ${batchesOf.map((s) => `<h2 class="journey-title">Batches · ${esc(s.title)}</h2>${batchTable(s.batches, s.crop)}`).join("")}
+    ${lotsOf.map((s) => `<h2 class="journey-title">Lots · ${esc(s.title)}</h2>${lotTable(s.lots, s.crop, prefix)}`).join("")}
+    ${handled.length ? `<h2 class="journey-title">Lots processed or sold</h2>${lotTable(handled, handled[0].story.crop, prefix)}` : ""}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc(p.file)}">Improve this profile</a></p>
   </div>
 </article>
@@ -399,25 +409,27 @@ for (const p of producers) {
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, "index.html"), producerPage(p));
 }
-// Permalinks: /s/<story id>/ always leads to the story, even after its file is renamed.
-for (const s of stories) {
-  const dir = path.join(DIST, "s", s.id);
+// Permalinks: /s/<id>/ always leads to the story or lot, even after its file is renamed.
+for (const [pid, title, to] of [...stories.map((s) => [s.id, s.title, `../../${href(s)}`]), ...lots.map((l) => [l.id, l.name || `${l.story.title}, ${l.date}`, `../../${href(l.story)}#${l.id}`])]) {
+  const dir = path.join(DIST, "s", pid);
   await mkdir(dir, { recursive: true });
-  const to = `../../${href(s)}`;
-  await writeFile(path.join(dir, "index.html"), `<!doctype html><meta charset="utf-8"><title>${esc(s.title)}</title><link rel="canonical" href="${to}"><meta http-equiv="refresh" content="0; url=${to}"><a href="${to}">${esc(s.title)}</a>`);
+  await writeFile(path.join(dir, "index.html"), `<!doctype html><meta charset="utf-8"><title>${esc(title)}</title><link rel="canonical" href="${to}"><meta http-equiv="refresh" content="0; url=${to}"><a href="${to}">${esc(title)}</a>`);
 }
 await writeFile(path.join(DIST, ".nojekyll"), "");
 await exportData();
 
 // Open data export: a Frictionless Data Package (https://datapackage.org) with CSV + JSON, regenerated on every build.
 async function exportData() {
+  const lotJson = (l) => ({ id: l.id, name: l.name ?? null, date: String(l.date), form: l.form ?? null, process: l.process ?? null, varieties: l.varieties ?? null,
+    quantity_kg: l.quantity_kg ?? null, traceability: l.traceability ?? null, processed_by: l.processed_by ?? null, sold_by: l.sold_by ?? null,
+    quality: l.quality ?? null, tested_by: l.tested_by ?? null, certificate: l.certificate ?? null, notes: l.notes || null, url: `${href(l.story)}#${l.id}` });
   const FIELDS = [
     ["id", "string", "permanent story id, e.g. S-K7M2XQ9P"], ["path", "string", "crop/country/slug of the story file"], ["kind", "string", "origin, farm or movement"], ["origin", "string", "id of the origin profile a farm or movement belongs to"],
     ["crop", "string", "coffee, cocoa, tea, spice, vanilla, honey or sugar"], ["country", "string", "ISO 3166-1 alpha-2"], ["region", "string", ""],
     ["producer", "string", ""], ["species", "string", ""], ["altitude_min_masl", "integer", ""], ["altitude_max_masl", "integer", ""],
     ["varieties", "string", "separated by ; "], ["process", "string", "separated by ; "], ["harvest", "string", ""],
     ["tasting_notes", "string", "separated by ; "], ["latitude", "number", "rounded to 2 decimals"], ["longitude", "number", "rounded to 2 decimals"],
-    ["traceability", "string", "farm, group, region, country or blend"], ["batches", "integer", "number of batches with quality data"],
+    ["traceability", "string", "farm, group, region, country or blend"], ["lots", "integer", "number of lots"],
     ["title", "string", ""], ["summary", "string", ""], ["language", "string", "BCP 47 code of the original story"],
     ["translations", "string", "available translation languages, separated by ; "], ["told_by", "string", ""], ["contributor", "string", ""],
     ["url", "string", "path of the story page, relative to the site root"],
@@ -429,7 +441,7 @@ async function exportData() {
     producer: s.producer, species: s.species || "", altitude_min_masl: s.altitude_masl?.[0] ?? "", altitude_max_masl: s.altitude_masl?.[1] ?? "",
     varieties: (s.varieties || []).join("; "), process: (s.process || []).join("; "), harvest: s.harvest || "",
     tasting_notes: (s.tasting_notes || []).join("; "), latitude: s.coords?.[0] ?? "", longitude: s.coords?.[1] ?? "",
-    traceability: s.traceability || "", batches: s.batches.length,
+    traceability: s.traceability || "", lots: s.lots.length,
     title: s.title, summary: s.summary, language: s.language, translations: s.translations.map((t) => t.language).join("; "),
     told_by: s.told_by, contributor: s.contributor, url: href(s),
   }));
@@ -439,19 +451,27 @@ async function exportData() {
     id: id(s), path: pathOf(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
     ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
     story: s.body, url: href(s),
-    batches: s.batches.map((b) => ({ id: b.id, date: String(b.date), quality: b.quality, tested_by: b.tested_by ?? null, quantity_kg: b.quantity_kg ?? null, traceability: b.traceability ?? null, certificate: b.certificate ?? null, notes: b.notes || null })),
+    lots: s.lots.map(lotJson),
     translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
   }));
   await mkdir(path.join(DIST, "data"), { recursive: true });
   await writeFile(path.join(DIST, "data", "stories.csv"), csv);
   await writeFile(path.join(DIST, "data", "stories.json"), JSON.stringify(full, null, 2));
-  // Batches in long format: one row per measured quality value, so every crop fits one table.
-  const BFIELDS = [["batch_id", "string", "story id + batch file name"], ["story_id", "string", ""], ["crop", "string", ""], ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"],
+  // Lots: one row per lot, plus quality in long format (one row per measured value) so every crop fits one table.
+  const LFIELDS = [["id", "string", "permanent lot id, e.g. L-K7M2XQ9P"], ["story_id", "string", ""], ["crop", "string", ""], ["name", "string", ""],
+    ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"], ["form", "string", FORMS.join(", ")], ["process", "string", "separated by ; "], ["varieties", "string", "separated by ; "],
+    ["quantity_kg", "number", ""], ["traceability", "string", ""], ["processed_by", "string", "name or producer id"], ["sold_by", "string", "name or producer id"],
+    ["tested_by", "string", ""], ["certificate", "string", ""]];
+  const lrows = lots.map((l) => ({ id: l.id, story_id: id(l.story), crop: l.story.crop, name: l.name || "", date: String(l.date), form: l.form || "",
+    process: (l.process || []).join("; "), varieties: (l.varieties || []).join("; "), quantity_kg: l.quantity_kg ?? "", traceability: l.traceability || "",
+    processed_by: l.processed_by || "", sold_by: l.sold_by || "", tested_by: l.tested_by || "", certificate: l.certificate || "" }));
+  await writeFile(path.join(DIST, "data", "lots.csv"), [LFIELDS.map((f) => f[0]).join(","), ...lrows.map((r) => LFIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n");
+  const QFIELDS = [["lot_id", "string", "permanent lot id"], ["story_id", "string", ""], ["crop", "string", ""], ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"],
     ["field", "string", "quality field, see the crop's list in CONTRIBUTING.md"], ["value", "string", ""], ["unit", "string", ""], ["tested_by", "string", ""]];
-  const brows = stories.flatMap((s) => s.batches.flatMap((b) => Object.entries(b.quality).map(([k, v]) => ({
-    batch_id: `${id(s)}/${b.id}`, story_id: id(s), crop: s.crop, date: String(b.date), field: k, value: v, unit: qField(s.crop, k)?.[2] || "", tested_by: b.tested_by || "",
-  }))));
-  await writeFile(path.join(DIST, "data", "batches.csv"), [BFIELDS.map((f) => f[0]).join(","), ...brows.map((r) => BFIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n");
+  const qrows = lots.flatMap((l) => Object.entries(l.quality || {}).map(([k, v]) => ({
+    lot_id: l.id, story_id: id(l.story), crop: l.story.crop, date: String(l.date), field: k, value: v, unit: qField(l.story.crop, k)?.[2] || "", tested_by: l.tested_by || "",
+  })));
+  await writeFile(path.join(DIST, "data", "lot-quality.csv"), [QFIELDS.map((f) => f[0]).join(","), ...qrows.map((r) => QFIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n");
   const varieties = knowledge.filter((k) => k.type === "variety").map((k) => ({
     id: `${k.crop}/${k.slug}`, name: k.title, crop: k.crop, species: k.species, lineage: k.lineage ?? null, aliases: k.aliases || [],
     stature: k.stature ?? null, yield_potential: k.yield_potential ?? null, quality_potential: k.quality_potential ?? null,
@@ -476,9 +496,12 @@ async function exportData() {
         schema: { fields: FIELDS.map(([name, type, description]) => ({ name, type, ...(description && { description }) })), primaryKey: "id" } },
       { name: "stories-full", path: "data/stories.json", format: "json", mediatype: "application/json",
         description: "Every story with its full text, farm-to-cup journey and translations." },
-      { name: "batches", path: "data/batches.csv", format: "csv", mediatype: "text/csv", encoding: "utf-8",
-        description: "Quality measurements per batch, one row per value.",
-        schema: { fields: BFIELDS.map(([name, type, description]) => ({ name, type, ...(description && { description }) })) } },
+      { name: "lots", path: "data/lots.csv", format: "csv", mediatype: "text/csv", encoding: "utf-8",
+        description: "Lots: one harvest, shipment or production run each, with process, form and who processed or sold it.",
+        schema: { fields: LFIELDS.map(([name, type, description]) => ({ name, type, ...(description && { description }) })), primaryKey: "id" } },
+      { name: "lot-quality", path: "data/lot-quality.csv", format: "csv", mediatype: "text/csv", encoding: "utf-8",
+        description: "Quality measurements per lot, one row per value.",
+        schema: { fields: QFIELDS.map(([name, type, description]) => ({ name, type, ...(description && { description }) })) } },
       { name: "producers", path: "data/producers.json", format: "json", mediatype: "application/json",
         description: "Producer profiles (farmers, groups, estates) and the stories linked to them." },
       { name: "varieties", path: "data/varieties.json", format: "json", mediatype: "application/json",

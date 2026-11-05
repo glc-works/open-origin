@@ -9,7 +9,7 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 export const STORIES_DIR = path.join(ROOT, "stories");
 
 // Crops that are open for stories. Add a crop here (and a folder under stories/) to open it.
-// Quality fields a batch of each crop may report: [key, label, unit, min, max]; min null = free text.
+// Quality fields a lot of each crop may report: [key, label, unit, min, max]; min null = free text.
 const MOISTURE = ["moisture_pct", "Moisture", "%", 0, 40];
 const GRADE = ["grade", "Grade", "", null];
 export const QUALITY = {
@@ -135,7 +135,7 @@ export function validateKnowledge(k) {
 // Producer profiles: producers/<country>/<slug>.md. Only id, name and consent are required.
 // Permanent ids: a kind prefix, a hyphen and 8 random characters: O-… for an origin profile,
 // S-… for a farm or movement story and P-… for a producer. They never change, so names and files can be renamed freely.
-export const ID_PREFIX = { origin: "O", story: "S", producer: "P" };
+export const ID_PREFIX = { origin: "O", story: "S", producer: "P", lot: "L" };
 const ID_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"; // no 0/O, 1/I/L, easy to read aloud
 export function newId(prefix) {
   const bytes = crypto.getRandomValues(new Uint8Array(8));
@@ -212,20 +212,24 @@ export function citationErrors(body, sources) {
   return bad.length ? [`footnote ${[...new Set(bad)].map((i) => `[${i}]`).join(", ")} has no matching link in sources (${n} listed)`] : [];
 }
 
-// Batches: batches/<crop>/<country>/<story-slug>/<batch-id>.md. Quality belongs to a batch, not to a story.
-export const BATCHES_DIR = path.join(ROOT, "batches");
+// Lots: lots/<crop>/<country>/<story-slug>/<name>.md. A lot is one harvest, shipment or production run
+// (what a buyer actually buys); process, variety, form and quality belong to it, not to the story or the origin.
+export const LOTS_DIR = path.join(ROOT, "lots");
+// The state a lot is sold or measured in.
+export const FORMS = ["cherry", "parchment", "green", "roasted", "raw", "dried", "processed"];
 
-export async function loadBatches() {
+export async function loadLots() {
   let files = [];
-  try { files = (await walk(BATCHES_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
+  try { files = (await walk(LOTS_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
   const out = [];
   for (const file of files) {
     const { data, content } = matter(await readFile(file, "utf8"));
-    const parts = path.relative(BATCHES_DIR, file).split(path.sep);
+    const parts = path.relative(LOTS_DIR, file).split(path.sep);
     const [crop, country, storySlug, name] = parts;
     // YAML reads an unquoted 2025-06-01 as a Date; keep it as the written YYYY-MM-DD text.
     if (data.date instanceof Date) data.date = data.date.toISOString().slice(0, 10);
-    out.push({ ...data, notes: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCrop: crop, pathCountry: country, storySlug, id: name ? name.replace(/\.md$/, "") : "" });
+    if (typeof data.process === "string") data.process = [data.process];
+    out.push({ ...data, notes: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCrop: crop, pathCountry: country, storySlug, slug: name ? name.replace(/\.md$/, "") : "" });
   }
   return out;
 }
@@ -240,28 +244,47 @@ function isPartialDate(v) {
   return true;
 }
 
-export function validateBatch(b, stories) {
+// A party field (processed_by, sold_by) is free text, or a producer id that must exist.
+const partyErrors = (key, v, producers) => {
+  if (v === undefined) return [];
+  if (typeof v !== "string" || !v.trim()) return [`${key} must be a name or a producer id such as P-H7FAQRHQ`];
+  if (/^P-/.test(v) && !producers.some((p) => String(p.id) === v)) return [`${key} "${v}" not found: use the id of a profile in producers/, or write a name`];
+  return [];
+};
+
+export function validateLot(l, stories, producers = []) {
   const errors = [];
-  if (b.depth !== 4) return [`batch files go in batches/<crop>/<country>/<story>/<batch-id>.md`];
-  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(b.id)) errors.push(`batch file name must be lowercase words joined by hyphens, e.g. 2025-harvest-1`);
-  const story = stories.find((s) => s.pathCrop === b.pathCrop && s.pathCountry === b.pathCountry && s.slug === b.storySlug);
-  if (!story) errors.push(`no story stories/${b.pathCrop}/${b.pathCountry}/${b.storySlug}.md for this batch`);
-  else if (story.kind === "origin") errors.push(`batches belong to a farm, group or movement story, not an origin profile`);
-  if (!isPartialDate(b.date)) errors.push(`date must be a real date written YYYY, YYYY-MM or YYYY-MM-DD`);
-  if (b.traceability !== undefined && !TRACEABILITY.includes(b.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
-  if (b.quantity_kg !== undefined && !(isNum(b.quantity_kg) && b.quantity_kg > 0)) errors.push(`quantity_kg must be a positive number`);
-  const spec = QUALITY[b.pathCrop] || [];
-  const q = b.quality;
-  if (!q || typeof q !== "object" || Array.isArray(q) || !Object.keys(q).length) errors.push(`quality needs at least one field (${spec.map((f) => f[0]).join(", ")})`);
-  else for (const [k, v] of Object.entries(q)) {
-    const f = spec.find((x) => x[0] === k);
-    if (!f) errors.push(`quality.${k} is not a ${b.pathCrop} quality field (${spec.map((x) => x[0]).join(", ")})`);
-    else if (f[3] === null ? (typeof v !== "string" && !isNum(v)) : !(isNum(v) && v >= f[3] && v <= f[4])) {
-      errors.push(f[3] === null ? `quality.${k} must be text` : `quality.${k} must be a number from ${f[3]} to ${f[4]}`);
+  if (l.depth !== 4) return [`lot files go in lots/<crop>/<country>/<story>/<name>.md`];
+  errors.push(...idErrors(l.id, ID_PREFIX.lot));
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(l.slug)) errors.push(`lot file name must be lowercase words joined by hyphens, e.g. 2025-honey-1`);
+  const story = stories.find((s) => s.pathCrop === l.pathCrop && s.pathCountry === l.pathCountry && s.slug === l.storySlug);
+  if (!story) errors.push(`no story stories/${l.pathCrop}/${l.pathCountry}/${l.storySlug}.md for this lot`);
+  else if (story.kind === "origin") errors.push(`lots belong to a farm, group or movement story, not an origin profile`);
+  if (!isPartialDate(l.date)) errors.push(`date must be a real date written YYYY, YYYY-MM or YYYY-MM-DD`);
+  if (l.name !== undefined && !(typeof l.name === "string" && l.name.trim())) errors.push(`name must be text, e.g. "Gayo Honey"`);
+  if (l.process !== undefined) {
+    if (!isStrList(l.process)) errors.push(`process must be a word or a list, e.g. honey`);
+    else for (const p of l.process) if (!PROCESSES.includes(p)) errors.push(`process "${p}" is not one of: ${PROCESSES.join(", ")}`);
+  }
+  if (l.varieties !== undefined && !isStrList(l.varieties)) errors.push(`varieties must be a list of names`);
+  if (l.form !== undefined && !FORMS.includes(l.form)) errors.push(`form must be one of: ${FORMS.join(", ")}`);
+  errors.push(...partyErrors("processed_by", l.processed_by, producers), ...partyErrors("sold_by", l.sold_by, producers));
+  if (l.traceability !== undefined && !TRACEABILITY.includes(l.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
+  if (l.quantity_kg !== undefined && !(isNum(l.quantity_kg) && l.quantity_kg > 0)) errors.push(`quantity_kg must be a positive number`);
+  const spec = QUALITY[l.pathCrop] || [];
+  const q = l.quality;
+  if (q !== undefined) {
+    if (!q || typeof q !== "object" || Array.isArray(q)) errors.push(`quality must be a block of fields (${spec.map((f) => f[0]).join(", ")})`);
+    else for (const [k, v] of Object.entries(q)) {
+      const f = spec.find((x) => x[0] === k);
+      if (!f) errors.push(`quality.${k} is not a ${l.pathCrop} quality field (${spec.map((x) => x[0]).join(", ")})`);
+      else if (f[3] === null ? (typeof v !== "string" && !isNum(v)) : !(isNum(v) && v >= f[3] && v <= f[4])) {
+        errors.push(f[3] === null ? `quality.${k} must be text` : `quality.${k} must be a number from ${f[3]} to ${f[4]}`);
+      }
     }
   }
-  if (q?.cupping_score !== undefined && !(typeof b.tested_by === "string" && b.tested_by.trim())) errors.push(`a cupping score needs tested_by (e.g. "Licensed Q Grader, Name")`);
-  if (b.certificate !== undefined && !(isHttpUrl(b.certificate) && String(b.certificate).startsWith("https:"))) errors.push(`certificate must be an https link`);
+  if (q?.cupping_score !== undefined && !(typeof l.tested_by === "string" && l.tested_by.trim())) errors.push(`a cupping score needs tested_by (e.g. "Licensed Q Grader, Name")`);
+  if (l.certificate !== undefined && !(isHttpUrl(l.certificate) && String(l.certificate).startsWith("https:"))) errors.push(`certificate must be an https link`);
   return errors;
 }
 
@@ -356,7 +379,7 @@ export function validateStory(s) {
       }
     });
   }
-  if (s.lot !== undefined || s.cupping_score !== undefined) errors.push(`quality and lot data now live in batch files under batches/; see CONTRIBUTING.md`);
+  if (s.lot !== undefined || s.cupping_score !== undefined) errors.push(`quality and lot data live in lot files under lots/; see CONTRIBUTING.md`);
   if (s.traceability !== undefined && !TRACEABILITY.includes(s.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
   if (s.sources !== undefined) {
     if (!Array.isArray(s.sources)) errors.push(`sources must be a list of links, e.g. [https://example.org/page]`);

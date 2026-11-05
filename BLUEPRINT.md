@@ -10,7 +10,7 @@ Every cup, bar, jar or spoonful starts with someone's harvest. Open Origin is an
 
 - **The farmer's voice first.** Stories told by farmers themselves are the heart of the project. Every story says whose voice it is (`told_by`).
 - **Consent and safety.** Everyone named or pictured agrees to publication. Locations are rounded to about 1 km.
-- **Honest about what we know.** Traceability is stated, quality is tied to a batch and to who measured it, and uncertain facts are marked.
+- **Honest about what we know.** Traceability is stated, quality is tied to a lot and to who measured it, and uncertain facts are marked.
 - **Open by default.** Stories CC BY 4.0, code MIT, data published in an open format on every build.
 - **Easy to contribute.** No git needed: forms in plain language, in any language.
 - **Plain files, no lock-in.** Everything is Markdown in a git repository and can move to any other tool.
@@ -20,7 +20,7 @@ Every cup, bar, jar or spoonful starts with someone's harvest. Open Origin is an
 | Audience | What they get |
 |---|---|
 | Farmers, cooperatives | A place to tell their story and show their quality, linkable from packaging (QR) |
-| Roasters, chocolate makers, buyers | Verified origin stories and batch quality to share with customers |
+| Roasters, chocolate makers, buyers | Verified origin stories and lot quality to share with customers |
 | Drinkers and eaters | The story behind what they buy |
 | Researchers, journalists, apps | An open dataset (CSV/JSON) under a clear licence |
 | Translators, volunteers | A way to help without being in the supply chain |
@@ -49,10 +49,10 @@ Not every product can be traced to one farm. Each story states how far back it g
 
 `farm` → `group` (cooperative, collector) → `region` → `country` → `blend`
 
-### 4.3 Batches: quality belongs to a batch
+### 4.3 Lots: what a buyer actually buys
 
-Quality changes with each harvest, shipment or production run, so it is stored per batch, not per story:
-`batches/<crop>/<country>/<story>/<batch-id>.md` with a date, quantity, crop-specific quality fields, who tested it and an optional certificate. Results without a tester are shown as self-reported.
+Origin is the place. A lot is one harvest, shipment or production run, the thing a buyer actually buys, with a permanent `L-` id:
+`lots/<crop>/<country>/<story>/<lot-name>.md` with a date, name, form, process, varieties, quantity, who processed and sold it (a name or a producer id), crop-specific quality fields, who tested it and an optional certificate. Results without a tester are shown as self-reported.
 
 | Crop | Quality fields |
 |---|---|
@@ -83,14 +83,14 @@ Short explanations that stories link to automatically:
 
 ## 5. Contribution flow
 
-1. A contributor fills in a form (story, translation or batch), or opens a pull request.
+1. A contributor fills in a form (story, translation or lot), or opens a pull request.
 2. A maintainer checks consent and facts with them.
 3. For stories, the `approved` label opens a pull request automatically.
 4. Automated checks validate every file; the site and data publish on merge.
 
 ## 6. Open data
 
-Every build publishes a **Frictionless Data Package** (Open Knowledge Foundation): `datapackage.json`, `data/stories.csv`, `data/stories.json`, `data/batches.csv` and `data/varieties.json`. Story pages carry schema.org metadata.
+Every build publishes a **Frictionless Data Package** (Open Knowledge Foundation): `datapackage.json`, `data/stories.csv`, `data/stories.json`, `data/lots.csv`, `data/lot-quality.csv` and `data/varieties.json`. Story pages carry schema.org metadata.
 
 ## 7. Technology
 
@@ -103,7 +103,7 @@ Every build publishes a **Frictionless Data Package** (Open Knowledge Foundation
 | Phase | Scope | Status |
 |---|---|---|
 | **1. Foundation** | Story model, 9 Nusantara origins, movement and translation examples, forms, validation, site, Pages, open data, Learn (species, processes, cupping) | Done |
-| **2. Beans and quality** | Variety catalogue with local names, traceability levels, per-batch quality for all crops, batch form | PR #2 |
+| **2. Beans and quality** | Variety catalogue with local names, traceability levels, per-lot quality for all crops, lot form | PR #2 |
 | **3. First real voices** | First farmer stories from Gayo, Toraja, Kintamani and Flores through partners and cooperatives; first translations (en, zh, ja, ar) | Next |
 | **4. Wider reach** | Tasting vocabulary guide, map view, search, multilingual interface (Astro), QR codes for packaging | Later |
 | **5. Beyond coffee** | Open cocoa, then tea, spices, vanilla, honey and palm sugar with their own Learn sections | Later |
@@ -112,6 +112,6 @@ Every build publishes a **Frictionless Data Package** (Open Knowledge Foundation
 ## 9. Open questions
 
 - Who are the first maintainers and partner cooperatives?
-- Do we verify batch claims beyond "tested by", for example by requiring a certificate for scores above 85?
+- Do we verify lot claims beyond "tested by", for example by requiring a certificate for scores above 85?
 - Should the site have its own domain?
 - How do we handle a farmer who wants a story removed later? (Proposed: remove on request, no questions asked.)

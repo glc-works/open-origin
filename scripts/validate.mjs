@@ -1,12 +1,13 @@
 // Checks every story file and exits non-zero with readable messages if any are invalid.
-import { loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge, loadBatches, validateBatch, loadProducers, validateProducer, linkProducers, duplicateIds } from "./lib.mjs";
+import { loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge, loadLots, validateLot, loadProducers, validateProducer, linkProducers, duplicateIds } from "./lib.mjs";
 
 const { stories, translations } = await loadStories();
 let failed = 0;
 const linkErrors = linkOrigins(stories);
 const producers = await loadProducers();
 const profileErrors = linkProducers(stories, producers);
-const dupIds = duplicateIds([...stories, ...producers]);
+const lots = await loadLots();
+const dupIds = duplicateIds([...stories, ...producers, ...lots]);
 const seen = new Set();
 for (const s of stories) {
   const errors = [...validateStory(s), ...(linkErrors.get(s.file) || []), ...(profileErrors.get(s.file) || []), ...(dupIds.get(s.file) || [])];
@@ -36,9 +37,8 @@ for (const k of knowledge) {
     for (const e of errors) console.error(`  - ${e}`);
   }
 }
-const batches = await loadBatches();
-for (const b of batches) {
-  const errors = validateBatch(b, stories);
+for (const b of lots) {
+  const errors = [...validateLot(b, stories, producers), ...(dupIds.get(b.file) || [])];
   if (errors.length) {
     failed++;
     console.error(`\n✗ ${b.file}`);
@@ -54,7 +54,7 @@ for (const p of producers) {
   }
 }
 if (failed) {
-  console.error(`\n${failed} of ${stories.length + translations.length + knowledge.length + batches.length + producers.length} files need fixes.`);
+  console.error(`\n${failed} of ${stories.length + translations.length + knowledge.length + lots.length + producers.length} files need fixes.`);
   process.exit(1);
 }
-console.log(`✓ ${stories.length} stories, ${translations.length} translations, ${knowledge.length} Learn entries, ${batches.length} batches and ${producers.length} producers valid.`);
+console.log(`✓ ${stories.length} stories, ${translations.length} translations, ${knowledge.length} Learn entries, ${lots.length} lots and ${producers.length} producers valid.`);
