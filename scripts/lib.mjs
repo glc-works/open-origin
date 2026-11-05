@@ -147,7 +147,15 @@ export function idErrors(v, prefix) {
   return [];
 }
 export const PRODUCERS_DIR = path.join(ROOT, "producers");
-export const PRODUCER_TYPES = ["farmer", "group", "estate"];
+// Everyone who shapes a lot gets a profile: growers, processing facilities (mills, washing stations) and roasters.
+export const PRODUCER_TYPES = ["farmer", "group", "estate", "processor", "roaster"];
+// consent: true means the people named agreed. consent: public is only for a business or group (never a single
+// farmer) and means every fact was already published (by the organisation or its buyers), with the links in sources.
+const consentErrors = (consent, sources, what) => {
+  if (consent === true) return [];
+  if (consent === "public") return Array.isArray(sources) && sources.length ? [] : [`consent: public needs sources: links to where the ${what} was published`];
+  return [`consent must be true (everyone named agreed) or public (an organisation, only facts already published, with sources)`];
+};
 
 export async function loadProducers() {
   let files = [];
@@ -170,7 +178,9 @@ export function validateProducer(p) {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug)) errors.push(`file name must be lowercase words joined by hyphens, e.g. producers/id/koperasi-gayo.md`);
   errors.push(...idErrors(p.id, ID_PREFIX.producer));
   if (!p.name || typeof p.name !== "string") errors.push(`missing required field "name"`);
-  if (p.consent !== true) errors.push(`consent must be true: the producer agreed to have this profile published`);
+  errors.push(...consentErrors(p.consent, p.sources, "information"));
+  if (p.consent === "public" && (p.type === undefined || p.type === "farmer")) errors.push(`consent: public is only for an organisation: set type to group, estate, processor or roaster`);
+  if (p.sources !== undefined && !(Array.isArray(p.sources) && p.sources.every(isHttpUrl))) errors.push(`sources must be a list of http(s) links`);
   if (p.type !== undefined && !PRODUCER_TYPES.includes(p.type)) errors.push(`type must be one of: ${PRODUCER_TYPES.join(", ")}`);
   if (p.since !== undefined && !(Number.isInteger(p.since) && p.since > 1700 && p.since <= new Date().getFullYear())) errors.push(`since must be a year, e.g. 2008`);
   if (p.farm_size_ha !== undefined && !(isNum(p.farm_size_ha) && p.farm_size_ha > 0)) errors.push(`farm_size_ha must be a positive number`);
@@ -244,7 +254,7 @@ function isPartialDate(v) {
   return true;
 }
 
-// A party field (processed_by, sold_by) is free text, or a producer id that must exist.
+// A party field (processed_by, roasted_by, sold_by) is free text, or a producer id that must exist.
 const partyErrors = (key, v, producers) => {
   if (v === undefined) return [];
   if (typeof v !== "string" || !v.trim()) return [`${key} must be a name or a producer id such as P-H7FAQRHQ`];
@@ -268,7 +278,7 @@ export function validateLot(l, stories, producers = []) {
   }
   if (l.varieties !== undefined && !isStrList(l.varieties)) errors.push(`varieties must be a list of names`);
   if (l.form !== undefined && !FORMS.includes(l.form)) errors.push(`form must be one of: ${FORMS.join(", ")}`);
-  errors.push(...partyErrors("processed_by", l.processed_by, producers), ...partyErrors("sold_by", l.sold_by, producers));
+  errors.push(...["processed_by", "roasted_by", "sold_by"].flatMap((k) => partyErrors(k, l[k], producers)));
   if (l.traceability !== undefined && !TRACEABILITY.includes(l.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
   if (l.quantity_kg !== undefined && !(isNum(l.quantity_kg) && l.quantity_kg > 0)) errors.push(`quantity_kg must be a positive number`);
   const spec = QUALITY[l.pathCrop] || [];
@@ -284,6 +294,7 @@ export function validateLot(l, stories, producers = []) {
     }
   }
   if (q?.cupping_score !== undefined && !(typeof l.tested_by === "string" && l.tested_by.trim())) errors.push(`a cupping score needs tested_by (e.g. "Licensed Q Grader, Name")`);
+  if (l.sources !== undefined && !(Array.isArray(l.sources) && l.sources.every(isHttpUrl))) errors.push(`sources must be a list of http(s) links`);
   if (l.certificate !== undefined && !(isHttpUrl(l.certificate) && String(l.certificate).startsWith("https:"))) errors.push(`certificate must be an https link`);
   return errors;
 }
@@ -347,7 +358,8 @@ export function validateStory(s) {
   }
   if (s.summary && String(s.summary).length > 200) errors.push(`summary is ${String(s.summary).length} characters; keep it to 200`);
   if (s.told_by && !TOLD_BY.includes(s.told_by)) errors.push(`told_by must be one of: ${TOLD_BY.join(", ")}`);
-  if (s.consent !== true) errors.push(`consent must be true: everyone named or pictured agreed to publication`);
+  errors.push(...consentErrors(s.consent, s.sources, "story's facts"));
+  if (s.consent === "public" && s.told_by === "farmer") errors.push(`a story told by a farmer needs consent: true`);
   if (s.altitude_masl !== undefined) {
     const a = s.altitude_masl;
     if (!Array.isArray(a) || a.length !== 2 || !a.every(isNum) || a[0] > a[1] || a[1] > 3500) {

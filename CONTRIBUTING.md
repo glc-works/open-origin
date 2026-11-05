@@ -61,7 +61,9 @@ Every story, producer profile and lot has an `id` that never changes: a prefix, 
 
 ## Producer profiles
 
-A farmer, producer group or estate can have one profile page that gathers all their stories, lots and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent: true` are required. The `id` is `P-` and 8 capital letters or digits, e.g. `P-H7FAQRHQ` (see [Permanent ids](#permanent-ids)). Fill in whatever else the producer is happy to share: `type` (farmer, group, estate), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo` and `crops`. The text below the frontmatter is an optional short introduction.
+Everyone who shapes a lot can have one profile page: a farmer, producer group or estate, a processing facility (mill or washing station) or a roaster. The page that gathers all their stories, lots and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent` are required. The `id` is `P-` and 8 capital letters or digits, e.g. `P-H7FAQRHQ` (see [Permanent ids](#permanent-ids)). Fill in whatever else the producer is happy to share: `type` (farmer, group, estate, processor, roaster), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo`, `crops` and `sources`. The text below the frontmatter is an optional short introduction.
+
+`consent: true` means the people named agreed. `consent: public` is allowed only for an organisation (any type except `farmer`), and only when every fact has already been published, by the organisation itself or by its buyers, with those links in `sources`. Stories may use `consent: public` on the same terms, except a story told by a farmer. The page then says it was put together from published sources and invites the organisation to correct or remove it.
 
 To link a story to the profile, add the profile's id to the story, e.g. `profile: P-H7FAQRHQ`. The profile page lives at `/producers/<id>/`. Do not publish phone numbers or home addresses.
 
@@ -94,8 +96,9 @@ Copy [`templates/lot.md`](templates/lot.md). Only `id` (`L-` plus 8 characters, 
 - `process`: washed, natural, honey, wet-hulled, anaerobic, fermented, sun-dried or other
 - `varieties`, `quantity_kg`, and `traceability` if it differs from the story
 - `processed_by`: leave it out when the farmer or producer processed the lot themselves. Fill it in when someone else did, such as a cooperative, collector or washing station. In Gayo, for example, farmers often sell wet parchment and a processor does the wet-hulling and drying.
-- `sold_by`: who sells it
-- `processed_by` and `sold_by` take a name or a producer id (`P-...`). An id links to that producer's profile, and the lot is also listed there.
+- `roasted_by` and `sold_by`: who roasted and who sells it
+- `processed_by`, `roasted_by` and `sold_by` take a name or a producer id (`P-...`). An id links to that producer's profile, and the lot is also listed there.
+- `sources`: links to where the lot's details were published
 - `quality`, `tested_by` and a `certificate` link. A cupping score always needs `tested_by`, even when you scored it yourself.
 
 Quality fields per crop:

@@ -47,6 +47,10 @@ body:
       label: Processed by (optional)
       description: Leave empty if the farmer or producer processed it themselves. Otherwise the cooperative, washing station or processor.
   - type: input
+    id: roasted_by
+    attributes:
+      label: Roasted by (optional)
+  - type: input
     id: sold_by
     attributes:
       label: Sold by (optional)

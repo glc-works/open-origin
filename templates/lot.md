@@ -12,6 +12,7 @@ varieties: [Gayo 1, Ateng Super]
 quantity_kg: 300
 traceability: farm                 # jika beda dari cerita / only if it differs from the story
 processed_by: P-H7FAQRHQ           # kosongkan jika diproses sendiri oleh produsen / leave out if the producer processed it
+roasted_by: P-H7FAQRHQ             # jika sudah disangrai / if roasted
 sold_by: Nama penjual              # nama atau id profil / a name or a producer id
 quality:                           # opsional; field mutu sesuai komoditas / optional, fields for this crop, see CONTRIBUTING.md
   cupping_score: 85.5
