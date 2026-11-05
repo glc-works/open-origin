@@ -49,6 +49,10 @@ const termLink = (crop, term, prefix, label = term) => {
   const h = learnHref(crop, term);
   return h ? `<a class="term" href="${prefix}${h}">${esc(label)}</a>` : esc(label);
 };
+// Matches a variety name written in a story ("Ateng Super") to a Learn entry by its aliases.
+const norm = (x) => String(x).toLowerCase().replace(/[^a-z0-9]+/g, "");
+const varietyFor = (crop, name) => knowledge.find((k) => k.type === "variety" && k.crop === crop
+  && [k.title, ...(k.aliases || [])].some((a) => norm(a) === norm(name)));
 const origins = stories.filter((s) => s.kind === "origin");
 const voices = stories.filter((s) => s.kind !== "origin");
 const submitFor = (o) => `${SUBMIT}&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region)}`;
@@ -198,7 +202,14 @@ ${foot}`;
 
 function learnPage(k) {
   const prefix = "../../../";
-  const related = stories.filter((s) => s.crop === k.crop && (s.species === k.slug || (s.process || []).includes(k.slug)));
+  const related = stories.filter((s) => s.crop === k.crop && (s.species === k.slug || (s.process || []).includes(k.slug)
+    || (k.type === "variety" && (s.varieties || []).some((v) => varietyFor(s.crop, v) === k))));
+  const fact = (label, v) => (v ? `<div><dt>${label}</dt><dd>${esc(v)}</dd></div>` : "");
+  const facts = k.type === "variety" ? `<dl class="passport">
+      ${fact("Species", k.species)}${fact("Lineage", k.lineage)}${fact("Also called", (k.aliases || []).filter((a) => a !== k.title).join(", "))}
+      ${fact("Stature", k.stature)}${fact("Yield", k.yield_potential)}${fact("Cup quality", k.quality_potential)}
+      ${fact("Leaf rust", k.leaf_rust)}${fact("Best at", fmtAlt(k.altitude_masl))}
+    </dl>` : "";
   return `${head(`${k.title} · Open Origin`, k.summary, prefix)}
 <main><div class="wrap">
 <article class="story">
@@ -208,10 +219,12 @@ function learnPage(k) {
     ${k.latin ? `<div class="where"><i>${esc(k.latin)}</i></div>` : ""}
     <span class="species movement">${esc(CROPS[k.crop].label)} · ${esc(k.type)}</span>
     <p style="margin-top:20px">${esc(k.summary)}</p>
+    ${facts}
   </div>
   <div class="prose">
     <div class="text">${marked.parse(k.body)}</div>
     ${related.length ? `<h2 class="journey-title">Stories with ${esc(k.title.toLowerCase())}</h2><div class="cards">${related.map((r) => card(r).replace(`href="${href(r)}"`, `href="${prefix}${href(r)}"`)).join("")}</div>` : ""}
+    ${(k.sources || []).length ? `<p class="eyebrow" style="margin-top:2em">Sources</p><ul>${k.sources.map((u) => `<li><a href="${esc(u)}">${esc(u)}</a></li>`).join("")}</ul>` : ""}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc(k.file)}">Improve this entry</a></p>
   </div>
 </article>
@@ -268,10 +281,11 @@ function storyPage(s, t = null) {
     <dl class="passport">
       ${row("Producer", s.producer)}
       ${row("Altitude", fmtAlt(s.altitude_masl))}
-      ${row("Varieties", (s.varieties || []).join(", "))}
+      ${rowHtml("Varieties", (s.varieties || []).map((v) => { const k = varietyFor(s.crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", "))}
       ${rowHtml("Species", s.species ? termLink(s.crop, s.species, prefix) : "")}
       ${rowHtml("Process", (s.process || []).map((p) => termLink(s.crop, p, prefix)).join(", "))}
       ${row("Harvest", s.harvest)}
+      ${s.lot ? rowHtml("This lot", [s.lot.harvest_year && `harvest ${esc(s.lot.harvest_year)}`, s.lot.moisture_pct && `${esc(s.lot.moisture_pct)}% moisture`, s.lot.water_activity && `aw ${esc(s.lot.water_activity)}`, s.lot.screen_size && `screen ${esc(s.lot.screen_size)}`, s.lot.density_g_l && `${esc(s.lot.density_g_l)} g/L`, s.lot.grade && esc(s.lot.grade)].filter(Boolean).join(" · ")) : ""}
       ${rowHtml("Cupping", s.cupping_score ? `${esc(s.cupping_score)} points · ${esc(s.graded_by)}, ${esc(s.cupping_year)} · ${termLink(s.crop, "cupping-and-q-grading", prefix, "what this means")}` : "")}
       ${row("Tastes of", (v.tasting_notes || []).join(", "))}
       ${row("Told by", TOLD[s.told_by])}
@@ -326,6 +340,8 @@ async function exportData() {
     ["producer", "string", ""], ["species", "string", ""], ["altitude_min_masl", "integer", ""], ["altitude_max_masl", "integer", ""],
     ["varieties", "string", "separated by ; "], ["process", "string", "separated by ; "], ["harvest", "string", ""],
     ["tasting_notes", "string", "separated by ; "], ["latitude", "number", "rounded to 2 decimals"], ["longitude", "number", "rounded to 2 decimals"],
+    ["lot_harvest_year", "integer", ""], ["lot_moisture_pct", "number", ""], ["lot_screen_size", "string", ""], ["lot_density_g_l", "number", ""], ["lot_grade", "string", ""],
+    ["cupping_score", "number", "for one lot and harvest"], ["cupping_year", "integer", ""],
     ["title", "string", ""], ["summary", "string", ""], ["language", "string", "BCP 47 code of the original story"],
     ["translations", "string", "available translation languages, separated by ; "], ["told_by", "string", ""], ["contributor", "string", ""],
     ["url", "string", "path of the story page, relative to the site root"],
@@ -336,6 +352,8 @@ async function exportData() {
     producer: s.producer, species: s.species || "", altitude_min_masl: s.altitude_masl?.[0] ?? "", altitude_max_masl: s.altitude_masl?.[1] ?? "",
     varieties: (s.varieties || []).join("; "), process: (s.process || []).join("; "), harvest: s.harvest || "",
     tasting_notes: (s.tasting_notes || []).join("; "), latitude: s.coords?.[0] ?? "", longitude: s.coords?.[1] ?? "",
+    lot_harvest_year: s.lot?.harvest_year ?? "", lot_moisture_pct: s.lot?.moisture_pct ?? "", lot_screen_size: s.lot?.screen_size ?? "", lot_density_g_l: s.lot?.density_g_l ?? "", lot_grade: s.lot?.grade ?? "",
+    cupping_score: s.cupping_score ?? "", cupping_year: s.cupping_year ?? "",
     title: s.title, summary: s.summary, language: s.language, translations: s.translations.map((t) => t.language).join("; "),
     told_by: s.told_by, contributor: s.contributor, url: href(s),
   }));
@@ -343,13 +361,19 @@ async function exportData() {
   const csv = [FIELDS.map((f) => f[0]).join(","), ...rows.map((r) => FIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n";
   const full = stories.map((s) => ({
     id: id(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
-    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "lot", "cupping_score", "graded_by", "cupping_year"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
     story: s.body, url: href(s),
     translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
   }));
   await mkdir(path.join(DIST, "data"), { recursive: true });
   await writeFile(path.join(DIST, "data", "stories.csv"), csv);
   await writeFile(path.join(DIST, "data", "stories.json"), JSON.stringify(full, null, 2));
+  const varieties = knowledge.filter((k) => k.type === "variety").map((k) => ({
+    id: `${k.crop}/${k.slug}`, name: k.title, crop: k.crop, species: k.species, lineage: k.lineage ?? null, aliases: k.aliases || [],
+    stature: k.stature ?? null, yield_potential: k.yield_potential ?? null, quality_potential: k.quality_potential ?? null,
+    leaf_rust: k.leaf_rust ?? null, altitude_masl: k.altitude_masl ?? null, summary: k.summary, sources: k.sources || [],
+  }));
+  await writeFile(path.join(DIST, "data", "varieties.json"), JSON.stringify(varieties, null, 2));
   const pkg = {
     name: "open-origin-stories",
     title: "Open Origin stories",
@@ -362,6 +386,8 @@ async function exportData() {
         schema: { fields: FIELDS.map(([name, type, description]) => ({ name, type, ...(description && { description }) })), primaryKey: "id" } },
       { name: "stories-full", path: "data/stories.json", format: "json", mediatype: "application/json",
         description: "Every story with its full text, farm-to-cup journey and translations." },
+      { name: "varieties", path: "data/varieties.json", format: "json", mediatype: "application/json",
+        description: "Plant varieties with species, lineage, local names and agronomic traits." },
     ],
   };
   await writeFile(path.join(DIST, "datapackage.json"), JSON.stringify(pkg, null, 2));

@@ -98,6 +98,16 @@ export function validateKnowledge(k) {
   if (k.crop && k.pathCrop !== k.crop) errors.push(`file is in learn/${k.pathCrop}/ but crop is "${k.crop}"`);
   if (k.type && !TERM_TYPES.includes(k.type)) errors.push(`type must be one of: ${TERM_TYPES.join(", ")}`);
   if (k.summary && String(k.summary).length > 200) errors.push(`summary is ${String(k.summary).length} characters; keep it to 200`);
+  if (k.type === "variety") {
+    if (!k.species) errors.push(`a variety needs its species`);
+    if (k.aliases !== undefined && !isStrList(k.aliases)) errors.push(`aliases must be a list of names`);
+    if (k.leaf_rust !== undefined && !["resistant", "tolerant", "susceptible"].includes(k.leaf_rust)) errors.push(`leaf_rust must be resistant, tolerant or susceptible`);
+    for (const f of ["yield_potential"]) if (k[f] !== undefined && !["low", "medium", "high", "very high"].includes(k[f])) errors.push(`${f} must be low, medium, high or very high`);
+    if (k.quality_potential !== undefined && !["fair", "good", "very good", "exceptional"].includes(k.quality_potential)) errors.push(`quality_potential must be fair, good, very good or exceptional`);
+    if (k.stature !== undefined && !["dwarf", "semi-dwarf", "tall"].includes(k.stature)) errors.push(`stature must be dwarf, semi-dwarf or tall`);
+    if (k.altitude_masl !== undefined && !(Array.isArray(k.altitude_masl) && k.altitude_masl.length === 2 && k.altitude_masl.every(isNum))) errors.push(`altitude_masl must be [min, max]`);
+  }
+  if (k.sources !== undefined && (!Array.isArray(k.sources) || !k.sources.every(isHttpUrl))) errors.push(`sources must be a list of http(s) links`);
   if (!k.body || k.body.length < 200) errors.push(`the explanation is too short`);
   return errors;
 }
@@ -190,6 +200,20 @@ export function validateStory(s) {
         errors.push(`journey step ${i + 1} needs a stage (${STAGES.join(", ")}) and text`);
       }
     });
+  }
+  if (s.lot !== undefined) {
+    const l = s.lot;
+    if (!l || typeof l !== "object" || Array.isArray(l)) errors.push(`lot must be a set of fields, e.g. lot: { harvest_year: 2025 }`);
+    else {
+      if (s.kind === "origin") errors.push(`lot data belongs to one farm's harvest; add it to a farm story`);
+      const known = ["harvest_year", "moisture_pct", "screen_size", "grade", "density_g_l", "water_activity"];
+      for (const k of Object.keys(l)) if (!known.includes(k)) errors.push(`lot.${k} is not a known field (${known.join(", ")})`);
+      if (l.harvest_year !== undefined && !Number.isInteger(l.harvest_year)) errors.push(`lot.harvest_year must be a year`);
+      if (l.moisture_pct !== undefined && !(isNum(l.moisture_pct) && l.moisture_pct > 0 && l.moisture_pct < 30)) errors.push(`lot.moisture_pct must be a percentage, e.g. 11.5`);
+      if (l.water_activity !== undefined && !(isNum(l.water_activity) && l.water_activity > 0 && l.water_activity < 1)) errors.push(`lot.water_activity must be between 0 and 1, e.g. 0.55`);
+      if (l.density_g_l !== undefined && !(isNum(l.density_g_l) && l.density_g_l > 300 && l.density_g_l < 1000)) errors.push(`lot.density_g_l must be grams per litre, e.g. 720`);
+      if (l.screen_size !== undefined && typeof l.screen_size !== "string" && !isNum(l.screen_size)) errors.push(`lot.screen_size must be a number or range, e.g. "16-18"`);
+    }
   }
   if (s.cupping_score !== undefined) {
     if (!isNum(s.cupping_score) || s.cupping_score < 0 || s.cupping_score > 100) errors.push(`cupping_score must be a number from 0 to 100`);

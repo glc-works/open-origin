@@ -49,6 +49,26 @@ journey:
 
 Explanations of species, processes and terms live in `learn/<crop>/<slug>.md`, with `title`, `crop`, `type` (species, process, variety or term), `summary` and an optional `latin` name. Story pages link to them automatically, for example when a story's species is `arabica` and `learn/coffee/arabica.md` exists.
 
+### Varieties
+
+A variety entry (`type: variety`) adds structured fields: `species`, `lineage`, `aliases` (local names, e.g. Ateng, Tim Tim, Jember), `stature` (dwarf, semi-dwarf, tall), `yield_potential` (low, medium, high, very high), `quality_potential` (fair, good, very good, exceptional), `leaf_rust` (resistant, tolerant, susceptible), `altitude_masl` and `sources`. A story's `varieties` link to an entry automatically when a name matches its title or one of its aliases.
+
+Write entries in your own words. Facts from catalogues such as World Coffee Research are welcome; link them in `sources` rather than copying text.
+
+## Lot data
+
+A farm story can describe one harvest's beans:
+
+```yaml
+lot:
+  harvest_year: 2025
+  moisture_pct: 11.5     # green coffee moisture
+  water_activity: 0.55   # optional
+  screen_size: "16-18"
+  density_g_l: 720
+  grade: Grade 1
+```
+
 ## Translations
 
 Anyone can translate a story: [open the translation form](https://github.com/glc-works/open-origin/issues/new?template=translation.yml), or add a file next to the story named `<story>.<language>.md`, for example `gayo.en.md`, `gayo.zh.md`, `gayo.ar.md`, `gayo.ja.md`. Arabic, Persian, Urdu and Hebrew are shown right to left.
