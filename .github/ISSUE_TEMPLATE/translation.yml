@@ -1,0 +1,53 @@
+name: Translate a story
+description: Translate a story into your language (中文, English, العربية, 日本語, Español, ...).
+title: "[Translation] "
+labels: ["translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! Translate the meaning, not word for word, and keep names of people and places as they are.
+        A maintainer will add it as `stories/<crop>/<country>/<story>.<language>.md`.
+  - type: input
+    id: story
+    attributes:
+      label: Link to the story
+      placeholder: https://glc-works.github.io/open-origin/stories/coffee/id/gayo/
+    validations: { required: true }
+  - type: input
+    id: language
+    attributes:
+      label: Language code
+      description: "e.g. en, zh, zh-hant, ar, ja, ko, es, pt, fr, de, id"
+    validations: { required: true }
+  - type: input
+    id: title
+    attributes:
+      label: Translated title
+    validations: { required: true }
+  - type: textarea
+    id: summary
+    attributes:
+      label: Translated summary (up to 200 characters)
+    validations: { required: true }
+  - type: textarea
+    id: body
+    attributes:
+      label: Translated story
+    validations: { required: true }
+  - type: textarea
+    id: journey
+    attributes:
+      label: Translated farm-to-cup steps (optional, one per line, same order)
+  - type: input
+    id: translator
+    attributes:
+      label: Your name as translator
+    validations: { required: true }
+  - type: checkboxes
+    id: licence
+    attributes:
+      label: Licence
+      options:
+        - label: I agree to publish this translation under CC BY 4.0.
+          required: true

@@ -1,0 +1,41 @@
+name: Turn approved story into a pull request
+
+# A maintainer adds the "approved" label to a "Share a story" issue.
+# This opens a pull request with the story file, which the check workflow then validates.
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  convert:
+    if: github.event.label.name == 'approved' && contains(github.event.issue.labels.*.name, 'story')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - id: story
+        run: node scripts/issue-to-story.mjs
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          branch: story/issue-${{ github.event.issue.number }}
+          title: "Add story: ${{ github.event.issue.title }}"
+          commit-message: "Add story from #${{ github.event.issue.number }}"
+          body: |
+            Story submitted in #${{ github.event.issue.number }} by @${{ github.event.issue.user.login }}.
+
+            Before merging:
+            - [ ] Add `coords` (2 decimals) for the nearest town: ${{ steps.story.outputs.town }}
+            - [ ] Read the story and summary once more with the contributor
+            - [ ] Optionally download the photo into `photos/` and point `photo` at it
+
+            Closes #${{ github.event.issue.number }}
