@@ -5,7 +5,7 @@
 id: P-H7FAQRHQ-5                 # P- + 8 karakter + karakter cek, tidak pernah diubah. Buat baru: npm run new-id / never changes; make one with npm run new-id
 name: Pak Rahman dan keluarga
 consent: true                  # produsen setuju profil ini dipublikasikan / the producer agreed to publish
-type: farmer                   # farmer | group | estate | processor | roaster
+type: farmer                   # farmer | group | estate | processor | roaster | lab
 region: Bener Meriah, Aceh
 village: Bies
 since: 2008                    # mulai bertani / growing since

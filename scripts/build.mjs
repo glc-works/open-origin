@@ -318,7 +318,7 @@ const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table 
         ${here && l.owner ? `<div class="muted">Filed by ${party(l.owner.id, prefix)}</div>` : ""}
         ${l.processed_by ? `<div class="muted">Processed by ${party(l.processed_by, prefix)}</div>` : ""}${l.roasted_by ? `<div class="muted">Roasted by ${party(l.roasted_by, prefix)}</div>` : ""}${l.sold_by ? `<div class="muted">Sold by ${party(l.sold_by, prefix)}</div>` : ""}</td>
       <td data-label="Quality">${l.quality && Object.keys(l.quality).length
-        ? `<div>${Object.entries(l.quality).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("")}</div><div class="muted">${l.tested_by ? `Tested by ${esc(l.tested_by)}` : "Self-reported"}</div>`
+        ? `<div>${Object.entries(l.quality).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("")}</div><div class="muted">${l.tested_by ? `Tested by ${party(l.tested_by, prefix)}` : "Self-reported"}</div>`
         : `<span class="muted">Not measured</span>`}</td>
       <td data-label="Sources">${[l.certificate ? `<a href="${esc(l.certificate)}">Certificate</a>` : "",
         ...(l.sources || []).map((u, i) => `<a href="${esc(u)}">Source${l.sources.length > 1 ? ` ${i + 1}` : ""}</a>`)].filter(Boolean).map((x) => `<div>${x}</div>`).join("")}</td></tr>
@@ -411,7 +411,7 @@ function storyPage(s, t = null) {
 ${foot}`;
 }
 
-const PTYPE = { farmer: "Farmer", group: "Producer group", estate: "Estate", processor: "Processing facility", roaster: "Roaster" };
+const PTYPE = { farmer: "Farmer", group: "Producer group", estate: "Estate", processor: "Processing facility", roaster: "Roaster", lab: "Testing lab or grader" };
 function producerPage(p) {
   const prefix = "../../";
   const row = (k, val) => (val ? `<div><dt>${k}</dt><dd>${esc(val)}</dd></div>` : "");
@@ -420,7 +420,7 @@ function producerPage(p) {
   const grown = [...new Map(p.stories.flatMap((s) => (s.varieties || []).map((v) => [`${s.crop}:${v.toLowerCase()}`, { crop: s.crop, name: v }]))).values()];
   const lotsOf = p.stories.filter((s) => s.lots.length);
   // Lots this producer processed or sold for someone else's story.
-  const handled = lots.filter((l) => !l.linked.some((x) => p.stories.includes(x)) && (l.owner === p || [l.processed_by, l.roasted_by, l.sold_by].some((v) => String(v) === String(p.id))));
+  const handled = lots.filter((l) => !l.linked.some((x) => p.stories.includes(x)) && (l.owner === p || [l.processed_by, l.roasted_by, l.sold_by, l.tested_by].some((v) => String(v) === String(p.id))));
   return `${head(`${p.name} · Open Origin`, p.body ? p.body.slice(0, 160) : `${p.name}, ${countryName.of(p.pathCountry.toUpperCase())}`, prefix)}
 <main><div class="wrap">
 <article class="story">
@@ -447,7 +447,7 @@ function producerPage(p) {
     ${p.stories.length ? `<div class="cards">${p.stories.map((r) => card(r).replace(`href="${href(r)}"`, `href="${prefix}${href(r)}"`)).join("")}</div>`
       : `<div class="empty"><p>No stories linked to this profile yet.</p></div>`}
     ${lotsOf.map((s) => `<h2 class="journey-title">Lots · ${esc(s.title)}</h2>${lotTable(s.lots, prefix, s)}`).join("")}
-    ${handled.length ? `<h2 class="journey-title">${p.stories.length ? "Other lots" : "Lots"}</h2><p class="part-of">Lots ${esc(p.name)} grew, processed, roasted or sold.</p>${lotTable(handled, prefix)}` : ""}
+    ${handled.length ? `<h2 class="journey-title">${p.stories.length ? "Other lots" : "Lots"}</h2><p class="part-of">Lots ${esc(p.name)} ${p.type === "lab" ? "tested" : "grew, processed, roasted or sold"}.</p>${lotTable(handled, prefix)}` : ""}
     ${p.consent === "public" ? `<p class="part-of">This profile was put together only from what has already been published about ${esc(p.name)}; see the sources below. If this is you, you can correct, complete or remove it.</p>` : ""}
     ${sourceList(p.sources || [])}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc(p.file)}">Improve this profile</a></p>
@@ -626,8 +626,8 @@ async function exportData() {
   // Lots: one row per lot, plus quality in long format (one row per measured value) so every crop fits one table.
   const LFIELDS = [["id", "string", "permanent lot id, e.g. L-K7M2XQ9P-P"], ["story_ids", "string", "stories the lot comes from, separated by ; (several for a blend)"], ["producer", "string", "producer profile the lot is filed under"], ["crop", "string", ""], ["name", "string", ""],
     ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"], ["form", "string", "state the lot is sold in; the options depend on the crop"], ["process", "string", "separated by ; "], ["varieties", "string", "separated by ; "],
-    ["quantity_kg", "number", ""], ["traceability", "string", ""], ["processed_by", "string", "name or producer id"], ["roasted_by", "string", "name or producer id"], ["sold_by", "string", "name or producer id"],
-    ["tested_by", "string", ""], ["certificate", "string", ""]];
+    ["quantity_kg", "number", ""], ["traceability", "string", ""], ["processed_by", "string", "name or producer id"], ["roasted_by", "string", "name or producer id"], ["sold_by", "string", "name or producer id"], ["tested_by", "string", "name or producer id of the lab or grader"],
+    ["certificate", "string", ""]];
   const lrows = lots.map((l) => ({ id: l.id, story_ids: l.linked.map(id).join("; "), producer: l.owner?.id || "", crop: l.pathCrop, name: l.name || "", date: String(l.date), form: l.form || "",
     process: (l.process || []).join("; "), varieties: (l.varieties || []).join("; "), quantity_kg: l.quantity_kg ?? "", traceability: l.traceability || "",
     processed_by: l.processed_by || "", roasted_by: l.roasted_by || "", sold_by: l.sold_by || "", tested_by: l.tested_by || "", certificate: l.certificate || "" }));
