@@ -89,6 +89,11 @@ In coffee, "origin" is the place. What you buy, for example "Gayo Honey, green b
 lots/<crop>/<country>/<story-slug>/<lot-name>.md
 ```
 
+A lot that is not one farm's harvest can sit directly in `lots/<crop>/<name>.md` and say where it belongs by id instead:
+
+- `stories: [S-K7M2XQ9P, S-Q4ZK8M2P]` for a blend of several farms or origins. It then shows on each of those story pages.
+- `producer: P-H7FAQRHQ` for a lot filed under a producer, processor or roaster whose farms have no story yet. It shows on that profile.
+
 Copy [`templates/lot.md`](templates/lot.md). Only `id` (`L-` plus 8 characters, see [Permanent ids](#permanent-ids)) and `date` are required. Everything else is optional:
 
 - `name`: the name it is sold under, e.g. `Gayo Honey`

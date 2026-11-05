@@ -7,6 +7,15 @@ import matter from "gray-matter";
 
 // OPEN_ORIGIN_ROOT points the scripts at another content folder, e.g. the test fixtures.
 export const ROOT = process.env.OPEN_ORIGIN_ROOT ? path.resolve(process.env.OPEN_ORIGIN_ROOT) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// Front matter with a readable error: a YAML mistake names the file and line instead of a stack trace.
+function readFront(text, file) {
+  try { return matter(text); }
+  catch (e) {
+    const where = e.mark ? ` (line ${e.mark.line + 1})` : "";
+    throw new Error(`${path.relative(ROOT, file)}${where}: ${e.reason || e.message}. Text with a colon, like a summary, needs quotes.`);
+  }
+}
+
 export const STORIES_DIR = path.join(ROOT, "stories");
 
 // Crops that are open for stories. Add a crop here (and a folder under stories/) to open it.
@@ -27,14 +36,16 @@ export const QUALITY = {
 };
 
 // Per crop: allowed `species`, `processes` (how it is made) and `forms` (the state a lot is sold in),
-// plus the words the site uses for the end of its journey. Add a crop here (and a folder under stories/) to open it.
+// plus the words the site uses for the end of its journey and, optionally, the Learn entry that explains its grading. Add a crop here (and a folder under stories/) to open it.
 export const CROPS = {
   coffee: { label: "Coffee", species: ["arabica", "robusta", "liberica", "excelsa"],
     processes: ["washed", "natural", "honey", "wet-hulled", "anaerobic", "fermented", "other"],
-    forms: ["cherry", "parchment", "green", "roasted"], journey: "From farm to cup", use: "In the cup" },
+    forms: ["cherry", "parchment", "green", "roasted"], journey: "From farm to cup", use: "In the cup",
+    grading: ["cupping-and-q-grading", "How coffee is scored"] },
   cocoa: { label: "Cocoa", species: ["criollo", "forastero", "trinitario", "nacional"],
     processes: ["fermented", "unfermented", "sun-dried", "machine-dried", "other"],
-    forms: ["pods", "wet-beans", "dried-beans", "nibs", "chocolate"], journey: "From tree to bar", use: "Into chocolate" },
+    forms: ["pods", "wet-beans", "dried-beans", "nibs", "chocolate"], journey: "From tree to bar", use: "Into chocolate",
+    grading: ["cut-test", "How cocoa is graded"] },
   tea: { label: "Tea", species: ["sinensis", "assamica"],
     processes: ["white", "green", "oolong", "black", "dark", "other"],
     forms: ["fresh-leaf", "made-tea"], journey: "From garden to cup", use: "In the cup" },
@@ -91,7 +102,7 @@ export async function loadStories() {
   const translations = [];
   for (const file of files) {
     const raw = await readFile(file, "utf8");
-    const { data, content } = matter(raw);
+    const { data, content } = readFront(raw, file);
     const rel = path.relative(STORIES_DIR, file);
     const [crop, country, name] = rel.split(path.sep);
     const base = { body: content.trim(), file: path.relative(ROOT, file), pathCrop: crop, pathCountry: country };
@@ -116,7 +127,7 @@ export async function loadKnowledge() {
   try { files = (await walk(LEARN_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
   const out = [];
   for (const file of files) {
-    const { data, content } = matter(await readFile(file, "utf8"));
+    const { data, content } = readFront(await readFile(file, "utf8"), file);
     const [crop, name] = path.relative(LEARN_DIR, file).split(path.sep);
     out.push({ ...data, body: content.trim(), file: path.relative(ROOT, file), pathCrop: crop, slug: name ? name.replace(/\.md$/, "") : "" });
   }
@@ -176,7 +187,7 @@ export async function loadProducers() {
   try { files = (await walk(PRODUCERS_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
   const out = [];
   for (const file of files) {
-    const { data, content } = matter(await readFile(file, "utf8"));
+    const { data, content } = readFront(await readFile(file, "utf8"), file);
     const parts = path.relative(PRODUCERS_DIR, file).split(path.sep);
     out.push({ ...data, body: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCountry: parts[0], slug: (parts[1] || "").replace(/\.md$/, "") });
   }
@@ -245,9 +256,10 @@ export async function loadLots() {
   try { files = (await walk(LOTS_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
   const out = [];
   for (const file of files) {
-    const { data, content } = matter(await readFile(file, "utf8"));
+    const { data, content } = readFront(await readFile(file, "utf8"), file);
     const parts = path.relative(LOTS_DIR, file).split(path.sep);
-    const [crop, country, storySlug, name] = parts;
+    // lots/<crop>/<country>/<story>/<name>.md belongs to that story; lots/<crop>/<name>.md links by id instead.
+    const [crop, country, storySlug, name] = parts.length === 2 ? [parts[0], undefined, undefined, parts[1]] : parts;
     // YAML reads an unquoted 2025-06-01 as a Date; keep it as the written YYYY-MM-DD text.
     if (data.date instanceof Date) data.date = data.date.toISOString().slice(0, 10);
     if (typeof data.process === "string") data.process = [data.process];
@@ -266,6 +278,35 @@ function isPartialDate(v) {
   return true;
 }
 
+// Which stories and producer a lot belongs to: the story folder it sits in, plus any `stories: [S-…]` (a blend
+// of several farms or origins) and `producer: P-…` (e.g. a roaster's lot whose farms have no story yet).
+export function resolveLot(l, stories, producers = []) {
+  const errors = [];
+  const out = [];
+  if (l.storySlug) {
+    const story = stories.find((s) => s.pathCrop === l.pathCrop && s.pathCountry === l.pathCountry && s.slug === l.storySlug);
+    if (!story) errors.push(`no story stories/${l.pathCrop}/${l.pathCountry}/${l.storySlug}.md for this lot`);
+    else out.push(story);
+  }
+  if (l.stories !== undefined) {
+    if (!isStrList(l.stories)) errors.push(`stories must be a list of story ids, e.g. [S-K7M2XQ9P]`);
+    else for (const sid of l.stories) {
+      const story = stories.find((s) => String(s.id) === sid);
+      if (!story) errors.push(`story "${sid}" not found`);
+      else if (story.crop !== l.pathCrop) errors.push(`story "${sid}" is ${story.crop}, but this lot is in lots/${l.pathCrop}/`);
+      else if (!out.includes(story)) out.push(story);
+    }
+  }
+  for (const story of out) if (story.kind === "origin") errors.push(`lots belong to a farm, group or movement story, not an origin profile (${story.id})`);
+  let producer = null;
+  if (l.producer !== undefined) {
+    producer = producers.find((p) => String(p.id) === String(l.producer)) || null;
+    if (!producer) errors.push(`producer "${l.producer}" not found: use the id of a profile in producers/`);
+  }
+  if (!out.length && l.producer === undefined) errors.push(`a lot in lots/${l.pathCrop}/ needs stories: [S-…] or producer: P-… (or put it in a story's folder)`);
+  return { stories: out, producer, errors };
+}
+
 // A party field (processed_by, roasted_by, sold_by) is free text, or a producer id that must exist.
 const partyErrors = (key, v, producers) => {
   if (v === undefined) return [];
@@ -276,12 +317,11 @@ const partyErrors = (key, v, producers) => {
 
 export function validateLot(l, stories, producers = []) {
   const errors = [];
-  if (l.depth !== 4) return [`lot files go in lots/<crop>/<country>/<story>/<name>.md`];
+  if (l.depth !== 4 && l.depth !== 2) return [`lot files go in lots/<crop>/<country>/<story>/<name>.md, or lots/<crop>/<name>.md with stories or producer`];
+  if (!CROPS[l.pathCrop]) return [`lots/${l.pathCrop}/ is not an open crop (${Object.keys(CROPS).join(", ")})`];
   errors.push(...idErrors(l.id, ID_PREFIX.lot));
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(l.slug)) errors.push(`lot file name must be lowercase words joined by hyphens, e.g. 2025-honey-1`);
-  const story = stories.find((s) => s.pathCrop === l.pathCrop && s.pathCountry === l.pathCountry && s.slug === l.storySlug);
-  if (!story) errors.push(`no story stories/${l.pathCrop}/${l.pathCountry}/${l.storySlug}.md for this lot`);
-  else if (story.kind === "origin") errors.push(`lots belong to a farm, group or movement story, not an origin profile`);
+  errors.push(...resolveLot(l, stories, producers).errors);
   if (!isPartialDate(l.date)) errors.push(`date must be a real date written YYYY, YYYY-MM or YYYY-MM-DD`);
   if (l.name !== undefined && !(typeof l.name === "string" && l.name.trim())) errors.push(`name must be text, e.g. "Gayo Honey"`);
   if (l.process !== undefined) {
