@@ -11,7 +11,7 @@ Every cup, bar, jar or spoonful starts with someone's harvest. Open Origin is an
 - **The farmer's voice first.** Stories told by farmers themselves are the heart of the project. Every story says whose voice it is (`told_by`).
 - **Consent and safety.** Everyone named or pictured agrees to publication. Locations are rounded to about 1 km.
 - **Honest about what we know.** Traceability is stated, quality is tied to a lot and to who measured it, and uncertain facts are marked.
-- **Open by default.** Stories CC BY 4.0, code MIT, data published in an open format on every build.
+- **Open by default.** Stories CC BY 4.0, code Apache-2.0 (forks keep the NOTICE file), data published in an open format on every build.
 - **Easy to contribute.** No git needed: forms in plain language, in any language.
 - **Plain files, no lock-in.** Everything is Markdown in a git repository and can move to any other tool.
 

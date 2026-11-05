@@ -115,7 +115,7 @@ ${extra}</head>
 
 const foot = `<footer class="site-footer"><div class="wrap">
   <p>Open Origin · stories from where it grows.</p>
-  <p>Stories are CC BY 4.0, credited to the people who told them. Code is MIT. Altitude and tasting notes are typical ranges; every harvest is different.</p>
+  <p>Stories are CC BY 4.0, credited to the people who told them. Code is Apache-2.0. Altitude and tasting notes are typical ranges; every harvest is different.</p>
 </div></footer>
 </body>
 </html>`;
