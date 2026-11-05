@@ -4,6 +4,10 @@
 
 > **Bahasa Indonesia:** Open Origin adalah koleksi cerita terbuka tentang kopi dan hasil tani lain, dari suara petani dan orang-orang di sekitarnya. Siapa pun boleh membaca, memakai ulang, dan menambahkan ceritanya. Mulai dari kopi Nusantara, lalu ke seluruh dunia.
 
+## Why
+
+Coffee lovers are proud of the farmers and the process behind their cup, but most of those stories never leave the farm. Open Origin gives them a home that anyone can read, reuse and add to, starting with coffee from the Indonesian archipelago and growing to the world and to other crops. The vision, data model and roadmap are in **[BLUEPRINT.md](BLUEPRINT.md)**.
+
 ## Share a story
 
 You don't need to know code. **[Fill in the story form](https://github.com/glc-works/open-origin/issues/new?template=story.yml)** and a maintainer will turn it into a page. If you are comfortable with git, you can also open a pull request with a Markdown file. See [CONTRIBUTING.md](CONTRIBUTING.md).
