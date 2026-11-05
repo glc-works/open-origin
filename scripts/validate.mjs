@@ -6,9 +6,10 @@ let failed = 0;
 const linkErrors = linkOrigins(stories);
 const producers = await loadProducers();
 const profileErrors = linkProducers(stories, producers);
+const dupIds = duplicateIds([...stories, ...producers]);
 const seen = new Set();
 for (const s of stories) {
-  const errors = [...validateStory(s), ...(linkErrors.get(s.file) || []), ...(profileErrors.get(s.file) || [])];
+  const errors = [...validateStory(s), ...(linkErrors.get(s.file) || []), ...(profileErrors.get(s.file) || []), ...(dupIds.get(s.file) || [])];
   const key = `${s.pathCrop}/${s.pathCountry}/${s.slug}`;
   if (seen.has(key)) errors.push("duplicate story path");
   seen.add(key);
@@ -44,7 +45,6 @@ for (const b of batches) {
     for (const e of errors) console.error(`  - ${e}`);
   }
 }
-const dupIds = duplicateIds(producers);
 for (const p of producers) {
   const errors = [...validateProducer(p), ...(dupIds.get(p.file) || [])];
   if (errors.length) {

@@ -55,11 +55,15 @@ A variety entry (`type: variety`) adds structured fields: `species`, `lineage`, 
 
 Write entries in your own words. Facts from catalogues such as World Coffee Research are welcome; link them in `sources` rather than copying text. To cite a fact, put its number in brackets after it, like `[2]` for the second link in `sources`; it becomes a footnote. Where sources disagree, give each view with its author and year.
 
+## Permanent ids
+
+Every story and producer profile has an `id` that never changes: a prefix, a hyphen and 8 capital letters or digits. Origin profiles start with `O-` (e.g. `O-V9VR4CHS`), farm and movement stories with `S-` (e.g. `S-K7M2XQ9P`) and producers with `P-` (e.g. `P-H7FAQRHQ`), so they can never be mixed up. Run `npm run new-id` for fresh ones, or leave `id` out and the check will suggest one. Stories sent through the issue form get one automatically. Because the id never changes, a title, name or file can be renamed without breaking links: `/s/<id>/` always leads to the story, and the open data uses the id as its key.
+
 ## Producer profiles
 
-A farmer, producer group or estate can have one profile page that gathers all their stories, batches and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent: true` are required. The `id` is 8 characters (capital letters and digits, starting with a letter), e.g. `K7M2XQ9P`; run `npm run new-id` for a fresh one, or leave it out and the check will suggest one. It never changes, so the name and the file can be renamed without breaking anything. Fill in whatever else the producer is happy to share: `type` (farmer, group, estate), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo` and `crops`. The text below the frontmatter is an optional short introduction.
+A farmer, producer group or estate can have one profile page that gathers all their stories, batches and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent: true` are required. The `id` is `P-` and 8 capital letters or digits, e.g. `P-H7FAQRHQ` (see [Permanent ids](#permanent-ids)). Fill in whatever else the producer is happy to share: `type` (farmer, group, estate), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo` and `crops`. The text below the frontmatter is an optional short introduction.
 
-To link a story to the profile, add the profile's id to the story, e.g. `profile: K7M2XQ9P`. The profile page lives at `/producers/<id>/`. Do not publish phone numbers or home addresses.
+To link a story to the profile, add the profile's id to the story, e.g. `profile: P-H7FAQRHQ`. The profile page lives at `/producers/<id>/`. Do not publish phone numbers or home addresses.
 
 ## Traceability
 
@@ -120,6 +124,7 @@ The translated story.
 
 ```markdown
 ---
+id: O-V9VR4CHS                # permanent id: O- for an origin, S- for a farm or movement story
 title: Gayo, coffee from the shores of Lake Laut Tawar
 kind: origin                  # origin | farm | movement (default: farm)
 crop: coffee                  # coffee | cocoa | tea | spice | vanilla | honey | sugar

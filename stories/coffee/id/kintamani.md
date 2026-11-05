@@ -1,4 +1,5 @@
 ---
+id: O-FAFSGWK5
 title: Kintamani, coffee guarded by the subak
 kind: origin
 crop: coffee

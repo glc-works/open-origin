@@ -43,8 +43,9 @@ const stories = loaded.stories.filter((s) => validateStory(s).length === 0);
 for (const s of stories) s.translations = s.translations.filter((t) => validateTranslation(t).length === 0);
 linkOrigins(stories);
 const allProducers = await loadProducers();
-const dupIds = duplicateIds(allProducers);
+const dupIds = duplicateIds([...loaded.stories, ...allProducers]);
 const producers = allProducers.filter((p) => validateProducer(p).length === 0 && !dupIds.has(p.file));
+for (let i = stories.length - 1; i >= 0; i--) if (dupIds.has(stories[i].file)) stories.splice(i, 1);
 linkProducers(stories, producers);
 const knowledge = (await loadKnowledge()).filter((k) => validateKnowledge(k).length === 0);
 const learnHref = (crop, slug) => (knowledge.some((k) => k.crop === crop && k.slug === slug) ? `learn/${crop}/${slug}/` : null);
@@ -309,6 +310,7 @@ function storyPage(s, t = null) {
       ${row("Traceability", s.traceability && TRACE_LABEL[s.traceability])}
       ${row("Tastes of", (v.tasting_notes || []).join(", "))}
       ${row("Told by", TOLD[s.told_by])}
+      ${rowHtml("ID", `<a href="${prefix}s/${esc(s.id)}/"><code>${esc(s.id)}</code></a>`)}
       ${row("Told in", nativeName(s.language))}
       ${t ? row("Translated by", t.translator) : ""}
       ${row("Added by", s.contributor)}
@@ -355,6 +357,7 @@ function producerPage(p) {
       ${row("Growing since", p.since)}
       ${row("Farm size", p.farm_size_ha ? `${p.farm_size_ha} ha` : "")}
       ${row("Members", p.members ? `${p.members.toLocaleString("en")} farmers` : "")}
+      ${rowHtml("ID", `<code>${esc(p.id)}</code>`)}
       ${rowHtml("Website", p.website ? `<a href="${esc(p.website)}">${esc(String(p.website).replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>` : "")}
     </dl>
   </div>
@@ -396,13 +399,20 @@ for (const p of producers) {
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, "index.html"), producerPage(p));
 }
+// Permalinks: /s/<story id>/ always leads to the story, even after its file is renamed.
+for (const s of stories) {
+  const dir = path.join(DIST, "s", s.id);
+  await mkdir(dir, { recursive: true });
+  const to = `../../${href(s)}`;
+  await writeFile(path.join(dir, "index.html"), `<!doctype html><meta charset="utf-8"><title>${esc(s.title)}</title><link rel="canonical" href="${to}"><meta http-equiv="refresh" content="0; url=${to}"><a href="${to}">${esc(s.title)}</a>`);
+}
 await writeFile(path.join(DIST, ".nojekyll"), "");
 await exportData();
 
 // Open data export: a Frictionless Data Package (https://datapackage.org) with CSV + JSON, regenerated on every build.
 async function exportData() {
   const FIELDS = [
-    ["id", "string", "crop/country/slug, unique"], ["kind", "string", "origin, farm or movement"], ["origin", "string", "id of the origin profile a farm or movement belongs to"],
+    ["id", "string", "permanent story id, e.g. S-K7M2XQ9P"], ["path", "string", "crop/country/slug of the story file"], ["kind", "string", "origin, farm or movement"], ["origin", "string", "id of the origin profile a farm or movement belongs to"],
     ["crop", "string", "coffee, cocoa, tea, spice, vanilla, honey or sugar"], ["country", "string", "ISO 3166-1 alpha-2"], ["region", "string", ""],
     ["producer", "string", ""], ["species", "string", ""], ["altitude_min_masl", "integer", ""], ["altitude_max_masl", "integer", ""],
     ["varieties", "string", "separated by ; "], ["process", "string", "separated by ; "], ["harvest", "string", ""],
@@ -412,9 +422,10 @@ async function exportData() {
     ["translations", "string", "available translation languages, separated by ; "], ["told_by", "string", ""], ["contributor", "string", ""],
     ["url", "string", "path of the story page, relative to the site root"],
   ];
-  const id = (s) => `${s.crop}/${s.pathCountry}/${s.slug}`;
+  const id = (s) => s.id;
+  const pathOf = (s) => `${s.crop}/${s.pathCountry}/${s.slug}`;
   const rows = stories.map((s) => ({
-    id: id(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : "", crop: s.crop, country: s.country, region: s.region || "",
+    id: id(s), path: pathOf(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : "", crop: s.crop, country: s.country, region: s.region || "",
     producer: s.producer, species: s.species || "", altitude_min_masl: s.altitude_masl?.[0] ?? "", altitude_max_masl: s.altitude_masl?.[1] ?? "",
     varieties: (s.varieties || []).join("; "), process: (s.process || []).join("; "), harvest: s.harvest || "",
     tasting_notes: (s.tasting_notes || []).join("; "), latitude: s.coords?.[0] ?? "", longitude: s.coords?.[1] ?? "",
@@ -425,7 +436,7 @@ async function exportData() {
   const cell = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
   const csv = [FIELDS.map((f) => f[0]).join(","), ...rows.map((r) => FIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n";
   const full = stories.map((s) => ({
-    id: id(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
+    id: id(s), path: pathOf(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
     ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
     story: s.body, url: href(s),
     batches: s.batches.map((b) => ({ id: b.id, date: String(b.date), quality: b.quality, tested_by: b.tested_by ?? null, quantity_kg: b.quantity_kg ?? null, traceability: b.traceability ?? null, certificate: b.certificate ?? null, notes: b.notes || null })),

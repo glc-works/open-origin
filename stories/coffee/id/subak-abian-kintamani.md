@@ -1,4 +1,5 @@
 ---
+id: S-G8W36AFF
 title: Subak Abian, the custom that guards Kintamani's coffee
 kind: movement
 origin: kintamani

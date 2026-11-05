@@ -133,14 +133,18 @@ export function validateKnowledge(k) {
 }
 
 // Producer profiles: producers/<country>/<slug>.md. Only id, name and consent are required.
-// The id is 8 random characters that never change, so the name and file can be renamed freely.
-// It starts with a letter so YAML always reads it as text, never as a number.
-export const ID_RE = /^[A-Z][A-Z0-9]{7}$/;
+// Permanent ids: a kind prefix, a hyphen and 8 random characters: O-… for an origin profile,
+// S-… for a farm or movement story and P-… for a producer. They never change, so names and files can be renamed freely.
+export const ID_PREFIX = { origin: "O", story: "S", producer: "P" };
 const ID_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"; // no 0/O, 1/I/L, easy to read aloud
-export function newId() {
+export function newId(prefix) {
   const bytes = crypto.getRandomValues(new Uint8Array(8));
-  const letters = ID_CHARS.replace(/[0-9]/g, "");
-  return [...bytes].map((b, i) => (i === 0 ? letters[b % letters.length] : ID_CHARS[b % ID_CHARS.length])).join("");
+  return `${prefix}-${[...bytes].map((b) => ID_CHARS[b % ID_CHARS.length]).join("")}`;
+}
+export function idErrors(v, prefix) {
+  if (v === undefined) return [`missing required field "id": add a permanent id such as id: ${newId(prefix)}`];
+  if (typeof v !== "string" || !new RegExp(`^${prefix}-[A-Z0-9]{8}$`).test(v)) return [`id must be "${prefix}-" followed by 8 capital letters or digits, e.g. ${newId(prefix)}`];
+  return [];
 }
 export const PRODUCERS_DIR = path.join(ROOT, "producers");
 export const PRODUCER_TYPES = ["farmer", "group", "estate"];
@@ -164,8 +168,7 @@ export function validateProducer(p) {
   if (p.depth !== 2) return [`producer files go in producers/<country>/<name>.md`];
   if (!/^[a-z]{2}$/.test(p.pathCountry)) errors.push(`folder must be a two-letter country code, e.g. producers/id/`);
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug)) errors.push(`file name must be lowercase words joined by hyphens, e.g. producers/id/koperasi-gayo.md`);
-  if (p.id === undefined) errors.push(`missing required field "id": add a permanent id such as id: ${newId()}`);
-  else if (typeof p.id !== "string" || !ID_RE.test(p.id)) errors.push(`id must be 8 capital letters or digits starting with a letter, e.g. ${newId()}`);
+  errors.push(...idErrors(p.id, ID_PREFIX.producer));
   if (!p.name || typeof p.name !== "string") errors.push(`missing required field "name"`);
   if (p.consent !== true) errors.push(`consent must be true: the producer agreed to have this profile published`);
   if (p.type !== undefined && !PRODUCER_TYPES.includes(p.type)) errors.push(`type must be one of: ${PRODUCER_TYPES.join(", ")}`);
@@ -179,12 +182,12 @@ export function validateProducer(p) {
   return errors;
 }
 
-// Two profiles may never share an id. Returns errors keyed by file.
-export function duplicateIds(producers) {
+// No two files may share an id. Pass every story and producer. Returns errors keyed by file.
+export function duplicateIds(items) {
   const errors = new Map();
-  for (const p of producers) {
-    const other = producers.find((x) => x !== p && x.id !== undefined && String(x.id) === String(p.id));
-    if (other) errors.set(p.file, [`id "${p.id}" is also used by ${other.file}; give this profile a new one, e.g. ${newId()}`]);
+  for (const p of items) {
+    const other = items.find((x) => x !== p && x.id !== undefined && String(x.id) === String(p.id));
+    if (other) errors.set(p.file, [`id "${p.id}" is also used by ${other.file}; give this file a new one, e.g. ${newId(String(p.id)[0])}`]);
   }
   return errors;
 }
@@ -305,6 +308,7 @@ export function validateStory(s) {
     errors.push(`file name must be lowercase words joined by hyphens, e.g. stories/coffee/id/gayo.md`);
   }
   if (!s.region && !["country", "blend"].includes(s.traceability)) errors.push(`missing required field "region" (optional only when traceability is country or blend)`);
+  errors.push(...idErrors(s.id, s.kind === "origin" ? ID_PREFIX.origin : ID_PREFIX.story));
   if (!KINDS.includes(s.kind)) errors.push(`kind must be one of: ${KINDS.join(", ")}`);
   if (s.kind !== "movement" && !s.species) errors.push(`missing required field "species"`);
   if (s.origin !== undefined && s.kind === "origin") errors.push(`an origin profile cannot itself have an "origin" field`);
