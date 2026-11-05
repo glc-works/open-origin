@@ -1,27 +1,27 @@
 ---
-title: Mandailing, nama yang dikenal dunia
+title: Mandailing, a name the world knows
 kind: origin
 crop: coffee
 country: ID
-region: Mandailing Natal & Tapanuli, Sumatra Utara
-producer: Petani kopi dataran tinggi Sumatra Utara
+region: Mandailing Natal & Tapanuli, North Sumatra
+producer: Coffee farmers of the North Sumatran highlands
 species: arabica
 altitude_masl: [1000, 1500]
 varieties: [Sigarar Utang, Ateng, Lini S]
 process: [wet-hulled]
-harvest: Sep–Des
-tasting_notes: [kayu manis, tanah basah, gula aren]
-summary: Kopi yang membentuk citra "rasa Sumatra" di pasar dunia, dengan varietas yang namanya berarti "pembayar utang".
+harvest: Sep–Dec
+tasting_notes: [cinnamon, wet earth, palm sugar]
+summary: The coffee that shaped the "Sumatran taste" in world markets, with a variety whose name means "debt payer".
 coords: [0.75, 99.45]
-language: id
+language: en
 told_by: editor
 contributor: open-origin
 consent: true
 sources: []
 ---
 
-Nama Mandailing sudah dikenal di pasar dunia sejak zaman Belanda. Pedagang Eropa menyebut kopi dari dataran tinggi Sumatra Utara dengan nama suku yang tinggal di sana, meski banyak bijinya sebenarnya datang dari sekitar Danau Toba dan Lintong.
+European traders have used the name Mandailing since Dutch colonial times. They named coffee from the North Sumatran highlands after the people living there, even though much of it actually came from around Lake Toba and Lintong.
 
-Varietas Sigarar Utang punya cerita yang lucu. Dalam bahasa Batak, namanya berarti kira-kira "pembayar utang", karena pohon ini cepat berbuah sehingga petani bisa segera melunasi pinjaman mereka.
+The Sigarar Utang variety has a story of its own. In Batak its name means roughly "the one that pays off debts", because the trees bear fruit so quickly that farmers can repay their loans soon after planting.
 
-Inilah kopi yang membentuk citra "rasa Sumatra": badan seperti sirup, asam lembut, dengan aroma tanah, kayu, dan rempah manis.
+This is the coffee that built the image of the "Sumatran taste": a syrupy body, soft acidity, and aromas of earth, wood and sweet spice.

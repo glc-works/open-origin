@@ -1,27 +1,27 @@
 ---
-title: Flores Bajawa, di kaki Gunung Inerie
+title: Flores Bajawa, at the foot of Mount Inerie
 kind: origin
 crop: coffee
 country: ID
-region: Kabupaten Ngada, Flores, Nusa Tenggara Timur
-producer: Unit Pengolahan Hasil (UPH) petani Ngada
+region: Ngada Regency, Flores, East Nusa Tenggara
+producer: Ngada farmers' processing units (UPH)
 species: arabica
 altitude_masl: [1200, 1600]
 varieties: [Typica, Catimor, Juria]
 process: [washed]
-harvest: Mei–Sep
-tasting_notes: [cokelat, vanila, bunga]
-summary: Petani Ngada mengolah kopi bersama di tanah vulkanik yang subur, Indikasi Geografis sejak 2012.
+harvest: May–Sep
+tasting_notes: [chocolate, vanilla, floral]
+summary: Ngada farmers process coffee together on fertile volcanic soil, with a Geographical Indication since 2012.
 coords: [-8.78, 120.97]
-language: id
+language: en
 told_by: editor
 contributor: open-origin
 consent: true
 sources: []
 ---
 
-Bajawa berdiri di dataran tinggi yang dikelilingi gunung api, dengan Inerie yang menjulang di selatan. Abu vulkanik membuat tanahnya subur dan gembur.
+Bajawa sits on a plateau ringed by volcanoes, with Mount Inerie rising to the south. Volcanic ash makes the soil fertile and loose.
 
-Petani Ngada bergabung dalam Unit Pengolahan Hasil (UPH) yang mengolah kopi bersama dengan proses cuci. Kerja bersama ini membuat mutu naik, dan pada 2012 Kopi Arabika Flores Bajawa memperoleh Indikasi Geografis.
+Ngada farmers work together in processing units (Unit Pengolahan Hasil, UPH) that wash their coffee as a group. This shared work raised quality, and in 2012 Flores Bajawa Arabica received a Geographical Indication.
 
-Bajawa sering dianggap tersembunyi. Rasanya lembut dan manis, dengan cokelat dan sedikit aroma bunga, cocok untuk diseduh manual maupun espresso.
+Bajawa is often thought of as a hidden gem. Its cup is soft and sweet, with chocolate and a hint of flowers, and suits both filter brewing and espresso.

@@ -1,27 +1,27 @@
 ---
-title: Wamena, hadiah dari Lembah Baliem
+title: Wamena, a gift from the Baliem Valley
 kind: origin
 crop: coffee
 country: ID
-region: Lembah Baliem, Jayawijaya, Papua Pegunungan
-producer: Petani kopi Lembah Baliem
+region: Baliem Valley, Jayawijaya, Highland Papua
+producer: Coffee farmers of the Baliem Valley
 species: arabica
 altitude_masl: [1400, 2000]
 varieties: [Typica]
 process: [washed]
 harvest: Apr–Jul
-tasting_notes: [cokelat, kayu manis, karamel]
-summary: Kebun kecil tanpa pupuk kimia di pegunungan Papua, bijinya diterbangkan keluar lembah karena belum ada jalan darat.
+tasting_notes: [chocolate, cinnamon, caramel]
+summary: Small farms without chemical inputs in the Papuan highlands; the beans are flown out because no road reaches the coast.
 coords: [-4.1, 138.95]
-language: id
+language: en
 told_by: editor
 contributor: open-origin
 consent: true
 sources: []
 ---
 
-Di ujung timur perjalanan, Lembah Baliem terbentang di antara pegunungan tinggi Papua. Kopi diperkenalkan di sini oleh misionaris dan pemerintah Belanda pada pertengahan abad ke-20.
+At the eastern end of the journey, the Baliem Valley lies between the high mountains of Papua. Coffee was introduced here by missionaries and the Dutch administration in the mid-twentieth century.
 
-Kebunnya kecil dan tersebar. Petani suku Dani dan Lani menanam kopi tanpa pupuk atau pestisida kimia, sehingga hampir seluruhnya organik secara alami. Biji sering dibawa jalan kaki berjam-jam lalu diterbangkan keluar lembah, karena belum ada jalan darat yang menyambung ke pesisir.
+The farms are small and scattered. Dani and Lani farmers grow coffee without chemical fertiliser or pesticides, so nearly all of it is organic by nature. Beans are often carried on foot for hours and then flown out of the valley, because no road yet connects it to the coast.
 
-Ketinggian dan udara dingin memberi Wamena rasa yang manis dan bersih. Karena jumlahnya sedikit, secangkir kopi Wamena terasa seperti hadiah dari ujung negeri.
+Altitude and cool air give Wamena a sweet, clean cup. Because there is so little of it, a cup of Wamena feels like a gift from the far end of the country.

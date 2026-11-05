@@ -1,6 +1,6 @@
 # Contributing to Open Origin
 
-Thank you for helping tell the stories behind what we drink and eat. Stories can be written in any language.
+Thank you for helping tell the stories behind what we drink and eat. English is the project's main language, but stories can be written in any language: tell it in the language you are most comfortable with, and an English translation can be added later by you or a volunteer.
 
 > **Ringkas (Bahasa Indonesia):** Cara termudah adalah mengisi [formulir cerita](https://github.com/glc-works/open-origin/issues/new?template=story.yml). Maintainer akan mengecek bersama Anda lalu menerbitkannya. Pastikan semua orang yang disebut atau difoto sudah setuju.
 
@@ -21,7 +21,7 @@ Thank you for helping tell the stories behind what we drink and eat. Stories can
 - Farm story template, with guiding questions: [`templates/farm-story.md`](templates/farm-story.md)
 - Origin profile: [`stories/coffee/id/gayo.md`](stories/coffee/id/gayo.md)
 - Movement: [`stories/coffee/id/subak-abian-kintamani.md`](stories/coffee/id/subak-abian-kintamani.md)
-- Translation: [`stories/coffee/id/gayo.en.md`](stories/coffee/id/gayo.en.md)
+- Translation: [`stories/coffee/id/gayo.id.md`](stories/coffee/id/gayo.id.md) (Indonesian)
 
 ## Three kinds of story
 
@@ -51,7 +51,7 @@ Explanations of species, processes and terms live in `learn/<crop>/<slug>.md`, w
 
 ## Translations
 
-Anyone can translate a story: [open the translation form](https://github.com/glc-works/open-origin/issues/new?template=translation.yml), or add a file next to the story named `<story>.<language>.md`, for example `gayo.en.md`, `gayo.zh.md`, `gayo.ar.md`, `gayo.ja.md`. Arabic, Persian, Urdu and Hebrew are shown right to left.
+Anyone can translate a story: [open the translation form](https://github.com/glc-works/open-origin/issues/new?template=translation.yml), or add a file next to the story named `<story>.<language>.md`, for example `gayo.id.md`, `gayo.zh.md`, `gayo.ar.md`, `gayo.ja.md`. Arabic, Persian, Urdu and Hebrew are shown right to left.
 
 ```markdown
 ---
@@ -72,7 +72,7 @@ The translated story.
 
 ```markdown
 ---
-title: Gayo, kopi dari tepi Danau Laut Tawar
+title: Gayo, coffee from the shores of Lake Laut Tawar
 kind: origin                  # origin | farm | movement (default: farm)
 crop: coffee                  # coffee | cocoa | tea | spice | vanilla | honey | sugar
 country: ID                   # ISO 3166 two-letter code, matches the folder name

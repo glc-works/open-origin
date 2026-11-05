@@ -1,27 +1,27 @@
 ---
-title: Lampung, rumah robusta Nusantara
+title: Lampung, home of Indonesian robusta
 kind: origin
 crop: coffee
 country: ID
-region: Lampung Barat & Tanggamus, Lampung
-producer: Petani robusta lereng Bukit Barisan
+region: West Lampung & Tanggamus, Lampung
+producer: Robusta farmers on the slopes of the Barisan Mountains
 species: robusta
 altitude_masl: [400, 900]
 varieties: [Robusta lokal, klon BP]
 process: [natural]
 harvest: Apr–Sep
-tasting_notes: [cokelat, kacang, karamel]
-summary: Robusta yang lama dicap kelas dua kini naik kelas berkat petani yang memetik merah dan menjemur dengan rapi.
+tasting_notes: [chocolate, nuts, caramel]
+summary: Robusta long dismissed as second class is rising, thanks to farmers who pick only ripe cherries and dry them with care.
 coords: [-5.05, 104.2]
-language: id
+language: en
 told_by: editor
 contributor: open-origin
 consent: true
 sources: []
 ---
 
-Kalau Anda minum kopi sachet di Indonesia, besar kemungkinan sebagian isinya datang dari Lampung. Provinsi ini adalah salah satu penghasil robusta terbesar di negeri ini, dengan kebun yang membentang di lereng Bukit Barisan.
+If you drink instant coffee in Indonesia, some of it very likely comes from Lampung. The province is one of the country's largest robusta producers, with farms spread along the slopes of the Barisan Mountains.
 
-Robusta dibawa ke Nusantara sekitar awal 1900-an, setelah wabah karat daun menghancurkan kebun arabika di dataran rendah. Tanaman ini tahan penyakit dan tumbuh di ketinggian rendah, sehingga cepat menyebar.
+Robusta reached the archipelago around the early 1900s, after leaf rust wiped out the lowland arabica plantations. It resists disease and grows at low altitude, so it spread quickly.
 
-Lama dicap kopi kelas dua, robusta Lampung kini naik kelas. Petani yang hanya memetik buah merah dan menjemurnya dengan rapi menghasilkan "fine robusta" dengan rasa cokelat dan kacang yang manis.
+Long labelled a second-class coffee, Lampung robusta is moving up. Farmers who pick only ripe red cherries and dry them carefully now produce "fine robusta" with sweet notes of chocolate and nuts.
