@@ -98,7 +98,12 @@ body:
     id: story
     attributes:
       label: The story
-      description: The land, the people, the process, the history. A few paragraphs is perfect.
+      description: A few paragraphs is perfect. You can use these questions as a guide.
+      placeholder: |
+        Who we are: who looks after the farm, and since when?
+        Our farm: the soil, the shade trees, the weather. What makes it different from the neighbours?
+        How we process: why this process? What have you tried, what worked, what didn't?
+        Challenges and hopes: prices, weather, young people, market access.
     validations: { required: true }
   - type: textarea
     id: journey
