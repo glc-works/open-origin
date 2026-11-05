@@ -15,4 +15,9 @@ Andungsari 1 was selected from a Catimor population that came from Colombia. Its
 
 It is a dwarf plant, about 1.2 m tall when it starts fruiting at high altitude, so it can be planted densely. The Ministry's variety guide gives a potential of 3.5 t of market coffee per hectare at 3,300 trees per hectare, with an average of about 2.8 t. Cup quality is rated good, and the guide recommends it above 700 m. Its economic life is 10 to 15 years.
 
-**Leaf rust:** sources disagree. The Ministry's guide calls it resistant above 1,000 m and somewhat resistant below 900 m. Royal Coffee's survey of Indonesian cultivars calls it susceptible. Resistance in Catimor types often fades over time, so both may be true in different places and years.
+**Leaf rust:** sources disagree.
+
+- **2018**, the Ministry of Agriculture's variety guide (Randriani & Dani, *Pengenalan Varietas Unggul Kopi*, IAARD Press, 2018): resistant above 1,000 m, somewhat resistant below 900 m.
+- **2025**, Royal Coffee's survey of Indonesian cultivars (Evan Gilman, 2025): susceptible.
+
+Resistance in Catimor types often fades as the rust fungus adapts, so the difference may reflect the years between the two sources.

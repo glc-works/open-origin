@@ -15,4 +15,9 @@ Kartika 2 comes from a population (No. 520-3) of the HW 26 line, a cross of Catu
 
 It is a dwarf tree, about 1.9 m tall, with good cup quality. The Ministry of Agriculture's variety guide notes that it grows taller below 1,000 m and yields more the higher it is planted. It is sensitive to nematodes.
 
-**Leaf rust:** sources disagree. The Ministry's guide calls it somewhat resistant. Royal Coffee's survey calls it very susceptible and in need of high inputs.
+**Leaf rust:** sources disagree.
+
+- **2018**, the Ministry of Agriculture's variety guide (Randriani & Dani, *Pengenalan Varietas Unggul Kopi*, IAARD Press, 2018): somewhat resistant.
+- **2025**, Royal Coffee's survey of Indonesian cultivars (Evan Gilman, 2025): very susceptible, and needs high inputs.
+
+Resistance in Catimor types often fades as the rust fungus adapts, so the difference may reflect the years between the two sources.
