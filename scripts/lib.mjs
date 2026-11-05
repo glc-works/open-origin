@@ -99,7 +99,7 @@ export const TERM_TYPES = ["species", "process", "variety", "term"];
 
 export async function loadKnowledge() {
   let files = [];
-  try { files = (await walk(LEARN_DIR)).sort(); } catch { return []; }
+  try { files = (await walk(LEARN_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
   const out = [];
   for (const file of files) {
     const { data, content } = matter(await readFile(file, "utf8"));
@@ -144,7 +144,7 @@ export const BATCHES_DIR = path.join(ROOT, "batches");
 
 export async function loadBatches() {
   let files = [];
-  try { files = (await walk(BATCHES_DIR)).sort(); } catch { return []; }
+  try { files = (await walk(BATCHES_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
   const out = [];
   for (const file of files) {
     const { data, content } = matter(await readFile(file, "utf8"));
@@ -157,6 +157,16 @@ export async function loadBatches() {
   return out;
 }
 
+// YYYY, YYYY-MM or YYYY-MM-DD, and a day that exists in that month.
+function isPartialDate(v) {
+  const m = String(v ?? "").match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+  if (!m) return false;
+  const [y, mo, d] = [Number(m[1]), m[2] && Number(m[2]), m[3] && Number(m[3])];
+  if (mo !== undefined && (mo < 1 || mo > 12)) return false;
+  if (d !== undefined && (d < 1 || d > new Date(Date.UTC(y, mo, 0)).getUTCDate())) return false;
+  return true;
+}
+
 export function validateBatch(b, stories) {
   const errors = [];
   if (b.depth !== 4) return [`batch files go in batches/<crop>/<country>/<story>/<batch-id>.md`];
@@ -164,7 +174,7 @@ export function validateBatch(b, stories) {
   const story = stories.find((s) => s.pathCrop === b.pathCrop && s.pathCountry === b.pathCountry && s.slug === b.storySlug);
   if (!story) errors.push(`no story stories/${b.pathCrop}/${b.pathCountry}/${b.storySlug}.md for this batch`);
   else if (story.kind === "origin") errors.push(`batches belong to a farm, group or movement story, not an origin profile`);
-  if (!/^\d{4}(-\d{2}(-\d{2})?)?$/.test(String(b.date ?? ""))) errors.push(`date must be YYYY, YYYY-MM or YYYY-MM-DD`);
+  if (!isPartialDate(b.date)) errors.push(`date must be a real date written YYYY, YYYY-MM or YYYY-MM-DD`);
   if (b.traceability !== undefined && !TRACEABILITY.includes(b.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
   if (b.quantity_kg !== undefined && !(isNum(b.quantity_kg) && b.quantity_kg > 0)) errors.push(`quantity_kg must be a positive number`);
   const spec = QUALITY[b.pathCrop] || [];
@@ -177,7 +187,7 @@ export function validateBatch(b, stories) {
       errors.push(f[3] === null ? `quality.${k} must be text` : `quality.${k} must be a number from ${f[3]} to ${f[4]}`);
     }
   }
-  if (q?.cupping_score !== undefined && !b.tested_by) errors.push(`a cupping score needs tested_by (e.g. "Licensed Q Grader, Name")`);
+  if (q?.cupping_score !== undefined && !(typeof b.tested_by === "string" && b.tested_by.trim())) errors.push(`a cupping score needs tested_by (e.g. "Licensed Q Grader, Name")`);
   if (b.certificate !== undefined && !(isHttpUrl(b.certificate) && String(b.certificate).startsWith("https:"))) errors.push(`certificate must be an https link`);
   return errors;
 }

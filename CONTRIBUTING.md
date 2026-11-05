@@ -127,9 +127,6 @@ process: [wet-hulled, natural]             # optional
 harvest: Okt–Jun                           # optional
 tasting_notes: [cokelat hitam, rempah]     # optional, at most 4
 summary: One or two sentences, at most 200 characters, shown on the card.
-cupping_score: 86.25          # optional, farm stories only, needs graded_by and cupping_year
-graded_by: Licensed Q Grader
-cupping_year: 2025
 photo: photos/id/gayo.jpg     # optional, a path in this repo or an https URL
 photo_credit: Name            # required when there is a photo
 coords: [4.62, 96.85]         # optional, latitude and longitude, 2 decimals

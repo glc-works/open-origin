@@ -377,7 +377,7 @@ async function exportData() {
     id: id(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
     ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
     story: s.body, url: href(s),
-    batches: s.batches.map((b) => ({ id: b.id, date: String(b.date), quality: b.quality, tested_by: b.tested_by ?? null, quantity_kg: b.quantity_kg ?? null, traceability: b.traceability ?? null, certificate: b.certificate ?? null })),
+    batches: s.batches.map((b) => ({ id: b.id, date: String(b.date), quality: b.quality, tested_by: b.tested_by ?? null, quantity_kg: b.quantity_kg ?? null, traceability: b.traceability ?? null, certificate: b.certificate ?? null, notes: b.notes || null })),
     translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
   }));
   await mkdir(path.join(DIST, "data"), { recursive: true });

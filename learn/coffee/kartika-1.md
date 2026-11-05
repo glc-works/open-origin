@@ -8,7 +8,6 @@ aliases: [Kartika 1, Kartika-1]
 stature: tall
 yield_potential: medium
 quality_potential: good
-leaf_rust: resistant
 summary: A Catimor-type arabica released by Indonesia's coffee research institute in 1993, now recommended mainly on Java estates.
 sources: [https://varieties.worldcoffeeresearch.org/varieties/kartika-1]
 ---
