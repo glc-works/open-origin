@@ -480,13 +480,33 @@ const redirect = (title, to) => `<!doctype html><meta charset="utf-8"><title>${e
 for (const [pid, title, to] of [...stories.map((s) => [s.id, s.title, `../../${href(s)}`]), ...producers.map((p) => [p.id, p.name, `../../${producerHref(p)}`]),
   ...lots.map((l) => [l.id, l.name || `Lot ${l.id}, ${l.date}`, `../../${lotHref(l)}`])]) {
   const bare = String(pid).replace(/-/g, "");
-  for (const spelling of new Set([pid, pid.toLowerCase(), bare, bare.toLowerCase()])) {
+  // Only spellings that differ by more than case: some hosts (GitHub Pages among them) cannot hold two paths
+  // that differ only in case. Small letters are handled by 404.html below.
+  for (const spelling of new Set([pid, bare])) {
     const dir = path.join(DIST, "s", spelling);
     await mkdir(dir, { recursive: true });
     await writeFile(path.join(dir, "index.html"), redirect(title, to));
   }
 }
 await writeFile(path.join(DIST, "s", "index.html"), redirect("Look up a code", "../codes/"));
+// 404.html: a code typed in small letters or with spaces (/s/l-kpbjf525-d/) is sent to its standard spelling.
+await writeFile(path.join(DIST, "404.html"), `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Not found · Open Origin</title>
+<body style="font-family:system-ui,sans-serif;max-width:36rem;margin:15vh auto;padding:0 16px;line-height:1.5">
+<h1>Page not found</h1><p id="msg">This page does not exist. <a id="home" href="/">Go to Open Origin</a>.</p>
+<script>
+(() => {
+  const C = ${JSON.stringify(ID_CHARS)}, SALT = ${JSON.stringify(ID_SALT)};
+  const check = (p, b) => { let t = SALT[p]; for (let i = 0; i < 8; i++) t += (i + 1) * C.indexOf(b[i]); return C[(31 - (t % 31)) % 31]; };
+  const m = decodeURIComponent(location.pathname).match(/^(.*?\\/)s\\/([^/]+)\\/?$/i);
+  const base = m ? m[1] : location.pathname.replace(/^(\\/[^/]+\\/).*$/, "$1");
+  document.getElementById("home").href = base;
+  if (!m) return;
+  const raw = m[2].toUpperCase().replace(/[\\s._-]/g, "");
+  const k = raw.match(new RegExp("^([OSPL])([" + C + "]{8})([" + C + "])$"));
+  if (k && check(k[1], k[2]) === k[3]) location.replace(base + "s/" + k[1] + "-" + k[2] + "-" + k[3] + "/");
+  else document.getElementById("msg").innerHTML = 'This code was not found; it may be mistyped. <a href="' + base + 'codes/">Look up a code</a>.';
+})();
+</script></body></html>`);
 
 // "How to read a code", with a box that checks a code and opens it. pages/ ships with the code, like site/.
 const LOOKUP_TEXT = {
