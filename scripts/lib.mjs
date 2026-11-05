@@ -128,7 +128,15 @@ export function validateKnowledge(k) {
   }
   if (k.sources !== undefined && (!Array.isArray(k.sources) || !k.sources.every(isHttpUrl))) errors.push(`sources must be a list of http(s) links`);
   if (!k.body || k.body.length < 200) errors.push(`the explanation is too short`);
+  errors.push(...citationErrors(k.body, k.sources));
   return errors;
+}
+
+// A "[n]" footnote in a body must point to one of the entry's sources.
+export function citationErrors(body, sources) {
+  const n = Array.isArray(sources) ? sources.length : 0;
+  const bad = [...String(body || "").matchAll(/\[(\d+)\](?!\()/g)].map((m) => Number(m[1])).filter((i) => i < 1 || i > n);
+  return bad.length ? [`footnote ${[...new Set(bad)].map((i) => `[${i}]`).join(", ")} has no matching link in sources (${n} listed)`] : [];
 }
 
 // Batches: batches/<crop>/<country>/<story-slug>/<batch-id>.md. Quality belongs to a batch, not to a story.
@@ -270,6 +278,7 @@ export function validateStory(s) {
     if (!Array.isArray(s.sources)) errors.push(`sources must be a list of links, e.g. [https://example.org/page]`);
     else for (const u of s.sources) if (!isHttpUrl(u)) errors.push(`source "${u}" must be an http(s) link`);
   }
+  errors.push(...citationErrors(s.body, s.sources));
   if (s.photo !== undefined && !(isHttpUrl(s.photo) && String(s.photo).startsWith("https:")) && !/^photos\/[a-z0-9/_-]+\.(jpe?g|png|webp)$/i.test(String(s.photo))) {
     errors.push(`photo must be an https link or a file in photos/, e.g. photos/id/gayo.jpg`);
   }

@@ -53,7 +53,7 @@ Explanations of species, processes and terms live in `learn/<crop>/<slug>.md`, w
 
 A variety entry (`type: variety`) adds structured fields: `species`, `lineage`, `aliases` (local names, e.g. Ateng, Tim Tim, Jember), `stature` (dwarf, semi-dwarf, tall), `yield_potential` (low, medium, high, very high), `quality_potential` (fair, good, very good, exceptional), `leaf_rust` (resistant, tolerant, susceptible), `altitude_masl` and `sources`. A story's `varieties` link to an entry automatically when a name matches its title or one of its aliases.
 
-Write entries in your own words. Facts from catalogues such as World Coffee Research are welcome; link them in `sources` rather than copying text.
+Write entries in your own words. Facts from catalogues such as World Coffee Research are welcome; link them in `sources` rather than copying text. To cite a fact, put its number in brackets after it, like `[2]` for the second link in `sources`; it becomes a footnote. Where sources disagree, give each view with its author and year.
 
 ## Traceability
 

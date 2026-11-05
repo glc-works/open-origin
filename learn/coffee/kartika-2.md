@@ -11,13 +11,13 @@ summary: A dwarf Catimor-type arabica introduced through Portugal in 1987, produ
 sources: [https://jatim.brmp.pertanian.go.id/informasi-publik/download/varietas-unggul-baru/deskripsi-varietas-unggul-kopi, https://royalcoffee.com/indonesian-coffee-cultivars-and-varieties/]
 ---
 
-Kartika 2 comes from a population (No. 520-3) of the HW 26 line, a cross of Caturra and Timor Hybrid 832/1 made at the coffee rust research centre (CIFC) in Portugal. It reached Indonesia in 1987 as part of a multi-country variety trial and was selected by the Indonesian Coffee and Cocoa Research Institute.
+Kartika 2 comes from a population (No. 520-3) of the HW 26 line, a cross of Caturra and Timor Hybrid 832/1 made at the coffee rust research centre (CIFC) in Portugal. [1] It reached Indonesia in 1987 as part of a multi-country variety trial [2] and was selected by the Indonesian Coffee and Cocoa Research Institute.
 
-It is a dwarf tree, about 1.9 m tall, with good cup quality. The Ministry of Agriculture's variety guide notes that it grows taller below 1,000 m and yields more the higher it is planted. It is sensitive to nematodes.
+It is a dwarf tree, about 1.9 m tall, with good cup quality. The Ministry of Agriculture's variety guide notes that it grows taller below 1,000 m and yields more the higher it is planted. It is sensitive to nematodes. [1]
 
 **Leaf rust:** sources disagree.
 
-- **2018**, the Ministry of Agriculture's variety guide ([Randriani & Dani, *Pengenalan Varietas Unggul Kopi*, IAARD Press, 2018](https://jatim.brmp.pertanian.go.id/informasi-publik/download/varietas-unggul-baru/deskripsi-varietas-unggul-kopi)): somewhat resistant.
-- **2025**, Royal Coffee's survey of Indonesian cultivars ([Evan Gilman, 2025](https://royalcoffee.com/indonesian-coffee-cultivars-and-varieties/)): very susceptible, and needs high inputs.
+- **2018**, the Ministry of Agriculture's variety guide (Randriani & Dani, *Pengenalan Varietas Unggul Kopi*, IAARD Press, 2018) [1]: somewhat resistant.
+- **2025**, Royal Coffee's survey of Indonesian cultivars (Evan Gilman, 2025) [2]: very susceptible, and needs high inputs.
 
 Resistance in Catimor types often fades as the rust fungus adapts, so the difference may reflect the years between the two sources.

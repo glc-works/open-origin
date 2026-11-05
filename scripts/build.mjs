@@ -49,6 +49,9 @@ const termLink = (crop, term, prefix, label = term) => {
   const h = learnHref(crop, term);
   return h ? `<a class="term" href="${prefix}${h}">${esc(label)}</a>` : esc(label);
 };
+// Footnotes: "[2]" in a body points to the second link in that entry's sources.
+const cite = (html, n) => html.replace(/\[(\d+)\](?!\()/g, (m, i) => (i >= 1 && i <= n ? `<sup class="cite"><a href="#src-${i}">[${i}]</a></sup>` : m));
+const sourceList = (urls) => (urls.length ? `<p class="eyebrow" style="margin-top:2em">Sources</p><ol class="sources">${urls.map((u, i) => `<li id="src-${i + 1}"><a href="${esc(u)}">${esc(u)}</a></li>`).join("")}</ol>` : "");
 // Matches a variety name written in a story ("Ateng Super") to a Learn entry by its aliases.
 const norm = (x) => String(x).toLowerCase().replace(/[^a-z0-9]+/g, "");
 const varietyFor = (crop, name) => knowledge.find((k) => k.type === "variety" && k.crop === crop
@@ -229,9 +232,9 @@ function learnPage(k) {
     ${facts}
   </div>
   <div class="prose">
-    <div class="text">${marked.parse(k.body)}</div>
+    <div class="text">${cite(marked.parse(k.body), (k.sources || []).length)}</div>
     ${related.length ? `<h2 class="journey-title">Stories with ${esc(k.title.toLowerCase())}</h2><div class="cards">${related.map((r) => card(r).replace(`href="${href(r)}"`, `href="${prefix}${href(r)}"`)).join("")}</div>` : ""}
-    ${(k.sources || []).length ? `<p class="eyebrow" style="margin-top:2em">Sources</p><ul>${k.sources.map((u) => `<li><a href="${esc(u)}">${esc(u)}</a></li>`).join("")}</ul>` : ""}
+    ${sourceList(k.sources || [])}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc(k.file)}">Improve this entry</a></p>
   </div>
 </article>
@@ -302,7 +305,7 @@ function storyPage(s, t = null) {
   </div>
   <div class="prose">
     ${s.photo ? `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(s, prefix))}" alt=""><figcaption>Photo: ${esc(s.photo_credit)}</figcaption></figure>` : ""}
-    <div class="text" lang="${esc(v.language)}" dir="${dir}">${marked.parse(v.body)}</div>
+    <div class="text" lang="${esc(v.language)}" dir="${dir}">${cite(marked.parse(v.body), sources.length)}</div>
     ${s.journey?.length ? `<h2 class="journey-title">From farm to cup</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage">${esc(STAGE_LABEL[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
     ${s.batches.length ? `<h2 class="journey-title">Batches</h2>
     <p class="part-of">Quality belongs to a batch: each harvest or shipment is measured on its own. ${termLink(s.crop, "cupping-and-q-grading", prefix, "How coffee is scored")}</p>
@@ -315,7 +318,7 @@ function storyPage(s, t = null) {
       ? `<div class="cards">${s.farms.map((f) => card(f).replace(`href="${href(f)}"`, `href="${prefix}${href(f)}"`)).join("")}</div>`
       : `<div class="empty"><p>No farmer has told their own story from here yet. Every farm in this region grows it a little differently.</p><a class="btn primary" href="${submitFor(s)}">Tell a farm's story</a></div>`}` : ""}
     ${s.originStory ? `<p class="part-of">Part of the origin <a href="${prefix}${href(s.originStory)}">${esc(s.originStory.title)}</a></p>` : ""}
-    ${sources.length ? `<p class="eyebrow" style="margin-top:2em">Sources</p><ul>${sources.map((u) => `<li><a href="${esc(u)}">${esc(u)}</a></li>`).join("")}</ul>` : ""}
+    ${sourceList(sources)}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc((t || s).file)}">Suggest an edit</a> · <a href="${REPO}/issues/new?template=translation.yml&amp;title=${encodeURIComponent(`[Translation] ${s.title}`)}">Translate this story</a></p>
   </div>
 </article>

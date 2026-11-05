@@ -12,8 +12,8 @@ summary: An old Typica-type line selected in Sumatra in 1903 and later improved 
 sources: [https://varieties.worldcoffeeresearch.org/varieties/bpl10]
 ---
 
-This line was first selected in 1903 from a Typica planting on an estate in the Pasoemah area of Palembang, South Sumatra. In Java it was improved further by the Besoekische Proefstation, the station that later became the Indonesian Coffee and Cocoa Research Institute, under the name Blawan-Pasoemah (BLP). It was first planted on the Pantjoer estate in 1912.
+This line was first selected in 1903 from a Typica planting on an estate in the Pasoemah area of Palembang, South Sumatra. In Java it was improved further by the Besoekische Proefstation, the station that later became the Indonesian Coffee and Cocoa Research Institute, under the name Blawan-Pasoemah (BLP). It was first planted on the Pantjoer estate in 1912. [1]
 
-It is a vigorous, tall plant with very good cup quality at altitude and good tolerance of leaf rust. That made it one of the early answers to the rust epidemic that wiped out much of Java's Typica.
+It is a vigorous, tall plant with very good cup quality at altitude and good tolerance of leaf rust. That made it one of the early answers to the rust epidemic that wiped out much of Java's Typica. [1]
 
-**In Indonesia:** it was never officially released at the national level, and today it is grown only on a small scale in Java.
+**In Indonesia:** it was never officially released at the national level, and today it is grown only on a small scale in Java. [1]

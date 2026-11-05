@@ -13,8 +13,8 @@ summary: One of the Ethiopian selections brought to Java in 1928, valued for cup
 sources: [https://varieties.worldcoffeeresearch.org/varieties/ab3]
 ---
 
-In the 1920s the Dutch plant breeder P. J. S. Cramer selected coffee trees in Ethiopia (then often called Abyssinia) and brought eleven selections to Indonesia in 1928. Seven of them were kept and named AB1 to AB7. AB3 is one of these.
+In the 1920s the Dutch plant breeder P. J. S. Cramer selected coffee trees in Ethiopia (then often called Abyssinia) and brought eleven selections to Indonesia in 1928. Seven of them were kept and named AB1 to AB7. AB3 is one of these. [1]
 
-As an Ethiopian landrace, AB3 is known for good cup quality at high altitude. It has intermediate resistance to leaf rust and grows well under shade trees.
+As an Ethiopian landrace, AB3 is known for good cup quality at high altitude. It has intermediate resistance to leaf rust and grows well under shade trees. [1]
 
-**In Indonesia:** the AB lines were grown mainly on state-owned plantations in Java. AB3 was formally released in 1995, but it is still hard to find commercially.
+**In Indonesia:** the AB lines were grown mainly on state-owned plantations in Java. AB3 was formally released in 1995, but it is still hard to find commercially. [1]

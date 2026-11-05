@@ -9,6 +9,6 @@ summary: An arabica variety selected in the Gayo highlands of Aceh, reportedly f
 sources: [https://royalcoffee.com/indonesian-coffee-cultivars-and-varieties/, https://jatim.brmp.pertanian.go.id/informasi-publik/download/varietas-unggul-baru/deskripsi-varietas-unggul-kopi]
 ---
 
-Gayo 2 is one of two arabica varieties named after the Gayo highlands of Aceh and registered as official Indonesian varieties. Royal Coffee's survey of Indonesian cultivars describes it as a cross of Tim Tim (the Timor Hybrid) and Bourbon. Some say the partner was S795 rather than Bourbon.
+Gayo 2 is one of two arabica varieties named after the Gayo highlands of Aceh and registered as official Indonesian varieties. Royal Coffee's survey of Indonesian cultivars describes it as a cross of Tim Tim (the Timor Hybrid) and Bourbon. Some say the partner was S795 rather than Bourbon. [1]
 
 *This entry is a starting point. If you know its release year, yield or traits, please improve it.*
