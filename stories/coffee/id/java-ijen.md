@@ -5,8 +5,14 @@ kind: origin
 crop: coffee
 country: ID
 region: Ijen highlands, Bondowoso, East Java
+photo: photos/id/java-ijen.jpg
+photo_credit: "Georg Friedrich Johannes Bley (Tropenmuseum collection)"
+photo_license: CC BY-SA 3.0
+photo_source: https://commons.wikimedia.org/wiki/File:COLLECTIE_TROPENMUSEUM_Gezicht_over_de_koffieplantage_Blawan_bij_de_kloof_van_de_rivier_Banyuputih_Ijen-plateau_TMnr_60016957.jpg
 area:
   iso3166_2: ID-JI
+  admin_codes: ["35.11"]
+  wikidata: [Q11076]
   geonames: [6829652]
 producer: Estates and smallholders of the Ijen highlands
 species: arabica

@@ -8,6 +8,8 @@ region: Kulon Progo, Yogyakarta
 coords: [-7.81, 110.15]
 area:
   iso3166_2: ID-YO
+  admin_codes: ["34.01"]
+  wikidata: [Q11479]
   geonames: [7910930]
 producer: Coconut sap tappers of Kulon Progo
 species: coconut

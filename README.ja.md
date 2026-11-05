@@ -37,4 +37,4 @@ open dist/index.html
 
 ## ライセンス
 
-物語と写真：[CC BY 4.0](LICENSE-CONTENT.md)（語り手と Open Origin をクレジットしてください）。コード：[Apache-2.0](LICENSE)。コピーや派生物には [NOTICE](NOTICE) ファイルを残してください。
+物語と写真：[CC BY 4.0](LICENSE-CONTENT.md)（語り手と Open Origin をクレジットしてください。Wikimedia Commons の写真は、写真の下に示したそれぞれのライセンスに従います）。コード：[Apache-2.0](LICENSE)。コピーや派生物には [NOTICE](NOTICE) ファイルを残してください。

@@ -49,4 +49,4 @@ open dist/index.html
 
 ## Licence
 
-Stories and photos: [CC BY 4.0](LICENSE-CONTENT.md), credit the storyteller and Open Origin. Code: [Apache-2.0](LICENSE); copies and forks must keep the [NOTICE](NOTICE) file.
+Stories and photos: [CC BY 4.0](LICENSE-CONTENT.md), credit the storyteller and Open Origin; photos from Wikimedia Commons keep the licence shown under them. Code: [Apache-2.0](LICENSE); copies and forks must keep the [NOTICE](NOTICE) file.

@@ -5,9 +5,14 @@ kind: origin
 crop: coffee
 country: ID
 region: Tana Toraja & Enrekang (Kalosi), South Sulawesi
+photo: photos/id/toraja.jpg
+photo_credit: "Fridus Steijlen (KITLV collection)"
+photo_license: CC BY 4.0
+photo_source: https://commons.wikimedia.org/wiki/File:Bergen_in_Tana_Toraja,_KITLV_160898.tiff
 area:
   iso3166_2: ID-SN
   admin_codes: ["73.18", "73.16"]
+  wikidata: [Q14632, Q14599]
   geonames: [1625123, 1644905]
 producer: Coffee farmers of the Toraja highlands
 species: arabica

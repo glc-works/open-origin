@@ -4,7 +4,7 @@ import matter from "gray-matter";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
-import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, licenseUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
 
@@ -87,6 +87,17 @@ const dirOf = (lang) => (RTL.includes(String(lang).split("-")[0]) ? "rtl" : "ltr
 const href = (s) => `stories/${s.crop}/${s.pathCountry}/${s.slug}/`;
 const producerHref = (p) => `producers/${p.id}/`;
 const photoSrc = (s, prefix) => (/^https?:\/\//.test(s.photo) ? s.photo : prefix + String(s.photo).replace(/^\/+/, ""));
+// Credit line for a photo: who took it, and for a photo from elsewhere its licence and the page it came from.
+const photoSourceName = (u) => { try { const h = new URL(u).hostname; return h.endsWith("wikimedia.org") ? "Wikimedia Commons" : h.replace(/^www\./, ""); } catch { return "source"; } };
+const photoCreditText = (x) => [`Photo: ${x.photo_credit}`, x.photo_license, x.photo_source && photoSourceName(x.photo_source)].filter(Boolean).join(" · ");
+function photoCreditHtml(x) {
+  const lic = x.photo_license && (licenseUrl(x.photo_license) ? `<a href="${esc(licenseUrl(x.photo_license))}" rel="license">${esc(x.photo_license)}</a>` : esc(x.photo_license));
+  const src = x.photo_source && `<a href="${esc(x.photo_source)}">${esc(photoSourceName(x.photo_source))}</a>`;
+  return [`Photo: ${esc(x.photo_credit)}`, lic, src].filter(Boolean).join(" · ");
+}
+const photoFigure = (x, prefix) => `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(x, prefix))}" alt=""><figcaption>${photoCreditHtml(x)}</figcaption></figure>`;
+const photoLd = (x, prefix) => x.photo && { image: { "@type": "ImageObject", contentUrl: photoSrc(x, prefix), creditText: x.photo_credit,
+  ...(x.photo_license && licenseUrl(x.photo_license) && { license: licenseUrl(x.photo_license) }), ...(x.photo_source && { acquireLicensePage: x.photo_source }) } };
 
 // The mark is inline so it follows light and dark mode; site/logo.svg is the same mark with fixed colours (favicon).
 const LOGO = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M27.5 9.5A13 13 0 1 1 22.5 4.7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><g transform="rotate(30 16 16)"><ellipse cx="16" cy="16" rx="6.2" ry="9" fill="var(--cherry)"/><path d="M16 7.8C13.2 12.2 18.8 19.8 16 24.2" fill="none" stroke="var(--bg)" stroke-width="1.7" stroke-linecap="round"/></g></svg>`;
@@ -146,7 +157,7 @@ function coverArt(s) {
 
 function card(s) {
   const cover = s.photo
-    ? `<img src="${esc(photoSrc(s, ""))}" alt="" loading="lazy">`
+    ? `<img src="${esc(photoSrc(s, ""))}" alt="" title="${esc(photoCreditText(s))}" loading="lazy">`
     : `${coverArt(s)}${s.altitude_masl ? `<span class="alt">${esc(s.altitude_masl[1].toLocaleString("en"))}<small> masl</small></span>` : ""}`;
   const facts = [headline(s), s.traceability && s.traceability !== "farm" ? TRACE_LABEL[s.traceability] : "", fmtAlt(s.altitude_masl), (s.varieties || []).slice(0, 2).join(", "), (s.process || []).join(" · ")].filter(Boolean);
   return `<a class="card" href="${href(s)}" data-crop="${esc(s.crop)}" data-country="${esc(s.country)}" data-kind="${esc(s.kind)}">
@@ -347,6 +358,7 @@ function storyPage(s, t = null) {
     license: "https://creativecommons.org/licenses/by/4.0/",
     isPartOf: { "@type": "WebSite", name: "Open Origin" },
     about: { "@type": "Thing", name: CROPS[s.crop].label },
+    ...photoLd(s, prefix),
     author: { "@type": s.told_by === "farmer" ? "Person" : "Organization", name: s.producer },
     contentLocation: {
       "@type": "Place",
@@ -391,7 +403,7 @@ function storyPage(s, t = null) {
     </dl>
   </div>
   <div class="prose">
-    ${s.photo ? `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(s, prefix))}" alt=""><figcaption>Photo: ${esc(s.photo_credit)}</figcaption></figure>` : ""}
+    ${s.photo ? photoFigure(s, prefix) : ""}
     <div class="text" lang="${esc(v.language)}" dir="${dir}">${cite(marked.parse(v.body), sources.length)}</div>
     ${s.journey?.length ? `<h2 class="journey-title">${esc(CROPS[s.crop].journey)}</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage">${esc(j.stage === "brew" ? CROPS[s.crop].use : STAGE_LABEL[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
     ${s.lots.length ? `<h2 class="journey-title">Lots</h2>
@@ -439,7 +451,7 @@ function producerPage(p) {
     </dl>
   </div>
   <div class="prose">
-    ${p.photo ? `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(p, prefix))}" alt=""><figcaption>Photo: ${esc(p.photo_credit)}</figcaption></figure>` : ""}
+    ${p.photo ? photoFigure(p, prefix) : ""}
     ${p.body ? `<div class="text">${cite(marked.parse(p.body), (p.sources || []).length)}</div>` : ""}
     <h2 class="journey-title">Stories</h2>
     ${p.stories.length ? `<div class="cards">${p.stories.map((r) => card(r).replace(`href="${href(r)}"`, `href="${prefix}${href(r)}"`)).join("")}</div>`
@@ -612,7 +624,7 @@ async function exportData() {
   const csv = [FIELDS.map((f) => f[0]).join(","), ...rows.map((r) => FIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n";
   const full = stories.map((s) => ({
     id: id(s), path: pathOf(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
-    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile", "photo", "photo_credit", "photo_license", "photo_source"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
     place_codes: placeCodes(s),
     story: s.body, url: href(s),
     lots: s.lots.map(lotJson),

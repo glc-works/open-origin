@@ -270,6 +270,27 @@ export async function loadProducers() {
 
 const isPhoto = (v) => (isHttpUrl(v) && String(v).startsWith("https:")) || /^photos\/[a-z0-9/_-]+\.(jpe?g|png|webp)$/i.test(String(v));
 
+// A photo taken from elsewhere (e.g. Wikimedia Commons) keeps its own licence: record which one and the page it came
+// from, so the credit on the site can name the author, link the licence and link back to the original.
+export const PHOTO_LICENSES = /^(CC BY(-SA)? [1-4]\.0|CC0|Public domain)$/;
+export function licenseUrl(name) {
+  const m = /^CC (BY(?:-SA)?) ([1-4]\.0)$/.exec(String(name));
+  if (m) return `https://creativecommons.org/licenses/${m[1].toLowerCase()}/${m[2]}/`;
+  if (name === "CC0") return "https://creativecommons.org/publicdomain/zero/1.0/";
+  return null;
+}
+export function photoErrors(x) {
+  const errors = [];
+  if (x.photo !== undefined && !isPhoto(x.photo)) errors.push(`photo must be an https link or a file in photos/, e.g. photos/id/gayo.jpg`);
+  if (x.photo !== undefined && !x.photo_credit) errors.push(`photo needs a photo_credit`);
+  if ((x.photo_license !== undefined || x.photo_source !== undefined) && x.photo === undefined) errors.push(`photo_license and photo_source belong to a photo: add photo`);
+  if (x.photo_license !== undefined && !PHOTO_LICENSES.test(String(x.photo_license))) errors.push(`photo_license must be written like CC BY 4.0, CC BY-SA 4.0, CC0 or Public domain`);
+  if (x.photo_source !== undefined && !(isHttpUrl(x.photo_source) && String(x.photo_source).startsWith("https:"))) errors.push(`photo_source must be an https link to the page the photo came from`);
+  if (x.photo_source !== undefined && x.photo_license === undefined) errors.push(`a photo from elsewhere (photo_source) needs its photo_license`);
+  if (x.photo_license !== undefined && x.photo_source === undefined) errors.push(`photo_license needs photo_source, the page the photo came from`);
+  return errors;
+}
+
 export function validateProducer(p) {
   const errors = [];
   if (p.depth !== 2) return [`producer files go in producers/<country>/<name>.md`];
@@ -285,8 +306,7 @@ export function validateProducer(p) {
   if (p.farm_size_ha !== undefined && !(isNum(p.farm_size_ha) && p.farm_size_ha > 0)) errors.push(`farm_size_ha must be a positive number`);
   if (p.members !== undefined && !(Number.isInteger(p.members) && p.members > 0)) errors.push(`members must be a whole number`);
   if (p.website !== undefined && !(isHttpUrl(p.website) && String(p.website).startsWith("https:"))) errors.push(`website must be an https link`);
-  if (p.photo !== undefined && !isPhoto(p.photo)) errors.push(`photo must be an https link or a file in photos/`);
-  if (p.photo !== undefined && !p.photo_credit) errors.push(`photo needs a photo_credit`);
+  errors.push(...photoErrors(p));
   if (p.logo !== undefined && !((isHttpUrl(p.logo) && String(p.logo).startsWith("https:")) || /^photos\/[a-z0-9/_-]+\.(svg|png|webp|jpe?g)$/i.test(String(p.logo)))) errors.push(`logo must be an https link or a file in photos/, e.g. photos/logos/koperasi-gayo.svg`);
   if (p.crops !== undefined && !(isStrList(p.crops) && p.crops.every((c) => CROPS[c]))) errors.push(`crops must be a list from: ${Object.keys(CROPS).join(", ")}`);
   return errors;
@@ -527,10 +547,7 @@ export function validateStory(s) {
     else for (const u of s.sources) if (!isHttpUrl(u)) errors.push(`source "${u}" must be an http(s) link`);
   }
   errors.push(...citationErrors(s.body, s.sources));
-  if (s.photo !== undefined && !(isHttpUrl(s.photo) && String(s.photo).startsWith("https:")) && !/^photos\/[a-z0-9/_-]+\.(jpe?g|png|webp)$/i.test(String(s.photo))) {
-    errors.push(`photo must be an https link or a file in photos/, e.g. photos/id/gayo.jpg`);
-  }
-  if (s.photo !== undefined && !s.photo_credit) errors.push(`photo needs a photo_credit`);
+  errors.push(...photoErrors(s));
   if (!s.body || s.body.length < 200) errors.push(`the story itself is too short (at least a few sentences)`);
   return errors;
 }
