@@ -16,6 +16,13 @@ Thank you for helping tell the stories behind what we drink and eat. Stories can
 - **Tell it true.** Back historical facts with sources where you can. Typical ranges (altitude, harvest) are fine.
 - **Credit the storyteller.** `told_by` says whose voice this is. Stories told by farmers themselves are the heart of this project.
 
+## Examples to copy
+
+- Farm story template, with guiding questions: [`templates/farm-story.md`](templates/farm-story.md)
+- Origin profile: [`stories/coffee/id/gayo.md`](stories/coffee/id/gayo.md)
+- Movement: [`stories/coffee/id/subak-abian-kintamani.md`](stories/coffee/id/subak-abian-kintamani.md)
+- Translation: [`stories/coffee/id/gayo.en.md`](stories/coffee/id/gayo.en.md)
+
 ## Three kinds of story
 
 | `kind` | What it is | How many |
