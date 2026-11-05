@@ -23,7 +23,7 @@ if (built.status === 0) {
   const read = (p) => readFileSync(path.join(here, "fixtures", "good", "dist", p), "utf8");
   const farm = read("stories/cocoa/id/test-cocoa-farm/index.html");
   check(farm.includes("From tree to bar") && !farm.includes("How coffee is scored"), "cocoa story uses cocoa wording");
-  check(farm.includes('id="L-TESTBKQW-A"') && farm.includes("Blend of"), "blend lot shows on each of its stories");
+  check(farm.includes('id="L-TESTBKQW-A"') && farm.includes("Blended with cocoa from"), "blend lot shows on each of its stories");
   check(read("producers/P-TESTPQQW-T/index.html").includes('id="L-TESTRQQW-E"'), "a lot filed under a producer shows on its profile");
   check(read("s/L-TESTRQQW-E/index.html").includes("producers/P-TESTPQQW-T/#L-TESTRQQW-E"), "lot permalink leads to the producer page");
   const page = read("stories/cocoa/id/test-cocoa-origin/index.html");
