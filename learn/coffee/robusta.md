@@ -12,6 +12,6 @@ It grows from sea level to about 1,000 metres, tolerates heat, and yields more t
 
 Robusta has about twice the caffeine of arabica, around 2–2.7%, and less sugar and fat. Caffeine is bitter and also deters insects, which partly explains both its taste and its toughness.
 
-**In Indonesia:** robusta was introduced around 1900 after leaf rust destroyed lowland arabica plantations, and it is now most of what Indonesia grows. Lampung, South Sumatra and Bengkulu are the heartland. Farmers who pick only ripe cherries and dry them carefully now produce "fine robusta" that competes on quality.
+**In Indonesia:** robusta was introduced around 1900 after leaf rust destroyed lowland arabica plantations, and it is now most of what Indonesia grows. Lampung, South Sumatra and Bengkulu are the heartland. Farmers who pick only ripe cherries and dry them carefully now produce "fine robusta" that competes on quality. Most farms plant a mix of clones bred in Jember, such as [BP 534](../bp-534/), [BP 936](../bp-936/), [BP 939](../bp-939/) and [SA 237](../sa-237/), because a robusta tree needs pollen from a different clone to set fruit.
 
 **Typical cup:** heavy body, low acidity, dark chocolate, nuts, cereal, and a firm bitterness.
