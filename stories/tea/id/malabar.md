@@ -1,5 +1,5 @@
 ---
-id: O-349Z3RWS
+id: O-349Z3RWS-S
 title: Malabar, the tea garden of Pangalengan
 kind: origin
 crop: tea

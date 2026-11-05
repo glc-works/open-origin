@@ -1,12 +1,12 @@
 ---
-id: L-FCMA5QJ4
+id: L-FCMA5QJ4-4
 name: Asman Gayo Natural
 date: 2024-02-24
 form: roasted
 process: natural
 varieties: [Ateng, Bor Bor, Catimor, Timor]
-roasted_by: P-69H39AE8
-sold_by: P-69H39AE8
+roasted_by: P-69H39AE8-K
+sold_by: P-69H39AE8-K
 sources:
   - https://coffeebros.com/shop/sumatra-coffee-single-origin/
 ---

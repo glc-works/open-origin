@@ -21,7 +21,7 @@ You don't need to know code. **[Fill in the story form](https://github.com/glc-w
 | **Lot** | One harvest, shipment or production run, the thing a buyer buys, with its process, form and quality | `L-` |
 | **Learn** | Species, varieties, processes and grading (cupping, the cocoa cut test…) with sources | |
 
-Ids never change, so names and files can be renamed without breaking links. `/s/<id>/` always leads to the page.
+Ids never change, so names and files can be renamed without breaking links. `/s/<id>/` always leads to the page. A code such as `L-KPBJF525-D` has a check character that catches typos; [How to read a code](https://glc-works.github.io/open-origin/codes/).
 
 ## Files
 
@@ -31,6 +31,7 @@ Ids never change, so names and files can be renamed without breaking links. `/s/
 | `lots/<crop>/…` | Lots, in a story's folder or linked by id |
 | `producers/<country>/<name>.md` | Producer, processor and roaster profiles |
 | `learn/<crop>/<slug>.md` | Learn entries |
+| `pages/` | Site pages such as How to read a code (`/codes/`) |
 | `scripts/` | `validate.mjs`, `build.mjs`, `issue-to-story.mjs`, `new-id.mjs` |
 | `tests/` | Example content for every crop; `npm test` checks it |
 

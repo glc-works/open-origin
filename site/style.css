@@ -231,3 +231,17 @@ table.lots tr:has(+ tr.lot-notes) td { border-bottom: 0; }
 /* Organisation logos */
 .org-logo { display: block; max-width: 120px; max-height: 64px; object-fit: contain; margin-bottom: 14px; }
 .org-logo.small { display: inline-block; vertical-align: middle; max-width: 28px; max-height: 20px; margin: 0 6px 0 0; }
+
+/* Codes page: the anatomy of a code and the lookup box */
+.code-anatomy { font-family: var(--mono); font-size: clamp(1.6rem, 6vw, 2.6rem); letter-spacing: .04em; margin: .4em 0 .8em; }
+.code-anatomy .p { color: var(--cherry); font-weight: 500; }
+.code-anatomy .c { background: var(--line); border-radius: 4px; padding: 0 .12em; }
+.lookup { margin: 24px 0 12px; }
+.lookup label { display: block; font-family: var(--mono); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.lookup div { display: flex; gap: 8px; max-width: 340px; }
+.lookup input { flex: 1; min-width: 0; font: inherit; font-family: var(--mono); padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); text-transform: uppercase; }
+.lookup button { font: inherit; font-family: var(--display); font-weight: 600; padding: 8px 14px; border: 0; border-radius: 6px; background: var(--fg); color: var(--bg); cursor: pointer; }
+.lookup p { min-height: 1.4em; font-size: .9rem; margin: 8px 0 0; }
+.prose table { border-collapse: collapse; width: 100%; font-size: .95rem; margin: 1em 0; }
+.prose th, .prose td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.codes .text > p:first-of-type::first-letter { float: none; font: inherit; color: inherit; margin: 0; }

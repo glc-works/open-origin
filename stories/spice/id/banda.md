@@ -1,5 +1,5 @@
 ---
-id: O-5EQTJCSU
+id: O-5EQTJCSU-S
 title: Banda, the islands of nutmeg
 kind: origin
 crop: spice

@@ -57,15 +57,15 @@ Write entries in your own words. Facts from catalogues such as World Coffee Rese
 
 ## Permanent ids
 
-Every story, producer profile and lot has an `id` that never changes: a prefix, a hyphen and 8 capital letters or digits. Origin profiles start with `O-` (e.g. `O-V9VR4CHS`), farm and movement stories with `S-` (e.g. `S-K7M2XQ9P`) producers with `P-` (e.g. `P-H7FAQRHQ`) and lots with `L-` (e.g. `L-Q4ZK8M2P`), so they can never be mixed up. Run `npm run new-id` for fresh ones, or leave `id` out and the check will suggest one. Stories sent through the issue form get one automatically. Because the id never changes, a title, name or file can be renamed without breaking links: `/s/<id>/` always leads to the story or lot, and the open data uses the id as its key.
+Every story, producer profile and lot has an `id` that never changes: a prefix, 8 characters and a check character, such as `L-KPBJF525-D`. The characters are 2–9 and A–Z without I, L and O, so a code can be read aloud and typed from a label. The check character catches every single typo and every swap of two neighbouring characters; [How to read a code](https://glc-works.github.io/open-origin/codes/) explains it for buyers and farmers. Origin profiles start with `O-` (e.g. `O-V9VR4CHS-Q`), farm and movement stories with `S-` (e.g. `S-K7M2XQ9P-V`) producers with `P-` (e.g. `P-H7FAQRHQ-5`) and lots with `L-` (e.g. `L-Q4ZK8M2P-4`), so they can never be mixed up. Run `npm run new-id` for fresh ones (`npm run new-id -- L-KPBJF525-D` checks one), or leave `id` out and the check will suggest one. Never make one up by hand: its check character would be wrong. Stories sent through the issue form get one automatically. Because the id never changes, a title, name or file can be renamed without breaking links: `/s/<id>/` always leads to the story, producer or lot (also typed in small letters or without dashes), and the open data uses the id as its key.
 
 ## Producer profiles
 
-Everyone who shapes a lot can have one profile page: a farmer, producer group or estate, a processing facility (mill or washing station) or a roaster. The page gathers all their stories, lots and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent` are required. The `id` is `P-` and 8 capital letters or digits, e.g. `P-H7FAQRHQ` (see [Permanent ids](#permanent-ids)). Fill in whatever else the producer is happy to share: `type` (farmer, group, estate, processor, roaster), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo`, `crops` and `sources`. The text below the frontmatter is an optional short introduction.
+Everyone who shapes a lot can have one profile page: a farmer, producer group or estate, a processing facility (mill or washing station) or a roaster. The page gathers all their stories, lots and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent` are required. The `id` is `P-`, 8 characters and a check character, e.g. `P-H7FAQRHQ-5` (see [Permanent ids](#permanent-ids)). Fill in whatever else the producer is happy to share: `type` (farmer, group, estate, processor, roaster), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo`, `crops` and `sources`. The text below the frontmatter is an optional short introduction.
 
 `consent: true` means the people named agreed. `consent: public` is allowed only for an organisation (any type except `farmer`), and only when every fact has already been published, by the organisation itself or by its buyers, with those links in `sources`. Stories may use `consent: public` on the same terms, except a story told by a farmer. The page then says it was put together from published sources and invites the organisation to correct or remove it.
 
-To link a story to the profile, add the profile's id to the story, e.g. `profile: P-H7FAQRHQ`. The profile page lives at `/producers/<id>/`. Do not publish phone numbers or home addresses.
+To link a story to the profile, add the profile's id to the story, e.g. `profile: P-H7FAQRHQ-5`. The profile page lives at `/producers/<id>/`. Do not publish phone numbers or home addresses.
 
 ## Traceability
 
@@ -91,10 +91,10 @@ lots/<crop>/<country>/<story-slug>/<lot-name>.md
 
 A lot that is not one farm's harvest can sit directly in `lots/<crop>/<name>.md` and say where it belongs by id instead:
 
-- `stories: [S-K7M2XQ9P, S-Q4ZK8M2P]` for a blend of several farms or origins. It then shows on each of those story pages.
-- `producer: P-H7FAQRHQ` for a lot filed under a producer, processor or roaster whose farms have no story yet. It shows on that profile.
+- `stories: [S-K7M2XQ9P-V, S-Q4ZK8M2P-A]` for a blend of several farms or origins. It then shows on each of those story pages.
+- `producer: P-H7FAQRHQ-5` for a lot filed under a producer, processor or roaster whose farms have no story yet. It shows on that profile.
 
-Copy [`templates/lot.md`](templates/lot.md). Only `id` (`L-` plus 8 characters, see [Permanent ids](#permanent-ids)) and `date` are required. Everything else is optional:
+Copy [`templates/lot.md`](templates/lot.md). Only `id` (`L-`, 8 characters and a check character, see [Permanent ids](#permanent-ids)) and `date` are required. Everything else is optional:
 
 - `name`: the name it is sold under, e.g. `Gayo Honey`
 - `form`: the state it is sold in, and `process` (also used on stories). Both depend on the crop, see [Processes and forms per crop](#processes-and-forms-per-crop)
@@ -156,7 +156,7 @@ The translated story.
 
 ```markdown
 ---
-id: O-V9VR4CHS                # permanent id: O- for an origin, S- for a farm or movement story
+id: O-V9VR4CHS-Q                # permanent id: O- for an origin, S- for a farm or movement story
 title: Gayo, coffee from the shores of Lake Laut Tawar
 kind: origin                  # origin | farm | movement (default: farm)
 crop: coffee                  # coffee | cocoa | tea | spice | vanilla | honey | sugar

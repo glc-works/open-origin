@@ -1,10 +1,10 @@
 ---
-id: L-KPBJF525
+id: L-KPBJF525-D
 name: Gayo Honey Process
 date: 2025-09
 form: green
 process: honey
-sold_by: P-YQSHCERY
+sold_by: P-YQSHCERY-U
 sources:
   - https://www.algrano.com/products/8360-indonesia-gayo-honey-process-organic-us-organic-arabica-honey-sep-2025-aug-2026
 ---

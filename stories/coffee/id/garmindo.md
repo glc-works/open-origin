@@ -1,5 +1,5 @@
 ---
-id: S-RTKF66UH
+id: S-RTKF66UH-A
 title: GARMINDO, wet-hulled Grade 1 from Bener Meriah
 kind: farm
 traceability: group
@@ -8,7 +8,7 @@ crop: coffee
 country: ID
 region: Bener Meriah, Aceh
 producer: Gayo Arabika Mahkota Indonesia (GARMINDO)
-profile: P-AQBTDXAV
+profile: P-AQBTDXAV-D
 species: arabica
 altitude_masl: [1200, 1500]
 varieties: [Bourbon, Caturra, Catimor, Lini, Tim Tim, Typica]

@@ -1,5 +1,5 @@
 ---
-id: S-JVWZ7AZR
+id: S-JVWZ7AZR-B
 title: Frinsa Estate, a family farm and mill in Pangalengan
 kind: farm
 traceability: farm
@@ -8,7 +8,7 @@ crop: coffee
 country: ID
 region: Pangalengan, Bandung, West Java
 producer: Frinsa Estate
-profile: P-QXWWC98M
+profile: P-QXWWC98M-5
 species: arabica
 altitude_masl: [1400, 1400]
 process: [washed, natural]

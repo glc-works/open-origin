@@ -1,5 +1,5 @@
 ---
-id: O-TESTC001
+id: O-TESTCQQW-P
 title: Test cocoa origin
 kind: origin
 crop: cocoa

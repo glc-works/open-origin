@@ -1,9 +1,10 @@
 // Builds the static site into dist/ from the story files. No framework: plain HTML + one stylesheet.
-import { mkdir, writeFile, copyFile, cp, rm, access } from "node:fs/promises";
+import { mkdir, writeFile, copyFile, cp, rm, access, readFile } from "node:fs/promises";
+import matter from "gray-matter";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
-import { isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { ID_CHARS, ID_SALT, isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
 
@@ -108,7 +109,7 @@ ${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" href="${prefix}">${LOGO}<b>Open<span>·</span>Origin</b></a>
-  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#learn">Learn</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}datapackage.json">Open data</a><a href="${REPO}">GitHub</a></nav>
+  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#learn">Learn</a><a href="${prefix}codes/">Codes</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}datapackage.json">Open data</a><a href="${REPO}">GitHub</a></nav>
 </div></header>`;
 }
 
@@ -453,11 +454,69 @@ for (const p of producers) {
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, "index.html"), producerPage(p));
 }
-// Permalinks: /s/<id>/ always leads to the story or lot, even after its file is renamed.
-for (const [pid, title, to] of [...stories.map((s) => [s.id, s.title, `../../${href(s)}`]), ...lots.map((l) => [l.id, l.name || `Lot ${l.id}, ${l.date}`, `../../${lotHref(l)}`])]) {
-  const dir = path.join(DIST, "s", pid);
+// Permalinks: /s/<id>/ always leads to the story, producer or lot, even after its file is renamed. The same page is
+// also written for the ways people type a code (small letters, no "-"), so l-kpbjf525-d and LKPBJF525D work too.
+const redirect = (title, to) => `<!doctype html><meta charset="utf-8"><title>${esc(title)}</title><link rel="canonical" href="${to}"><meta http-equiv="refresh" content="0; url=${to}"><a href="${to}">${esc(title)}</a>`;
+for (const [pid, title, to] of [...stories.map((s) => [s.id, s.title, `../../${href(s)}`]), ...producers.map((p) => [p.id, p.name, `../../${producerHref(p)}`]),
+  ...lots.map((l) => [l.id, l.name || `Lot ${l.id}, ${l.date}`, `../../${lotHref(l)}`])]) {
+  const bare = String(pid).replace(/-/g, "");
+  for (const spelling of new Set([pid, pid.toLowerCase(), bare, bare.toLowerCase()])) {
+    const dir = path.join(DIST, "s", spelling);
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, "index.html"), redirect(title, to));
+  }
+}
+await writeFile(path.join(DIST, "s", "index.html"), redirect("Look up a code", "../codes/"));
+
+// "How to read a code", with a box that checks a code and opens it. pages/ ships with the code, like site/.
+const LOOKUP_TEXT = {
+  en: { shape: "A code is a letter (O, S, P or L), 8 characters and a check character, e.g. L-KPBJF525-D.", typo: ": the check character does not match, so this code was probably mistyped.",
+    none: (id, k) => `${id} is a valid ${k} code, but no ${k} with this code is published yet.`, kind: { O: "origin", S: "story", P: "producer", L: "lot" } },
+  id: { shape: "Kode terdiri dari satu huruf (O, S, P atau L), 8 karakter dan satu karakter cek, misalnya L-KPBJF525-D.", typo: ": karakter ceknya tidak cocok, jadi kode ini kemungkinan salah ketik.",
+    none: (id, k) => `${id} adalah kode ${k} yang sah, tapi belum ada ${k} dengan kode ini yang diterbitkan.`, kind: { O: "origin", S: "cerita", P: "produsen", L: "lot" } },
+};
+const lookupJs = (lang) => `<script>
+(() => {
+  const C = ${JSON.stringify(ID_CHARS)}, SALT = ${JSON.stringify(ID_SALT)}, T = ${JSON.stringify({ ...LOOKUP_TEXT[lang], none: undefined })}, none = ${LOOKUP_TEXT[lang].none.toString()};
+  const check = (p, b) => { let t = SALT[p]; for (let i = 0; i < 8; i++) t += (i + 1) * C.indexOf(b[i]); return C[(31 - (t % 31)) % 31]; };
+  const form = document.getElementById("lookup"), out = document.getElementById("lookup-out"), base = form.dataset.base;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const raw = form.code.value.toUpperCase().replace(/[\\s._-]/g, "");
+    const m = raw.match(new RegExp("^([OSPL])([" + C + "]{8})([" + C + "])$"));
+    if (!m) { out.textContent = T.shape; return; }
+    const id = m[1] + "-" + m[2] + "-" + m[3];
+    if (check(m[1], m[2]) !== m[3]) { out.textContent = id + T.typo; return; }
+    const res = await fetch(base + "s/" + id + "/", { method: "HEAD" }).catch(() => null);
+    if (res && res.ok) location.href = base + "s/" + id + "/";
+    else out.textContent = none(id, T.kind[m[1]]);
+  });
+})();
+</script>`;
+const PAGES = path.join(path.dirname(SITE), "pages");
+for (const [file, sub, lang, label, button] of [["codes.md", "codes", "en", "Look up a code", "Open"], ["codes.id.md", "codes/id", "id", "Cari kode", "Buka"]]) {
+  const { data, content } = matter(await readFile(path.join(PAGES, file), "utf8"));
+  const prefix = "../".repeat(sub.split("/").length);
+  const other = lang === "en" ? `<a href="id/">Bahasa Indonesia</a>` : `<a href="../">English</a>`;
+  const dir = path.join(DIST, sub);
   await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, "index.html"), `<!doctype html><meta charset="utf-8"><title>${esc(title)}</title><link rel="canonical" href="${to}"><meta http-equiv="refresh" content="0; url=${to}"><a href="${to}">${esc(title)}</a>`);
+  await writeFile(path.join(dir, "index.html"), `${head(`${data.title} · Open Origin`, data.summary, prefix)}
+<main><div class="wrap">
+<article class="story" lang="${lang}">
+  <div>
+    <a class="back" href="${prefix}">← Open Origin</a>
+    <h1 style="margin-top:18px">${esc(data.title)}</h1>
+    <p style="margin-top:20px">${esc(data.summary)}</p>
+    <form id="lookup" class="lookup" data-base="${prefix}"><label for="code">${label}</label>
+      <div><input id="code" name="code" placeholder="L-KPBJF525-D" autocomplete="off" spellcheck="false" autocapitalize="characters"><button>${button}</button></div>
+      <p id="lookup-out" role="status"></p></form>
+    <p class="eyebrow">${other}</p>
+  </div>
+  <div class="prose codes"><div class="text">${marked.parse(content).replace("<p>[[code-anatomy]]</p>", `<div class="code-anatomy" aria-label="L-KPBJF525-D"><span class="p">L</span>-<span class="b">KPBJF525</span>-<span class="c">D</span></div>`)}</div></div>
+</article>
+</div></main>
+${lookupJs(lang)}
+${foot}`);
 }
 await writeFile(path.join(DIST, ".nojekyll"), "");
 await exportData();
@@ -468,7 +527,7 @@ async function exportData() {
     quantity_kg: l.quantity_kg ?? null, traceability: l.traceability ?? null, processed_by: l.processed_by ?? null, roasted_by: l.roasted_by ?? null, sold_by: l.sold_by ?? null,
     quality: l.quality ?? null, tested_by: l.tested_by ?? null, certificate: l.certificate ?? null, sources: l.sources || [], notes: l.notes || null, stories: l.linked.map((x) => x.id), producer: l.owner?.id ?? null, url: lotHref(l) });
   const FIELDS = [
-    ["id", "string", "permanent story id, e.g. S-K7M2XQ9P"], ["path", "string", "crop/country/slug of the story file"], ["kind", "string", "origin, farm or movement"], ["origin", "string", "id of the origin profile a farm or movement belongs to"],
+    ["id", "string", "permanent story id, e.g. S-K7M2XQ9P-V"], ["path", "string", "crop/country/slug of the story file"], ["kind", "string", "origin, farm or movement"], ["origin", "string", "id of the origin profile a farm or movement belongs to"],
     ["crop", "string", "coffee, cocoa, tea, spice, vanilla, honey or sugar"], ["country", "string", "ISO 3166-1 alpha-2"], ["region", "string", ""],
     ["producer", "string", ""], ["species", "string", ""], ["altitude_min_masl", "integer", ""], ["altitude_max_masl", "integer", ""],
     ["varieties", "string", "separated by ; "], ["process", "string", "separated by ; "], ["harvest", "string", ""],
@@ -502,7 +561,7 @@ async function exportData() {
   await writeFile(path.join(DIST, "data", "stories.csv"), csv);
   await writeFile(path.join(DIST, "data", "stories.json"), JSON.stringify(full, null, 2));
   // Lots: one row per lot, plus quality in long format (one row per measured value) so every crop fits one table.
-  const LFIELDS = [["id", "string", "permanent lot id, e.g. L-K7M2XQ9P"], ["story_ids", "string", "stories the lot comes from, separated by ; (several for a blend)"], ["producer", "string", "producer profile the lot is filed under"], ["crop", "string", ""], ["name", "string", ""],
+  const LFIELDS = [["id", "string", "permanent lot id, e.g. L-K7M2XQ9P-P"], ["story_ids", "string", "stories the lot comes from, separated by ; (several for a blend)"], ["producer", "string", "producer profile the lot is filed under"], ["crop", "string", ""], ["name", "string", ""],
     ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"], ["form", "string", "state the lot is sold in; the options depend on the crop"], ["process", "string", "separated by ; "], ["varieties", "string", "separated by ; "],
     ["quantity_kg", "number", ""], ["traceability", "string", ""], ["processed_by", "string", "name or producer id"], ["roasted_by", "string", "name or producer id"], ["sold_by", "string", "name or producer id"],
     ["tested_by", "string", ""], ["certificate", "string", ""]];

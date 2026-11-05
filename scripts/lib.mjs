@@ -161,16 +161,49 @@ export function validateKnowledge(k) {
 // Permanent ids: a kind prefix, a hyphen and 8 random characters: O-… for an origin profile,
 // S-… for a farm or movement story and P-… for a producer. They never change, so names and files can be renamed freely.
 export const ID_PREFIX = { origin: "O", story: "S", producer: "P", lot: "L" };
-const ID_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"; // no 0/O, 1/I/L, easy to read aloud
+// Ids look like L-KPBJF525-X: a prefix, 8 characters and a check character. The alphabet leaves out 0/O and
+// 1/I/L so ids can be read aloud and typed from a label. It has 31 characters, a prime, so a weighted sum
+// mod 31 (weights 1-8, salted with the prefix) catches every single mistyped character and every swap of two
+// neighbours: a typo never quietly points at another lot.
+export const ID_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+export const ID_SALT = { O: 3, S: 7, P: 11, L: 13 };
+export function checkChar(prefix, body) {
+  const n = ID_CHARS.length;
+  let sum = ID_SALT[prefix] || 0;
+  for (let i = 0; i < body.length; i++) sum += (i + 1) * ID_CHARS.indexOf(body[i]);
+  return ID_CHARS[(n - (sum % n)) % n];
+}
 export function newId(prefix) {
   const bytes = crypto.getRandomValues(new Uint8Array(8));
-  return `${prefix}-${[...bytes].map((b) => ID_CHARS[b % ID_CHARS.length]).join("")}`;
+  const body = [...bytes].map((b) => ID_CHARS[b % ID_CHARS.length]).join("");
+  return `${prefix}-${body}-${checkChar(prefix, body)}`;
+}
+const ID_RE = new RegExp(`^([OSPL])-([${ID_CHARS}]{8})-([${ID_CHARS}])$`);
+// Reads any id a person typed (any case, spaces around it). Returns the canonical id, or null if it is not valid.
+// Accepts what people type: any case, with or without "-" or spaces
+// ("lkpbjf525x", "L KPBJF525 X"), and returns the canonical L-KPBJF525-X.
+const LOOSE_RE = new RegExp(`^([OSPL])([${ID_CHARS}]{8})([${ID_CHARS}])$`);
+export function parseId(text) {
+  const m = String(text ?? "").toUpperCase().replace(/[\s\-_.]/g, "").match(LOOSE_RE);
+  return m && checkChar(m[1], m[2]) === m[3] ? `${m[1]}-${m[2]}-${m[3]}` : null;
 }
 export function idErrors(v, prefix) {
   if (v === undefined) return [`missing required field "id": add a permanent id such as id: ${newId(prefix)}`];
-  if (typeof v !== "string" || !new RegExp(`^${prefix}-[A-Z0-9]{8}$`).test(v)) return [`id must be "${prefix}-" followed by 8 capital letters or digits, e.g. ${newId(prefix)}`];
+  const m = typeof v === "string" ? v.match(ID_RE) : null;
+  if (!m || m[1] !== prefix) return [`id must look like ${newId(prefix)}: "${prefix}-", 8 capital letters or digits (no 0, 1, I, L or O), "-" and a check character`];
+  if (checkChar(m[1], m[2]) !== m[3]) return [`id "${v}" has the wrong check character, so it was probably mistyped; copy it again, or make a new one with npm run new-id`];
   return [];
 }
+// The kind of thing an id names, from its prefix.
+// Extra words for a reference that was not found: a wrong check character means a typo, and an id written
+// without "-" or in small letters should be written the standard way.
+export function idHint(v) {
+  const canon = parseId(v);
+  if (canon && canon !== v) return ` (write it as ${canon})`;
+  if (!canon && /^[OSPL]-?[A-Z0-9]{8}-?[A-Z0-9]$/i.test(String(v ?? "").trim())) return " (its check character does not match, so it was probably mistyped)";
+  return "";
+}
+export const ID_KIND = { O: "origin", S: "story", P: "producer", L: "lot" };
 export const PRODUCERS_DIR = path.join(ROOT, "producers");
 // Everyone who shapes a lot gets a profile: growers, processing facilities (mills, washing stations) and roasters.
 export const PRODUCER_TYPES = ["farmer", "group", "estate", "processor", "roaster"];
@@ -235,7 +268,7 @@ export function linkProducers(stories, producers) {
   for (const s of stories) {
     if (s.profile === undefined) continue;
     const p = producers.find((x) => String(x.id) === String(s.profile));
-    if (!p) errors.set(s.file, [`profile "${s.profile}" not found: use the id of a profile in producers/`]);
+    if (!p) errors.set(s.file, [`profile "${s.profile}" not found${idHint(s.profile)}: use the id of a profile in producers/`]);
     else { s.producerProfile = p; p.stories.push(s); }
   }
   return errors;
@@ -290,10 +323,10 @@ export function resolveLot(l, stories, producers = []) {
     else out.push(story);
   }
   if (l.stories !== undefined) {
-    if (!isStrList(l.stories)) errors.push(`stories must be a list of story ids, e.g. [S-K7M2XQ9P]`);
+    if (!isStrList(l.stories)) errors.push(`stories must be a list of story ids, e.g. [S-K7M2XQ9P-V]`);
     else for (const sid of l.stories) {
       const story = stories.find((s) => String(s.id) === sid);
-      if (!story) errors.push(`story "${sid}" not found`);
+      if (!story) errors.push(`story "${sid}" not found${idHint(sid)}`);
       else if (story.crop !== l.pathCrop) errors.push(`story "${sid}" is ${story.crop}, but this lot is in lots/${l.pathCrop}/`);
       else if (!out.includes(story)) out.push(story);
     }
@@ -302,7 +335,7 @@ export function resolveLot(l, stories, producers = []) {
   let producer = null;
   if (l.producer !== undefined) {
     producer = producers.find((p) => String(p.id) === String(l.producer)) || null;
-    if (!producer) errors.push(`producer "${l.producer}" not found: use the id of a profile in producers/`);
+    if (!producer) errors.push(`producer "${l.producer}" not found${idHint(l.producer)}: use the id of a profile in producers/`);
   }
   if (!out.length && l.producer === undefined) errors.push(`a lot in lots/${l.pathCrop}/ needs stories: [S-…] or producer: P-… (or put it in a story's folder)`);
   return { stories: out, producer, errors };
@@ -311,8 +344,8 @@ export function resolveLot(l, stories, producers = []) {
 // A party field (processed_by, roasted_by, sold_by) is free text, or a producer id that must exist.
 const partyErrors = (key, v, producers) => {
   if (v === undefined) return [];
-  if (typeof v !== "string" || !v.trim()) return [`${key} must be a name or a producer id such as P-H7FAQRHQ`];
-  if (/^P-/.test(v) && !producers.some((p) => String(p.id) === v)) return [`${key} "${v}" not found: use the id of a profile in producers/, or write a name`];
+  if (typeof v !== "string" || !v.trim()) return [`${key} must be a name or a producer id such as P-H7FAQRHQ-5`];
+  if (/^p-/i.test(v.trim()) && !producers.some((p) => String(p.id) === v)) return [`${key} "${v}" not found${idHint(v)}: use the id of a profile in producers/, or write a name`];
   return [];
 };
 

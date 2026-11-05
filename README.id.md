@@ -21,7 +21,7 @@ Tidak perlu bisa coding. **[Isi formulir cerita](https://github.com/glc-works/op
 | **Lot** | Satu panen, kiriman, atau produksi, yaitu yang dibeli pembeli, lengkap dengan proses, bentuk, dan mutunya | `L-` |
 | **Learn** | Spesies, varietas, proses, dan cara penilaian mutu (cupping, cut test kakao…) dengan sumber | |
 
-ID tidak pernah berubah, jadi nama dan file boleh diganti tanpa merusak tautan. `/s/<id>/` selalu mengarah ke halamannya.
+ID tidak pernah berubah, jadi nama dan file boleh diganti tanpa merusak tautan. `/s/<id>/` selalu mengarah ke halamannya. Kode seperti `L-KPBJF525-D` punya karakter cek yang menangkap salah ketik; lihat [Cara membaca kode](https://glc-works.github.io/open-origin/codes/id/).
 
 ## Data terbuka
 

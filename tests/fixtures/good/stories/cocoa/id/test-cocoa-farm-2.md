@@ -1,5 +1,5 @@
 ---
-id: S-TESTC004
+id: S-TESTCQQ4-Z
 title: Second test cocoa farm
 kind: farm
 origin: test-cocoa-origin

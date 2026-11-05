@@ -1,5 +1,5 @@
 ---
-id: S-W49ZKKQW
+id: S-W49ZKKQW-H
 title: Ribang Gayo Musara, naturals from Aceh's smallholders
 kind: farm
 traceability: group
@@ -8,7 +8,7 @@ crop: coffee
 country: ID
 region: Aceh
 producer: Ribang Gayo Musara Cooperative
-profile: P-23PVK4R5
+profile: P-23PVK4R5-F
 species: arabica
 altitude_masl: [1300, 1650]
 varieties: [Ateng, Bor Bor, Catimor, Timor]
