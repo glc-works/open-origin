@@ -5,6 +5,8 @@ kind: origin
 crop: coffee
 country: ID
 region: Priangan highlands, West Java
+area:
+  iso3166_2: ID-JB
 producer: Coffee farmers of Priangan
 species: arabica
 altitude_masl: [1200, 1600]

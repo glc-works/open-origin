@@ -245,3 +245,6 @@ table.lots tr:has(+ tr.lot-notes) td { border-bottom: 0; }
 .prose table { border-collapse: collapse; width: 100%; font-size: .95rem; margin: 1em 0; }
 .prose th, .prose td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .codes .text > p:first-of-type::first-letter { float: none; font: inherit; color: inherit; margin: 0; }
+.crop-tag { font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 .4em; margin-left: .45em; white-space: nowrap; }
+code.code { white-space: nowrap; }
+.area-codes { display: inline-flex; flex-wrap: wrap; gap: 4px 10px; font-family: var(--mono); font-size: .8rem; }

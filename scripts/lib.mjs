@@ -4,6 +4,7 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
+import { latLngToCell } from "h3-js";
 
 // OPEN_ORIGIN_ROOT points the scripts at another content folder, e.g. the test fixtures.
 export const ROOT = process.env.OPEN_ORIGIN_ROOT ? path.resolve(process.env.OPEN_ORIGIN_ROOT) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -203,6 +204,44 @@ export function idHint(v) {
   if (!canon && /^[OSPL]-?[A-Z0-9]{8}-?[A-Z0-9]$/i.test(String(v ?? "").trim())) return " (its check character does not match, so it was probably mistyped)";
   return "";
 }
+// Place codes. An origin keeps its own O- code and is matched to public codes for the same area, so other
+// datasets can join on them: ISO 3166-2 (province), the national admin code (Indonesia: Kemendagri kode wilayah),
+// Wikidata and GeoNames ids. A Plus Code and an H3 cell are worked out from coords, so nobody types them.
+const OLC = "23456789CFGHJMPQRVWX";
+// Open Location Code (Plus Code) for the 0.05° cell (about 5 km) holding the point: coords are rounded to
+// 2 decimals for privacy, so a finer code would claim precision the data does not have.
+export function plusCode([lat, lon]) {
+  const la = Math.floor(Math.min(Math.round((lat + 90) * 100), 17999) / 5);
+  const lo = Math.floor(((Math.round((lon + 180) * 100) % 36000) + 36000) % 36000 / 5);
+  let out = "";
+  for (const div of [400, 20, 1]) out += OLC[Math.floor(la / div) % 20] + OLC[Math.floor(lo / div) % 20];
+  return `${out}00+`;
+}
+export const H3_RES = 7;
+export function h3Cell([lat, lon]) { return latLngToCell(lat, lon, H3_RES); }
+const asList = (v) => (v === undefined ? [] : Array.isArray(v) ? v : [v]);
+export const AREA_KEYS = {
+  iso3166_2: [/^[A-Z]{2}-[A-Z0-9]{1,3}$/, "a province code such as ID-AC"],
+  admin_codes: [/^[0-9A-Z]+([.-][0-9A-Z]+)*$/, "a national area code such as \"11.17\""],
+  wikidata: [/^Q[1-9][0-9]*$/, "a Wikidata id such as Q42"],
+  geonames: [/^[1-9][0-9]*$/, "a GeoNames id (a number)"],
+};
+export function areaOf(s) {
+  const a = s.area && typeof s.area === "object" ? s.area : {};
+  return Object.fromEntries(Object.keys(AREA_KEYS).map((k) => [k, asList(a[k]).map(String)]));
+}
+export function areaErrors(s) {
+  if (s.area === undefined) return [];
+  if (!s.area || typeof s.area !== "object" || Array.isArray(s.area)) return [`area must list codes, e.g. area: { iso3166_2: ID-AC, admin_codes: ["11.17"] }`];
+  const errors = [];
+  for (const k of Object.keys(s.area)) if (!AREA_KEYS[k]) errors.push(`area.${k} is not known (use ${Object.keys(AREA_KEYS).join(", ")})`);
+  const a = areaOf(s);
+  for (const [k, [re, what]] of Object.entries(AREA_KEYS)) for (const v of a[k]) if (!re.test(v)) errors.push(`area.${k} "${v}" must be ${what}`);
+  for (const v of a.iso3166_2) if (re0(v) && s.country && !v.startsWith(`${s.country}-`)) errors.push(`area.iso3166_2 "${v}" is not in country ${s.country}`);
+  return errors;
+}
+const re0 = (v) => AREA_KEYS.iso3166_2[0].test(v);
+
 export const ID_KIND = { O: "origin", S: "story", P: "producer", L: "lot" };
 export const PRODUCERS_DIR = path.join(ROOT, "producers");
 // Everyone who shapes a lot gets a profile: growers, processing facilities (mills, washing stations) and roasters.
@@ -470,6 +509,7 @@ export function validateStory(s) {
       errors.push(`coords: round to 2 decimals so a farmer's home cannot be pinpointed`);
     }
   }
+  errors.push(...areaErrors(s));
   if (s.journey !== undefined) {
     if (!Array.isArray(s.journey) || !s.journey.length) errors.push(`journey must be a list of steps`);
     else s.journey.forEach((j, i) => {

@@ -173,6 +173,11 @@ summary: One or two sentences, at most 200 characters, shown on the card.
 photo: photos/id/gayo.jpg     # optional, a path in this repo or an https URL
 photo_credit: Name            # required when there is a photo
 coords: [4.62, 96.85]         # optional, latitude and longitude, 2 decimals
+area:                         # optional: public codes for the same area, so other data can be joined to it
+  iso3166_2: ID-AC            #   province, ISO 3166-2
+  admin_codes: ["11.06", "11.17"]  # national area codes (Indonesia: Kemendagri kode wilayah), quoted
+  wikidata: [Q..., Q...]      #   Wikidata ids of the regencies
+  geonames: [1234567]         #   GeoNames ids
 language: id                  # language of the story
 told_by: farmer               # farmer | producer-group | roaster | researcher | editor | other
 contributor: your-github-name

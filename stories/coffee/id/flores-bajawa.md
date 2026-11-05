@@ -5,6 +5,10 @@ kind: origin
 crop: coffee
 country: ID
 region: Ngada Regency, Flores, East Nusa Tenggara
+area:
+  iso3166_2: ID-NT
+  admin_codes: ["53.09"]
+  geonames: [1634193]
 producer: Ngada farmers' processing units (UPH)
 species: arabica
 altitude_masl: [1200, 1600]

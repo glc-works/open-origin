@@ -5,6 +5,10 @@ kind: origin
 crop: coffee
 country: ID
 region: Central Aceh & Bener Meriah, Aceh
+area:
+  iso3166_2: ID-AC
+  admin_codes: ["11.04", "11.17"]
+  geonames: [1215633, 6712486]
 producer: Gayo highland coffee farmers
 species: arabica
 altitude_masl: [1200, 1700]

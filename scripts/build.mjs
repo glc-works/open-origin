@@ -4,7 +4,7 @@ import matter from "gray-matter";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
-import { ID_CHARS, ID_SALT, isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
 
@@ -292,8 +292,25 @@ ${foot}`;
 // A party (processed_by, sold_by) is a name, or a producer id that links to the profile.
 const party = (v, prefix) => { const p = producers.find((x) => String(x.id) === String(v)); return p ? `<a href="${prefix}${producerHref(p)}">${esc(p.name)}</a>` : esc(v); };
 // here: the story whose page shows the table, so its own name is not repeated in "From".
+// Public codes for the story's area, linked where a public page exists.
+const placeCodes = (s) => ({ ...areaOf(s), plus_code: s.coords ? plusCode(s.coords) : "", h3_cell: s.coords ? h3Cell(s.coords) : "" });
+function areaHtml(s) {
+  const a = placeCodes(s);
+  const parts = [
+    ...a.iso3166_2.map((v) => `<span title="ISO 3166-2">${esc(v)}</span>`),
+    ...a.admin_codes.map((v) => `<span title="National area code${s.country === "ID" ? " (Kemendagri)" : ""}">${esc(v)}</span>`),
+    ...a.wikidata.map((v) => `<a href="https://www.wikidata.org/wiki/${esc(v)}" title="Wikidata">${esc(v)}</a>`),
+    ...a.geonames.map((v) => `<a href="https://www.geonames.org/${esc(v)}" title="GeoNames">GeoNames ${esc(v)}</a>`),
+    a.plus_code && `<a href="https://plus.codes/${encodeURIComponent(a.plus_code)}" title="Plus Code (about 5 km cell)">${esc(a.plus_code)}</a>`,
+    a.h3_cell && `<span title="H3 cell, resolution ${H3_RES}">H3 ${esc(a.h3_cell)}</span>`,
+  ].filter(Boolean);
+  return parts.length ? `<span class="area-codes">${parts.join(" ")}</span>` : "";
+}
+// A code is always shown with its crop beside it (L-KPBJF525-D · COFFEE): the code itself carries no meaning,
+// so it never has to change, but a reader still sees at once what it is.
+const codeTag = (id, crops) => `<code class="code">${esc(id)}</code>${[].concat(crops || []).map((c) => `<span class="crop-tag">${esc(CROPS[c]?.label || c)}</span>`).join("")}`;
 const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table class="lots"><thead><tr><th>Lot</th><th>What it is</th><th>Quality</th><th>Tested by</th></tr></thead><tbody>
-    ${list.map((l) => { const crop = l.pathCrop; const from = l.linked.filter((x) => x !== here); return `<tr id="${esc(l.id)}"><td class="lot-name"><strong>${esc(l.name || l.date)}</strong><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}<code>${esc(l.id)}</code>${l.quantity_kg ? ` · ${esc(l.quantity_kg)} kg` : ""}${l.traceability ? ` · ${esc(TRACE_LABEL[l.traceability])}` : ""}</span></td>
+    ${list.map((l) => { const crop = l.pathCrop; const from = l.linked.filter((x) => x !== here); return `<tr id="${esc(l.id)}"><td class="lot-name"><strong>${esc(l.name || l.date)}</strong><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}${codeTag(l.id, crop)}${l.quantity_kg ? ` · ${esc(l.quantity_kg)} kg` : ""}${l.traceability ? ` · ${esc(TRACE_LABEL[l.traceability])}` : ""}</span></td>
       <td>${[l.form ? pretty(l.form) : "", (l.process || []).map(pretty).join(" · "), (l.varieties || []).map((v) => { const k = varietyFor(crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", ")].filter(Boolean).map((x) => `<div>${x.startsWith("<") ? x : esc(x)}</div>`).join("")}
         ${from.length ? `<div class="muted">${l.linked.length > 1 ? "Blend of" : "From"} ${from.map((x) => `<a href="${prefix}${href(x)}">${esc(x.producer)}</a>`).join(", ")}${here && l.linked.length > 1 ? " and this one" : ""}</div>` : ""}
         ${here && l.owner ? `<div class="muted">Filed by ${party(l.owner.id, prefix)}</div>` : ""}
@@ -333,6 +350,8 @@ function storyPage(s, t = null) {
       name: s.region || countryName.of(s.country),
       address: { "@type": "PostalAddress", addressRegion: s.region, addressCountry: s.country },
       ...(s.coords && { geo: { "@type": "GeoCoordinates", latitude: s.coords[0], longitude: s.coords[1] } }),
+      ...(() => { const a = areaOf(s); const same = [...a.wikidata.map((q) => `https://www.wikidata.org/wiki/${q}`), ...a.geonames.map((g) => `https://sws.geonames.org/${g}/`)];
+        return same.length ? { sameAs: same } : {}; })(),
     },
     ...(t && { translator: { "@type": "Person", name: t.translator }, translationOfWork: { "@type": "Article", headline: s.title, inLanguage: s.language } }),
   };
@@ -358,7 +377,8 @@ function storyPage(s, t = null) {
       ${row("Traceability", s.traceability && TRACE_LABEL[s.traceability])}
       ${row("Tastes of", (v.tasting_notes || []).join(", "))}
       ${row("Told by", TOLD[s.told_by])}
-      ${rowHtml("ID", `<a href="${prefix}s/${esc(s.id)}/"><code>${esc(s.id)}</code></a>`)}
+      ${rowHtml("Code", `<a href="${prefix}s/${esc(s.id)}/">${codeTag(s.id, s.crop)}</a>`)}
+      ${rowHtml("Area codes", areaHtml(s))}
       ${row("Told in", nativeName(s.language))}
       ${t ? row("Translated by", t.translator) : ""}
       ${row("Added by", s.contributor)}
@@ -408,7 +428,7 @@ function producerPage(p) {
       ${row("Growing since", p.since)}
       ${row("Farm size", p.farm_size_ha ? `${p.farm_size_ha} ha` : "")}
       ${row("Members", p.members ? `${p.members.toLocaleString("en")} farmers` : "")}
-      ${rowHtml("ID", `<code>${esc(p.id)}</code>`)}
+      ${rowHtml("Code", codeTag(p.id, crops))}
       ${rowHtml("Website", p.website ? `<a href="${esc(p.website)}">${esc(String(p.website).replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>` : "")}
     </dl>
   </div>
@@ -487,9 +507,11 @@ const lookupJs = (lang) => `<script>
     if (!m) { out.textContent = T.shape; return; }
     const id = m[1] + "-" + m[2] + "-" + m[3];
     if (check(m[1], m[2]) !== m[3]) { out.textContent = id + T.typo; return; }
-    const res = await fetch(base + "s/" + id + "/", { method: "HEAD" }).catch(() => null);
-    if (res && res.ok) location.href = base + "s/" + id + "/";
-    else out.textContent = none(id, T.kind[m[1]]);
+    const codes = await fetch(base + "codes.json").then((r) => r.json()).catch(() => ({}));
+    const hit = codes[id];
+    if (!hit) { out.textContent = none(id, T.kind[m[1]]); return; }
+    out.textContent = id + " · " + hit.crop_labels.join(", ").toUpperCase() + " · " + hit.title + " …";
+    location.href = base + hit.url;
   });
 })();
 </script>`;
@@ -518,6 +540,14 @@ for (const [file, sub, lang, label, button] of [["codes.md", "codes", "en", "Loo
 ${lookupJs(lang)}
 ${foot}`);
 }
+// codes.json: every published code with its kind, crop(s), title and page, for the lookup box and for anyone
+// who wants to resolve a code printed on a sack or an invoice.
+const codeIndex = {};
+for (const st of stories) codeIndex[st.id] = { kind: st.kind === "origin" ? "origin" : "story", crops: [st.crop], title: st.title, url: href(st), country: st.country, place_codes: placeCodes(st) };
+for (const p of producers) codeIndex[p.id] = { kind: "producer", crops: [...new Set([...(p.crops || []), ...p.stories.map((x) => x.crop)])], title: p.name, url: producerHref(p) };
+for (const l of lots) codeIndex[l.id] = { kind: "lot", crops: [l.pathCrop], title: l.name || `Lot ${l.date}`, url: lotHref(l) };
+for (const v of Object.values(codeIndex)) v.crop_labels = v.crops.map((c) => CROPS[c]?.label || c);
+await writeFile(path.join(DIST, "codes.json"), JSON.stringify(codeIndex, null, 1));
 await writeFile(path.join(DIST, ".nojekyll"), "");
 await exportData();
 
@@ -532,6 +562,9 @@ async function exportData() {
     ["producer", "string", ""], ["species", "string", ""], ["altitude_min_masl", "integer", ""], ["altitude_max_masl", "integer", ""],
     ["varieties", "string", "separated by ; "], ["process", "string", "separated by ; "], ["harvest", "string", ""],
     ["tasting_notes", "string", "separated by ; "], ["latitude", "number", "rounded to 2 decimals"], ["longitude", "number", "rounded to 2 decimals"],
+    ["iso3166_2", "string", "ISO 3166-2 province codes, separated by ; "], ["admin_codes", "string", "national area codes (Indonesia: Kemendagri), separated by ; "],
+    ["wikidata", "string", "Wikidata ids, separated by ; "], ["geonames", "string", "GeoNames ids, separated by ; "],
+    ["plus_code", "string", "Open Location Code of the 0.05 degree cell holding the coordinates"], ["h3_cell", "string", "H3 cell at resolution 7 holding the coordinates"],
     ["traceability", "string", "farm, group, region, country or blend"], ["lots", "integer", "number of lots"],
     ["title", "string", ""], ["summary", "string", ""], ["language", "string", "BCP 47 code of the original story"],
     ["translations", "string", "available translation languages, separated by ; "], ["told_by", "string", ""], ["contributor", "string", ""],
@@ -544,6 +577,7 @@ async function exportData() {
     producer: s.producer, species: s.species || "", altitude_min_masl: s.altitude_masl?.[0] ?? "", altitude_max_masl: s.altitude_masl?.[1] ?? "",
     varieties: (s.varieties || []).join("; "), process: (s.process || []).join("; "), harvest: s.harvest || "",
     tasting_notes: (s.tasting_notes || []).join("; "), latitude: s.coords?.[0] ?? "", longitude: s.coords?.[1] ?? "",
+    ...Object.fromEntries(Object.entries(placeCodes(s)).map(([k, v]) => [k, Array.isArray(v) ? v.join("; ") : v])),
     traceability: s.traceability || "", lots: s.lots.length,
     title: s.title, summary: s.summary, language: s.language, translations: s.translations.map((t) => t.language).join("; "),
     told_by: s.told_by, contributor: s.contributor, url: href(s),
@@ -553,6 +587,7 @@ async function exportData() {
   const full = stories.map((s) => ({
     id: id(s), path: pathOf(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
     ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+    place_codes: placeCodes(s),
     story: s.body, url: href(s),
     lots: s.lots.map(lotJson),
     translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),

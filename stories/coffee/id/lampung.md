@@ -5,6 +5,9 @@ kind: origin
 crop: coffee
 country: ID
 region: West Lampung & Tanggamus, Lampung
+area:
+  iso3166_2: ID-LA
+  geonames: [9166059, 9845482]
 producer: Robusta farmers on the slopes of the Barisan Mountains
 species: robusta
 altitude_masl: [400, 900]

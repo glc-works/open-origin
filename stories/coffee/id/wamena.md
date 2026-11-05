@@ -5,6 +5,10 @@ kind: origin
 crop: coffee
 country: ID
 region: Baliem Valley, Jayawijaya, Highland Papua
+area:
+  iso3166_2: ID-PE
+  admin_codes: ["95.01"]
+  geonames: [1631789]
 producer: Coffee farmers of the Baliem Valley
 species: arabica
 altitude_masl: [1400, 2000]
