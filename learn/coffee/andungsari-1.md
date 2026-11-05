@@ -17,7 +17,7 @@ It is a dwarf plant, about 1.2 m tall when it starts fruiting at high altitude, 
 
 **Leaf rust:** sources disagree.
 
-- **2018**, the Ministry of Agriculture's variety guide (Randriani & Dani, *Pengenalan Varietas Unggul Kopi*, IAARD Press, 2018): resistant above 1,000 m, somewhat resistant below 900 m.
-- **2025**, Royal Coffee's survey of Indonesian cultivars (Evan Gilman, 2025): susceptible.
+- **2018**, the Ministry of Agriculture's variety guide ([Randriani & Dani, *Pengenalan Varietas Unggul Kopi*, IAARD Press, 2018](https://jatim.brmp.pertanian.go.id/informasi-publik/download/varietas-unggul-baru/deskripsi-varietas-unggul-kopi)): resistant above 1,000 m, somewhat resistant below 900 m.
+- **2025**, Royal Coffee's survey of Indonesian cultivars ([Evan Gilman, 2025](https://royalcoffee.com/indonesian-coffee-cultivars-and-varieties/)): susceptible.
 
 Resistance in Catimor types often fades as the rust fungus adapts, so the difference may reflect the years between the two sources.

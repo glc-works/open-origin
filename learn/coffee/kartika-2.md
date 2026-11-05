@@ -17,7 +17,7 @@ It is a dwarf tree, about 1.9 m tall, with good cup quality. The Ministry of Agr
 
 **Leaf rust:** sources disagree.
 
-- **2018**, the Ministry of Agriculture's variety guide (Randriani & Dani, *Pengenalan Varietas Unggul Kopi*, IAARD Press, 2018): somewhat resistant.
-- **2025**, Royal Coffee's survey of Indonesian cultivars (Evan Gilman, 2025): very susceptible, and needs high inputs.
+- **2018**, the Ministry of Agriculture's variety guide ([Randriani & Dani, *Pengenalan Varietas Unggul Kopi*, IAARD Press, 2018](https://jatim.brmp.pertanian.go.id/informasi-publik/download/varietas-unggul-baru/deskripsi-varietas-unggul-kopi)): somewhat resistant.
+- **2025**, Royal Coffee's survey of Indonesian cultivars ([Evan Gilman, 2025](https://royalcoffee.com/indonesian-coffee-cultivars-and-varieties/)): very susceptible, and needs high inputs.
 
 Resistance in Catimor types often fades as the rust fungus adapts, so the difference may reflect the years between the two sources.
