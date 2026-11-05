@@ -213,6 +213,7 @@ export function validateProducer(p) {
   if (p.website !== undefined && !(isHttpUrl(p.website) && String(p.website).startsWith("https:"))) errors.push(`website must be an https link`);
   if (p.photo !== undefined && !isPhoto(p.photo)) errors.push(`photo must be an https link or a file in photos/`);
   if (p.photo !== undefined && !p.photo_credit) errors.push(`photo needs a photo_credit`);
+  if (p.logo !== undefined && !((isHttpUrl(p.logo) && String(p.logo).startsWith("https:")) || /^photos\/[a-z0-9/_-]+\.(svg|png|webp|jpe?g)$/i.test(String(p.logo)))) errors.push(`logo must be an https link or a file in photos/, e.g. photos/logos/koperasi-gayo.svg`);
   if (p.crops !== undefined && !(isStrList(p.crops) && p.crops.every((c) => CROPS[c]))) errors.push(`crops must be a list from: ${Object.keys(CROPS).join(", ")}`);
   return errors;
 }

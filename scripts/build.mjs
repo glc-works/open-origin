@@ -87,6 +87,8 @@ const href = (s) => `stories/${s.crop}/${s.pathCountry}/${s.slug}/`;
 const producerHref = (p) => `producers/${p.id}/`;
 const photoSrc = (s, prefix) => (/^https?:\/\//.test(s.photo) ? s.photo : prefix + String(s.photo).replace(/^\/+/, ""));
 
+// The mark is inline so it follows light and dark mode; site/logo.svg is the same mark with fixed colours (favicon).
+const LOGO = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M27.5 9.5A13 13 0 1 1 22.5 4.7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><g transform="rotate(30 16 16)"><ellipse cx="16" cy="16" rx="6.2" ry="9" fill="var(--cherry)"/><path d="M16 7.8C13.2 12.2 18.8 19.8 16 24.2" fill="none" stroke="var(--bg)" stroke-width="1.7" stroke-linecap="round"/></g></svg>`;
 function head(title, description, prefix, extra = "") {
   return `<!doctype html>
 <html lang="en">
@@ -101,10 +103,11 @@ function head(title, description, prefix, extra = "") {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="${prefix}style.css">
+<link rel="icon" href="${prefix}logo.svg" type="image/svg+xml">
 ${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
-  <a class="brand" href="${prefix}">Open<span>·</span>Origin</a>
+  <a class="brand" href="${prefix}">${LOGO}<b>Open<span>·</span>Origin</b></a>
   <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#learn">Learn</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}datapackage.json">Open data</a><a href="${REPO}">GitHub</a></nav>
 </div></header>`;
 }
@@ -125,10 +128,25 @@ function headline(s) {
   return "";
 }
 
+// Cover art for a story without a photo: contour lines like a relief map, drawn from the story id so each
+// story keeps its own pattern. Colour follows the crop.
+const CROP_HUE = { coffee: "var(--cherry)", cocoa: "#7A4A2B", tea: "var(--leaf)", spice: "#A0632A", vanilla: "#6B5A2E", honey: "#B7862A", sugar: "#8A5A3C" };
+function coverArt(s) {
+  let h = 0; for (const c of String(s.id || s.slug)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const rnd = () => ((h = (h * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  const cx = 60 + rnd() * 180, cy = 20 + rnd() * 60;
+  const rings = Array.from({ length: 9 }, (_, i) => {
+    const r = 14 + i * 16, pts = 28, wob = 4 + rnd() * 6, ph = rnd() * 6.28;
+    const d = Array.from({ length: pts }, (_, k) => { const a = (k / pts) * 6.283; const rr = r + Math.sin(a * 3 + ph) * wob + Math.cos(a * 2 + i) * wob * 0.6; return `${(cx + Math.cos(a) * rr * 1.6).toFixed(1)},${(cy + Math.sin(a) * rr).toFixed(1)}`; });
+    return `<polygon points="${d.join(" ")}" />`;
+  }).join("");
+  return `<svg class="cover-art" viewBox="0 0 300 128" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="${CROP_HUE[s.crop] || "var(--cherry)"}" stroke-width="1.1" opacity=".55">${rings}</g></svg>`;
+}
+
 function card(s) {
   const cover = s.photo
     ? `<img src="${esc(photoSrc(s, ""))}" alt="" loading="lazy">`
-    : s.altitude_masl ? `<span class="alt">${esc(s.altitude_masl[1].toLocaleString("en"))}<small> masl</small></span>` : "";
+    : `${coverArt(s)}${s.altitude_masl ? `<span class="alt">${esc(s.altitude_masl[1].toLocaleString("en"))}<small> masl</small></span>` : ""}`;
   const facts = [headline(s), s.traceability && s.traceability !== "farm" ? TRACE_LABEL[s.traceability] : "", fmtAlt(s.altitude_masl), (s.varieties || []).slice(0, 2).join(", "), (s.process || []).join(" · ")].filter(Boolean);
   return `<a class="card" href="${href(s)}" data-crop="${esc(s.crop)}" data-country="${esc(s.country)}" data-kind="${esc(s.kind)}">
   <div class="cover">${cover}${tagFor(s)}</div>
@@ -173,11 +191,11 @@ function indexPage() {
   const crops = [...new Set(stories.map((s) => s.crop))];
   const countries = [...new Set(stories.map((s) => s.country))].sort();
   const btn = (key, val, label, on = false) => `<button type="button" data-${key}="${esc(val)}" aria-pressed="${on}">${esc(label)}</button>`;
-  return `${head("Open Origin", "Open, community-written stories of coffee and other crops, told from where they grow.", "")}
+  return `${head("Open Origin", "Open, community-written stories of coffee, cocoa, tea, spices, vanilla, honey and palm sugar, told from where they grow.", "")}
 <main>
 <section class="hero" style="border-top:0"><div class="wrap">
   <div class="eyebrow">An open collection · ${stories.length} stories · ${countries.length} ${countries.length === 1 ? "country" : "countries"}</div>
-  <h1>Every cup starts with <em>someone's</em> harvest.</h1>
+  <h1>Every cup, bar and jar starts with <em>someone's</em> harvest.</h1>
   <p class="lede">Open Origin collects the stories behind coffee, cocoa, tea, spices, vanilla, honey and palm sugar: the land, the process and the people, told in their own words. Anyone can read them, reuse them and add their own.</p>
   <div class="cta"><a class="btn primary" href="${SUBMIT}">Share a story</a><a class="btn" href="#stories">Read the stories</a></div>
   ${strip()}
@@ -185,7 +203,7 @@ function indexPage() {
 
 <section id="stories"><div class="wrap">
   <div class="section-head"><div class="eyebrow">The collection</div><h2>Stories from the farms</h2>
-  <p>Each origin has a profile of its land and history, and below it the stories of the farmers and movements who work there. We are starting with coffee from the Indonesian archipelago.</p></div>
+  <p>Each origin has a profile of its land and history, and below it the stories of the farmers and movements who work there. We are starting in the Indonesian archipelago, with coffee, cocoa, tea, spices, vanilla, honey and palm sugar.</p></div>
   <div class="filters" role="group" aria-label="Filter stories">
     ${btn("country", "all", "All", true)}
     ${countries.map((c) => btn("country", c, `${flag(c)} ${countryName.of(c)}`)).join("")}
@@ -196,7 +214,7 @@ function indexPage() {
   <h3 class="group-title" id="voices">Farmers &amp; movements <span>Each farm tells its origin differently</span></h3>
   ${voices.length
     ? `<div class="cards">${voices.map(card).join("\n")}</div>`
-    : `<div class="empty"><p><strong>The first farmer stories are still to come.</strong> Two farms in Gayo can taste completely different: another hill, another process, another family. That difference is what Open Origin is for. Grow coffee, or work with people who do? Tell their story.</p><a class="btn primary" href="${SUBMIT}">Share a farmer story</a></div>`}
+    : `<div class="empty"><p><strong>The first farmer stories are still to come.</strong> Two farms on the same hill can grow something completely different: another slope, another process, another family. That difference is what Open Origin is for. Grow coffee, cocoa, tea or spices, keep bees or tap palms, or work with people who do? Tell their story.</p><a class="btn primary" href="${SUBMIT}">Share a farmer story</a></div>`}
 </div></section>
 
 ${knowledge.length ? `<section id="learn"><div class="wrap">
@@ -330,7 +348,7 @@ function storyPage(s, t = null) {
       : `<span class="species ${esc(s.species)}">${esc(CROPS[s.crop].label)} · ${esc(pretty(s.species))}</span>`}
     ${switcher}
     <dl class="passport">
-      ${rowHtml("Producer", s.producerProfile ? `<a class="term" href="${prefix}${producerHref(s.producerProfile)}">${esc(s.producer)}</a>` : esc(s.producer))}
+      ${rowHtml("Producer", s.producerProfile ? `${s.producerProfile.logo ? `<img class="org-logo small" src="${esc(photoSrc({ photo: s.producerProfile.logo }, prefix))}" alt="">` : ""}<a class="term" href="${prefix}${producerHref(s.producerProfile)}">${esc(s.producer)}</a>` : esc(s.producer))}
       ${row("Altitude", fmtAlt(s.altitude_masl))}
       ${rowHtml("Varieties", (s.varieties || []).map((v) => { const k = varietyFor(s.crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", "))}
       ${rowHtml("Species", s.species ? termLink(s.crop, s.species, prefix, pretty(s.species)) : "")}
@@ -379,6 +397,7 @@ function producerPage(p) {
 <article class="story">
   <div class="meta">
     <p class="eyebrow"><a href="${prefix}">Open Origin</a> · ${esc(PTYPE[p.type] || "Producer")}</p>
+    ${p.logo ? `<img class="org-logo" src="${esc(photoSrc({ photo: p.logo }, prefix))}" alt="${esc(p.name)} logo">` : ""}
     <h1>${esc(p.name)}</h1>
     <div class="where">${flag(p.pathCountry)} ${esc(countryName.of(p.pathCountry.toUpperCase()))}${p.region ? ` · ${esc(p.region)}` : ""}${p.village ? ` · ${esc(p.village)}` : ""}</div>
     <dl class="passport">
@@ -412,6 +431,7 @@ ${foot}`;
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 await copyFile(path.join(SITE, "style.css"), path.join(DIST, "style.css"));
+await copyFile(path.join(SITE, "logo.svg"), path.join(DIST, "logo.svg"));
 try { await access(path.join(ROOT, "photos")); await cp(path.join(ROOT, "photos"), path.join(DIST, "photos"), { recursive: true }); } catch {}
 await writeFile(path.join(DIST, "index.html"), indexPage());
 for (const s of stories) {
@@ -511,7 +531,7 @@ async function exportData() {
   const pkg = {
     name: "open-origin-stories",
     title: "Open Origin stories",
-    description: "Community-written stories of coffee and other crops, told from where they grow.",
+    description: "Community-written stories of coffee, cocoa, tea, spices, vanilla, honey and palm sugar, told from where they grow.",
     homepage: REPO,
     version: new Date().toISOString().slice(0, 10).replace(/-/g, "."),
     licenses: [{ name: "CC-BY-4.0", path: "https://creativecommons.org/licenses/by/4.0/", title: "Creative Commons Attribution 4.0" }],
