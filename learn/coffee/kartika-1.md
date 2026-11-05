@@ -4,7 +4,7 @@ crop: coffee
 type: variety
 species: arabica
 lineage: Timor Hybrid 832/1 × Caturra (Catimor group)
-aliases: [Kartika 1, Kartika-1, Kartika]
+aliases: [Kartika 1, Kartika-1]
 stature: tall
 yield_potential: medium
 quality_potential: good
