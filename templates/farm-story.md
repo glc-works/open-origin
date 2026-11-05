@@ -2,6 +2,7 @@
 # Template: cerita petani / farm story
 # Salin file ini ke stories/<crop>/<negara>/<nama-kebun>.md lalu isi. Hapus baris yang diawali # .
 # Copy to stories/<crop>/<country>/<farm-name>.md and fill in. Delete lines starting with # .
+id: S-K7M2XQ9P-V                     # ID permanen, buat baru: npm run new-id / permanent id, make one with npm run new-id
 title: Kebun Pak Rahman di lereng Burni Telong
 kind: farm
 traceability: farm                 # farm | group | region | country | blend
@@ -10,6 +11,7 @@ crop: coffee
 country: ID
 region: Bener Meriah, Aceh
 producer: Pak Rahman dan keluarga  # hanya dengan izin / only with consent
+profile: P-H7FAQRHQ-5                 # opsional: id profil produsen / optional producer profile id
 species: arabica
 altitude_masl: [1450, 1550]
 varieties: [Ateng Super, Tim Tim]

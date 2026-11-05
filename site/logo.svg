@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Open Origin">
+  <!-- An open ring (the place) around a seed (what grows there). -->
+  <path d="M27.5 9.5A13 13 0 1 1 22.5 4.7" fill="none" stroke="#1C1D18" stroke-width="3" stroke-linecap="round"/>
+  <g transform="rotate(30 16 16)">
+    <ellipse cx="16" cy="16" rx="6.2" ry="9" fill="#A8261B"/>
+    <path d="M16 7.8C13.2 12.2 18.8 19.8 16 24.2" fill="none" stroke="#ECEDE6" stroke-width="1.7" stroke-linecap="round"/>
+  </g>
+</svg>

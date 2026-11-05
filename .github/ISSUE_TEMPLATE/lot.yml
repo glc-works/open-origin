@@ -1,0 +1,75 @@
+name: Add a lot
+description: Add one harvest, shipment or production run (a lot) for a story already on the site, with its process and quality.
+title: "[Lot] "
+labels: ["lot"]
+body:
+  - type: markdown
+    attributes:
+      value: A lot is what a buyer actually buys, for example "Gayo Honey, green bean, 2025 harvest". Process, variety and quality belong to the lot, so each one is recorded on its own. A maintainer adds it as a file under `lots/` and gives it a permanent `L-` id.
+  - type: input
+    id: story
+    attributes:
+      label: Link to the story
+    validations: { required: true }
+  - type: input
+    id: name
+    attributes:
+      label: Lot name (optional)
+      placeholder: Gayo Honey
+  - type: input
+    id: date
+    attributes:
+      label: Harvest or production date (YYYY, YYYY-MM or YYYY-MM-DD)
+      placeholder: 2025-06
+    validations: { required: true }
+  - type: input
+    id: form
+    attributes:
+      label: Form (optional)
+      description: "The state it is sold in. Coffee: cherry, parchment, green, roasted. Cocoa: pods, wet-beans, dried-beans, nibs, chocolate. Others: see the contributor guide."
+      placeholder: green
+  - type: input
+    id: process
+    attributes:
+      label: Process (optional)
+      placeholder: washed, natural, honey, wet-hulled, anaerobic...
+  - type: input
+    id: varieties
+    attributes:
+      label: Varieties (optional)
+      placeholder: Gayo 1, Ateng Super
+  - type: input
+    id: quantity
+    attributes:
+      label: Quantity in kg (optional)
+  - type: input
+    id: processed_by
+    attributes:
+      label: Processed by (optional)
+      description: Leave empty if the farmer or producer processed it themselves. Otherwise the cooperative, washing station or processor.
+  - type: input
+    id: roasted_by
+    attributes:
+      label: Roasted by (optional)
+  - type: input
+    id: sold_by
+    attributes:
+      label: Sold by (optional)
+  - type: textarea
+    id: quality
+    attributes:
+      label: Quality results (optional)
+      description: One per line as field and value. The fields for each crop are listed in CONTRIBUTING.md.
+      placeholder: |
+        cupping_score: 85.5
+        moisture_pct: 11.2
+        defects_primary: 0
+  - type: input
+    id: tested_by
+    attributes:
+      label: Tested by
+      description: Who measured it, e.g. "Licensed Q Grader, Name" or your own name. Required for a cupping score; for other results you may leave it empty if you measured them yourself.
+  - type: input
+    id: certificate
+    attributes:
+      label: Link to a certificate or lab report (optional)

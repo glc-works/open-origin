@@ -3,7 +3,7 @@
 import { mkdir, writeFile, appendFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
-import { ROOT, CROPS, STORIES_DIR } from "./lib.mjs";
+import { ROOT, CROPS, STORIES_DIR, newId, ID_PREFIX } from "./lib.mjs";
 
 const LABELS = {
   "What kind of story?": "kind", "Which origin is this part of? (optional)": "origin", "How far can it be traced?": "traceability",
@@ -55,6 +55,7 @@ export function toStory(f, { number, author }) {
   const journey = f.journey?.split("\n").map((l) => l.match(/^\s*([a-z]+)\s*:\s*(.+)$/i)).filter(Boolean)
     .map((m) => ({ stage: m[1].toLowerCase(), text: m[2].trim() }));
   const data = {
+    id: newId(f.kind === "origin" ? ID_PREFIX.origin : ID_PREFIX.story),
     title: f.title,
     kind: f.kind || "farm",
     ...(f.origin && { origin: slugify(f.origin) }),

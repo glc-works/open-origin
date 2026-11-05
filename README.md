@@ -1,51 +1,52 @@
-# Open Origin
+<p align="center"><img src="site/logo.svg" width="72" alt="Open Origin"></p>
+<h1 align="center">Open Origin</h1>
+<p align="center"><b>Stories from where it grows.</b></p>
+<p align="center"><b>English</b> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ar.md">العربية</a></p>
 
-**Stories from where it grows.** An open, community-written collection of stories about coffee, and soon cocoa, tea, spices, vanilla, honey and palm sugar: the land, the process and the people, told in their own words.
+An open, community-written collection of origin stories for **coffee, cocoa, tea, spices, vanilla, honey and palm sugar**: the land, the process and the people, told in their own words. Anyone can read them, reuse them and add their own. We start in the Indonesian archipelago and grow to the world.
 
-> **Bahasa Indonesia:** Open Origin adalah koleksi cerita terbuka tentang kopi dan hasil tani lain, dari suara petani dan orang-orang di sekitarnya. Siapa pun boleh membaca, memakai ulang, dan menambahkan ceritanya. Mulai dari kopi Nusantara, lalu ke seluruh dunia.
-
-## Why
-
-Coffee lovers are proud of the farmers and the process behind their cup, but most of those stories never leave the farm. Open Origin gives them a home that anyone can read, reuse and add to, starting with coffee from the Indonesian archipelago and growing to the world and to other crops. The vision, data model and roadmap are in **[BLUEPRINT.md](BLUEPRINT.md)**.
+**Website:** https://glc-works.github.io/open-origin/ · **Vision and roadmap:** [BLUEPRINT.md](BLUEPRINT.md)
 
 ## Share a story
 
-You don't need to know code. **[Fill in the story form](https://github.com/glc-works/open-origin/issues/new?template=story.yml)** and a maintainer will turn it into a page. If you are comfortable with git, you can also open a pull request with a Markdown file. See [CONTRIBUTING.md](CONTRIBUTING.md).
+You don't need to know code. **[Fill in the story form](https://github.com/glc-works/open-origin/issues/new?template=story.yml)** and a maintainer turns it into a page. You can write in any language. To add a harvest, shipment or batch you sell, use the **[lot form](https://github.com/glc-works/open-origin/issues/new?template=lot.yml)**. If you use git, open a pull request instead; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## What's here
+## How it is organised
+
+| | What it is | Id |
+|---|---|---|
+| **Origin** | A growing region: land, history, typical process (Gayo, Banda, Kintamani…) | `O-` |
+| **Story** | A farm, cooperative or movement in its own words; many per origin | `S-` |
+| **Producer** | A profile of a farmer, group, estate, processing facility or roaster | `P-` |
+| **Lot** | One harvest, shipment or production run, the thing a buyer buys, with its process, form and quality | `L-` |
+| **Learn** | Species, varieties, processes and grading (cupping, the cocoa cut test…) with sources | |
+
+Ids never change, so names and files can be renamed without breaking links. `/s/<id>/` always leads to the page. A code such as `L-KPBJF525-D` has a check character that catches typos; [How to read a code](https://glc-works.github.io/open-origin/codes/).
+
+## Files
 
 | Path | What it is |
 |---|---|
-| `stories/<crop>/<country>/<slug>.md` | One story per file: details at the top, the story below. Kinds: origin profile, farm, movement |
-| `stories/<crop>/<country>/<slug>.<lang>.md` | Translations of a story (en, zh, ar, ja, ...) |
-| `scripts/validate.mjs` | Checks every story (required fields, consent, rounded coordinates) |
-| `scripts/build.mjs` | Builds the website into `dist/` |
-| `scripts/issue-to-story.mjs` | Turns an approved story form into a story file |
-| `site/style.css` | The website's stylesheet |
+| `stories/<crop>/<country>/<slug>.md` | One story per file, plus translations as `<slug>.<lang>.md` |
+| `lots/<crop>/…` | Lots, in a story's folder or linked by id |
+| `producers/<country>/<name>.md` | Producer, processor and roaster profiles |
+| `learn/<crop>/<slug>.md` | Learn entries |
+| `pages/` | Site pages such as How to read a code (`/codes/`) |
+| `scripts/` | `validate.mjs`, `build.mjs`, `issue-to-story.mjs`, `new-id.mjs` |
+| `tests/` | Example content for every crop; `npm test` checks it |
 
 ## Open data
 
-Every build also publishes the collection as a [Frictionless Data Package](https://datapackage.org), the Open Knowledge Foundation's open data format:
-
-- `datapackage.json`: the package description, licence and column schema
-- `data/stories.csv`: one row per story, ready for spreadsheets and analysis
-- `data/stories.json`: every story with its full text, farm-to-cup journey and translations
-
-Story pages also carry schema.org (JSON-LD) metadata so search engines understand the place and the story.
+Every build publishes the collection as a [Frictionless Data Package](https://datapackage.org): `datapackage.json` with `stories.csv`/`.json`, `lots.csv`, `lot-quality.csv`, `producers.json` and `varieties.json`. Story pages carry schema.org metadata.
 
 ## Run it locally
 
 ```sh
 npm install
-npm run check      # validate + build
+npm run check      # validate, test and build
 open dist/index.html
 ```
 
-## Crops
-
-Coffee is open now. The structure is ready for `cocoa`, `tea`, `spice`, `vanilla`, `honey` and `sugar` (palm and coconut sugar). New crops are added in `scripts/lib.mjs`.
-
 ## Licence
 
-- Stories and photos: [CC BY 4.0](LICENSE-CONTENT.md). Credit the storyteller and Open Origin.
-- Code: [MIT](LICENSE).
+Stories and photos: [CC BY 4.0](LICENSE-CONTENT.md), credit the storyteller and Open Origin. Code: [Apache-2.0](LICENSE); copies and forks must keep the [NOTICE](NOTICE) file.

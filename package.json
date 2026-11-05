@@ -3,11 +3,13 @@
   "private": true,
   "type": "module",
   "description": "Open, community-written stories of coffee (and later cocoa, tea, spices) told from where it grows.",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
     "validate": "node scripts/validate.mjs",
     "build": "node scripts/build.mjs",
-    "check": "npm run validate && npm run build"
+    "check": "npm run validate && npm test && npm run build",
+    "test": "node tests/run.mjs",
+    "new-id": "node scripts/new-id.mjs"
   },
   "engines": { "node": ">=20" },
   "dependencies": {

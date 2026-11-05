@@ -55,6 +55,18 @@ A variety entry (`type: variety`) adds structured fields: `species`, `lineage`, 
 
 Write entries in your own words. Facts from catalogues such as World Coffee Research are welcome; link them in `sources` rather than copying text. To cite a fact, put its number in brackets after it, like `[2]` for the second link in `sources`; it becomes a footnote. Where sources disagree, give each view with its author and year.
 
+## Permanent ids
+
+Every story, producer profile and lot has an `id` that never changes: a prefix, 8 characters and a check character, such as `L-KPBJF525-D`. The characters are 2–9 and A–Z without I, L and O, so a code can be read aloud and typed from a label. The check character catches every single typo and every swap of two neighbouring characters; [How to read a code](https://glc-works.github.io/open-origin/codes/) explains it for buyers and farmers. Origin profiles start with `O-` (e.g. `O-V9VR4CHS-Q`), farm and movement stories with `S-` (e.g. `S-K7M2XQ9P-V`) producers with `P-` (e.g. `P-H7FAQRHQ-5`) and lots with `L-` (e.g. `L-Q4ZK8M2P-4`), so they can never be mixed up. Run `npm run new-id` for fresh ones (`npm run new-id -- L-KPBJF525-D` checks one), or leave `id` out and the check will suggest one. Never make one up by hand: its check character would be wrong. Stories sent through the issue form get one automatically. Because the id never changes, a title, name or file can be renamed without breaking links: `/s/<id>/` always leads to the story, producer or lot (also typed in small letters or without dashes), and the open data uses the id as its key.
+
+## Producer profiles
+
+Everyone who shapes a lot can have one profile page: a farmer, producer group or estate, a processing facility (mill or washing station) or a roaster. The page gathers all their stories, lots and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent` are required. The `id` is `P-`, 8 characters and a check character, e.g. `P-H7FAQRHQ-5` (see [Permanent ids](#permanent-ids)). Fill in whatever else the producer is happy to share: `type` (farmer, group, estate, processor, roaster), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo`, `crops` and `sources`. The text below the frontmatter is an optional short introduction.
+
+`consent: true` means the people named agreed. `consent: public` is allowed only for an organisation (any type except `farmer`), and only when every fact has already been published, by the organisation itself or by its buyers, with those links in `sources`. Stories may use `consent: public` on the same terms, except a story told by a farmer. The page then says it was put together from published sources and invites the organisation to correct or remove it.
+
+To link a story to the profile, add the profile's id to the story, e.g. `profile: P-H7FAQRHQ-5`. The profile page lives at `/producers/<id>/`. Do not publish phone numbers or home addresses.
+
 ## Traceability
 
 Not every product can be traced to one farm. A story says how far back it goes with `traceability`:
@@ -69,15 +81,31 @@ Not every product can be traced to one farm. A story says how far back it goes w
 
 For `country` and `blend`, `region` may be left out. The story then tells who makes, sorts or trades the product, and why its quality is good.
 
-## Batches: quality belongs to a batch
+## Lots: what a buyer actually buys
 
-Quality changes with every harvest, shipment or production run, so it is not part of the story. Each batch is its own file next to nothing else:
+In coffee, "origin" is the place. What you buy, for example "Gayo Honey, green bean, 2025 harvest", is a **lot**: one harvest, shipment or production run. Process, variety, form and quality change from lot to lot, so they are not part of the story. Each lot is its own file:
 
 ```
-batches/<crop>/<country>/<story-slug>/<batch-id>.md
+lots/<crop>/<country>/<story-slug>/<lot-name>.md
 ```
 
-Copy [`templates/batch.md`](templates/batch.md). A batch has a `date`, optional `quantity_kg`, `traceability` (if it differs from the story), `tested_by`, a `certificate` link, and a `quality` block with fields for its crop:
+A lot that is not one farm's harvest can sit directly in `lots/<crop>/<name>.md` and say where it belongs by id instead:
+
+- `stories: [S-K7M2XQ9P-V, S-Q4ZK8M2P-A]` for a blend of several farms or origins. It then shows on each of those story pages.
+- `producer: P-H7FAQRHQ-5` for a lot filed under a producer, processor or roaster whose farms have no story yet. It shows on that profile.
+
+Copy [`templates/lot.md`](templates/lot.md). Only `id` (`L-`, 8 characters and a check character, see [Permanent ids](#permanent-ids)) and `date` are required. Everything else is optional:
+
+- `name`: the name it is sold under, e.g. `Gayo Honey`
+- `form`: the state it is sold in, and `process` (also used on stories). Both depend on the crop, see [Processes and forms per crop](#processes-and-forms-per-crop)
+- `varieties`, `quantity_kg`, and `traceability` if it differs from the story
+- `processed_by`: leave it out when the farmer or producer processed the lot themselves. Fill it in when someone else did, such as a cooperative, collector or washing station. In Gayo, for example, farmers often sell wet parchment and a processor does the wet-hulling and drying.
+- `roasted_by` and `sold_by`: who roasted and who sells it
+- `processed_by`, `roasted_by` and `sold_by` take a name or a producer id (`P-...`). An id links to that producer's profile, and the lot is also listed there.
+- `sources`: links to where the lot's details were published
+- `quality`, `tested_by` and a `certificate` link. A cupping score always needs `tested_by`, even when you scored it yourself.
+
+Quality fields per crop:
 
 | Crop | Quality fields |
 |---|---|
@@ -87,9 +115,23 @@ Copy [`templates/batch.md`](templates/batch.md). A batch has a `date`, optional 
 | spice | grade, moisture_pct, density_g_l, volatile_oil_pct |
 | vanilla | grade, moisture_pct, pod_length_cm, vanillin_pct |
 | honey | botanical_source, moisture_pct, hmf_mg_kg, diastase_schade |
-| sugar | form, moisture_pct, colour, sucrose_pct |
+| sugar | moisture_pct, colour, sucrose_pct |
 
-The story page shows every batch, newest first, and marks results without `tested_by` as self-reported. The fields are set in `scripts/lib.mjs` (`QUALITY`).
+The story page lists every lot, newest first, and marks results without `tested_by` as self-reported. `/s/<lot id>/` jumps straight to a lot. The fields are set in `scripts/lib.mjs` (`QUALITY`).
+
+### Processes and forms per crop
+
+| Crop | `process` | Lot `form` |
+|---|---|---|
+| coffee | washed, natural, honey, wet-hulled, anaerobic, fermented, other | cherry, parchment, green, roasted |
+| cocoa | fermented, unfermented, sun-dried, machine-dried, other | pods, wet-beans, dried-beans, nibs, chocolate |
+| tea | white, green, oolong, black, dark, other | fresh-leaf, made-tea |
+| spice | sun-dried, machine-dried, fermented, other | fresh, dried, ground, oil |
+| vanilla | sun-cured, oven-cured, other | green-pods, cured-pods, extract, powder |
+| honey | raw, filtered, dehumidified, creamed, other | comb, liquid, crystallised |
+| sugar | open-pan, vacuum, other | sap, block, granulated, liquid |
+
+The lists live in `scripts/lib.mjs` (`CROPS`). If something real does not fit, use `other` and open an issue so we can add it.
 
 ## Translations
 
@@ -114,6 +156,7 @@ The translated story.
 
 ```markdown
 ---
+id: O-V9VR4CHS-Q                # permanent id: O- for an origin, S- for a farm or movement story
 title: Gayo, coffee from the shores of Lake Laut Tawar
 kind: origin                  # origin | farm | movement (default: farm)
 crop: coffee                  # coffee | cocoa | tea | spice | vanilla | honey | sugar
