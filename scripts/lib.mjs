@@ -147,7 +147,7 @@ export const PRODUCER_TYPES = ["farmer", "group", "estate"];
 
 export async function loadProducers() {
   let files = [];
-  try { files = (await walk(PRODUCERS_DIR)).sort(); } catch { return []; }
+  try { files = (await walk(PRODUCERS_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
   const out = [];
   for (const file of files) {
     const { data, content } = matter(await readFile(file, "utf8"));
