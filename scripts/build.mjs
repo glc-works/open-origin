@@ -44,7 +44,7 @@ const langName = new Intl.DisplayNames(["en"], { type: "language" });
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const flag = (cc) => String(cc).toUpperCase().replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
 const fmtAlt = (a) => (Array.isArray(a) ? `${a[0].toLocaleString("en")}${a[1] !== a[0] ? `–${a[1].toLocaleString("en")}` : ""} masl` : "");
-const TOLD = { farmer: "the farmer", "producer-group": "the producer group", roaster: "a roaster", researcher: "a researcher", editor: "the editors", other: "a contributor" };
+const TOLD = { farmer: "the farmer", "producer-group": "the producer group", roaster: "a roaster", researcher: "a researcher", editor: "Open Origin Editorial", other: "a contributor" };
 
 const loaded = await loadStories();
 const stories = loaded.stories.filter((s) => validateStory(s).length === 0);
@@ -387,7 +387,7 @@ function storyPage(s, t = null) {
       ${rowHtml("Area codes", areaHtml(s))}
       ${row("Told in", nativeName(s.language))}
       ${t ? row("Translated by", t.translator) : ""}
-      ${row("Added by", s.contributor)}
+      ${row("Added by", s.contributor === "open-origin" ? "Open Origin Editorial" : s.contributor)}
     </dl>
   </div>
   <div class="prose">
