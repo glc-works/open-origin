@@ -2,7 +2,7 @@
 import { mkdir, writeFile, copyFile, cp, rm, access } from "node:fs/promises";
 import path from "node:path";
 import { marked } from "marked";
-import { isHttpUrl, QUALITY, TRACEABILITY, loadBatches, validateBatch, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { isHttpUrl, QUALITY, TRACEABILITY, loadBatches, validateBatch, loadProducers, validateProducer, linkProducers, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 
 const STAGE_LABEL = { farm: "On the farm", harvest: "Harvest", process: "Processing", dry: "Drying", sort: "Sorting", roast: "Roasting", brew: "In the cup", market: "To market", other: "Along the way" };
 const tagFor = (s) => (s.kind === "movement"
@@ -42,6 +42,8 @@ const loaded = await loadStories();
 const stories = loaded.stories.filter((s) => validateStory(s).length === 0);
 for (const s of stories) s.translations = s.translations.filter((t) => validateTranslation(t).length === 0);
 linkOrigins(stories);
+const producers = (await loadProducers()).filter((p) => validateProducer(p).length === 0);
+linkProducers(stories, producers);
 const knowledge = (await loadKnowledge()).filter((k) => validateKnowledge(k).length === 0);
 const learnHref = (crop, slug) => (knowledge.some((k) => k.crop === crop && k.slug === slug) ? `learn/${crop}/${slug}/` : null);
 // Wraps a term in a link to its Learn page when one exists.
@@ -68,6 +70,7 @@ const submitFor = (o) => `${SUBMIT}&crop=${encodeURIComponent(o.crop)}&country=$
 const nativeName = (code) => { try { return new Intl.DisplayNames([code], { type: "language" }).of(code); } catch { return code; } };
 const dirOf = (lang) => (RTL.includes(String(lang).split("-")[0]) ? "rtl" : "ltr");
 const href = (s) => `stories/${s.crop}/${s.pathCountry}/${s.slug}/`;
+const producerHref = (p) => `producers/${p.pathCountry}/${p.slug}/`;
 const photoSrc = (s, prefix) => (/^https?:\/\//.test(s.photo) ? s.photo : prefix + String(s.photo).replace(/^\/+/, ""));
 
 function head(title, description, prefix, extra = "") {
@@ -243,6 +246,12 @@ ${foot}`;
 }
 
 // Renders a story in its original language (t = null) or in one of its translations.
+const batchTable = (list, crop) => `<div class="table-wrap"><table class="batches"><thead><tr><th>Batch</th><th>Quality</th><th>Tested by</th></tr></thead><tbody>
+    ${list.map((b) => `<tr><td><strong>${esc(b.date)}</strong><br><span class="muted">${esc(b.id)}${b.quantity_kg ? ` · ${esc(b.quantity_kg)} kg` : ""}${b.traceability ? ` · ${esc(TRACE_LABEL[b.traceability])}` : ""}</span></td>
+      <td>${Object.entries(b.quality).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("")}${b.notes ? `<div class="muted">${esc(b.notes)}</div>` : ""}</td>
+      <td>${esc(b.tested_by || "Self-reported")}${b.certificate ? `<br><a href="${esc(b.certificate)}">Certificate</a>` : ""}</td></tr>`).join("")}
+    </tbody></table></div>`;
+
 function storyPage(s, t = null) {
   const prefix = t ? "../../../../../" : "../../../../";
   const v = t ? { ...s, ...Object.fromEntries(["title", "summary", "region", "tasting_notes"].filter((k) => t[k]).map((k) => [k, t[k]])), body: t.body, language: t.language } : s;
@@ -289,7 +298,7 @@ function storyPage(s, t = null) {
       : `<span class="species ${esc(s.species)}">${esc(CROPS[s.crop].label)} · ${esc(s.species)}</span>`}
     ${switcher}
     <dl class="passport">
-      ${row("Producer", s.producer)}
+      ${rowHtml("Producer", s.producerProfile ? `<a class="term" href="${prefix}${producerHref(s.producerProfile)}">${esc(s.producer)}</a>` : esc(s.producer))}
       ${row("Altitude", fmtAlt(s.altitude_masl))}
       ${rowHtml("Varieties", (s.varieties || []).map((v) => { const k = varietyFor(s.crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", "))}
       ${rowHtml("Species", s.species ? termLink(s.crop, s.species, prefix) : "")}
@@ -309,17 +318,52 @@ function storyPage(s, t = null) {
     ${s.journey?.length ? `<h2 class="journey-title">From farm to cup</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage">${esc(STAGE_LABEL[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
     ${s.batches.length ? `<h2 class="journey-title">Batches</h2>
     <p class="part-of">Quality belongs to a batch: each harvest or shipment is measured on its own. ${termLink(s.crop, "cupping-and-q-grading", prefix, "How coffee is scored")}</p>
-    <div class="table-wrap"><table class="batches"><thead><tr><th>Batch</th><th>Quality</th><th>Tested by</th></tr></thead><tbody>
-    ${s.batches.map((b) => `<tr><td><strong>${esc(b.date)}</strong><br><span class="muted">${esc(b.id)}${b.quantity_kg ? ` · ${esc(b.quantity_kg)} kg` : ""}${b.traceability ? ` · ${esc(TRACE_LABEL[b.traceability])}` : ""}</span></td>
-      <td>${Object.entries(b.quality).map(([k, v]) => `<span class="q">${esc(qText(s.crop, k, v))}</span>`).join("")}${b.notes ? `<div class="muted">${esc(b.notes)}</div>` : ""}</td>
-      <td>${esc(b.tested_by || "Self-reported")}${b.certificate ? `<br><a href="${esc(b.certificate)}">Certificate</a>` : ""}</td></tr>`).join("")}
-    </tbody></table></div>` : ""}
+    ${batchTable(s.batches, s.crop)}` : ""}
     ${s.kind === "origin" ? `<h2 class="journey-title">Farmers from this origin</h2>${s.farms.length
       ? `<div class="cards">${s.farms.map((f) => card(f).replace(`href="${href(f)}"`, `href="${prefix}${href(f)}"`)).join("")}</div>`
       : `<div class="empty"><p>No farmer has told their own story from here yet. Every farm in this region grows it a little differently.</p><a class="btn primary" href="${submitFor(s)}">Tell a farm's story</a></div>`}` : ""}
     ${s.originStory ? `<p class="part-of">Part of the origin <a href="${prefix}${href(s.originStory)}">${esc(s.originStory.title)}</a></p>` : ""}
     ${sourceList(sources)}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc((t || s).file)}">Suggest an edit</a> · <a href="${REPO}/issues/new?template=translation.yml&amp;title=${encodeURIComponent(`[Translation] ${s.title}`)}">Translate this story</a></p>
+  </div>
+</article>
+</div></main>
+${foot}`;
+}
+
+const PTYPE = { farmer: "Farmer", group: "Producer group", estate: "Estate" };
+function producerPage(p) {
+  const prefix = "../../../";
+  const row = (k, val) => (val ? `<div><dt>${k}</dt><dd>${esc(val)}</dd></div>` : "");
+  const rowHtml = (k, html) => (html ? `<div><dt>${k}</dt><dd>${html}</dd></div>` : "");
+  const crops = [...new Set([...(p.crops || []), ...p.stories.map((s) => s.crop)])];
+  const grown = [...new Map(p.stories.flatMap((s) => (s.varieties || []).map((v) => [`${s.crop}:${v.toLowerCase()}`, { crop: s.crop, name: v }]))).values()];
+  const batchesOf = p.stories.filter((s) => s.batches.length);
+  return `${head(`${p.name} · Open Origin`, p.body ? p.body.slice(0, 160) : `${p.name}, ${countryName.of(p.pathCountry.toUpperCase())}`, prefix)}
+<main><div class="wrap">
+<article class="story">
+  <div class="meta">
+    <p class="eyebrow"><a href="${prefix}">Open Origin</a> · Producer</p>
+    <h1>${esc(p.name)}</h1>
+    <div class="where">${flag(p.pathCountry)} ${esc(countryName.of(p.pathCountry.toUpperCase()))}${p.region ? ` · ${esc(p.region)}` : ""}${p.village ? ` · ${esc(p.village)}` : ""}</div>
+    <dl class="passport">
+      ${row("Type", PTYPE[p.type])}
+      ${row("Grows", crops.map((c) => CROPS[c]?.label || c).join(", "))}
+      ${rowHtml("Varieties", grown.map((g) => { const k = varietyFor(g.crop, g.name); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(g.name)}</a>` : esc(g.name); }).join(", "))}
+      ${row("Growing since", p.since)}
+      ${row("Farm size", p.farm_size_ha ? `${p.farm_size_ha} ha` : "")}
+      ${row("Members", p.members ? `${p.members.toLocaleString("en")} farmers` : "")}
+      ${rowHtml("Website", p.website ? `<a href="${esc(p.website)}">${esc(String(p.website).replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>` : "")}
+    </dl>
+  </div>
+  <div class="prose">
+    ${p.photo ? `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(p, prefix))}" alt=""><figcaption>Photo: ${esc(p.photo_credit)}</figcaption></figure>` : ""}
+    ${p.body ? `<div class="text">${marked.parse(p.body)}</div>` : ""}
+    <h2 class="journey-title">Stories</h2>
+    ${p.stories.length ? `<div class="cards">${p.stories.map((r) => card(r).replace(`href="${href(r)}"`, `href="${prefix}${href(r)}"`)).join("")}</div>`
+      : `<div class="empty"><p>No stories linked to this profile yet.</p></div>`}
+    ${batchesOf.map((s) => `<h2 class="journey-title">Batches · ${esc(s.title)}</h2>${batchTable(s.batches, s.crop)}`).join("")}
+    <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc(p.file)}">Improve this profile</a></p>
   </div>
 </article>
 </div></main>
@@ -344,6 +388,11 @@ for (const k of knowledge) {
   const dir = path.join(DIST, "learn", k.crop, k.slug);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, "index.html"), learnPage(k));
+}
+for (const p of producers) {
+  const dir = path.join(DIST, producerHref(p));
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, "index.html"), producerPage(p));
 }
 await writeFile(path.join(DIST, ".nojekyll"), "");
 await exportData();
@@ -375,7 +424,7 @@ async function exportData() {
   const csv = [FIELDS.map((f) => f[0]).join(","), ...rows.map((r) => FIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n";
   const full = stories.map((s) => ({
     id: id(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
-    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
     story: s.body, url: href(s),
     batches: s.batches.map((b) => ({ id: b.id, date: String(b.date), quality: b.quality, tested_by: b.tested_by ?? null, quantity_kg: b.quantity_kg ?? null, traceability: b.traceability ?? null, certificate: b.certificate ?? null })),
     translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
@@ -396,6 +445,12 @@ async function exportData() {
     leaf_rust: k.leaf_rust ?? null, altitude_masl: k.altitude_masl ?? null, summary: k.summary, sources: k.sources || [],
   }));
   await writeFile(path.join(DIST, "data", "varieties.json"), JSON.stringify(varieties, null, 2));
+  const prods = producers.map((p) => ({
+    id: `${p.pathCountry}/${p.slug}`, name: p.name, country: p.pathCountry.toUpperCase(), type: p.type ?? null, region: p.region ?? null, village: p.village ?? null,
+    since: p.since ?? null, farm_size_ha: p.farm_size_ha ?? null, members: p.members ?? null, website: p.website ?? null, about: p.body || null,
+    stories: p.stories.map((s) => id(s)), url: producerHref(p),
+  }));
+  await writeFile(path.join(DIST, "data", "producers.json"), JSON.stringify(prods, null, 2));
   const pkg = {
     name: "open-origin-stories",
     title: "Open Origin stories",
@@ -411,6 +466,8 @@ async function exportData() {
       { name: "batches", path: "data/batches.csv", format: "csv", mediatype: "text/csv", encoding: "utf-8",
         description: "Quality measurements per batch, one row per value.",
         schema: { fields: BFIELDS.map(([name, type, description]) => ({ name, type, ...(description && { description }) })) } },
+      { name: "producers", path: "data/producers.json", format: "json", mediatype: "application/json",
+        description: "Producer profiles (farmers, groups, estates) and the stories linked to them." },
       { name: "varieties", path: "data/varieties.json", format: "json", mediatype: "application/json",
         description: "Plant varieties with species, lineage, local names and agronomic traits." },
     ],

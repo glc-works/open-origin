@@ -132,6 +132,55 @@ export function validateKnowledge(k) {
   return errors;
 }
 
+// Producer profiles: producers/<country>/<slug>.md. Only the name and consent are required.
+export const PRODUCERS_DIR = path.join(ROOT, "producers");
+export const PRODUCER_TYPES = ["farmer", "group", "estate"];
+
+export async function loadProducers() {
+  let files = [];
+  try { files = (await walk(PRODUCERS_DIR)).sort(); } catch { return []; }
+  const out = [];
+  for (const file of files) {
+    const { data, content } = matter(await readFile(file, "utf8"));
+    const parts = path.relative(PRODUCERS_DIR, file).split(path.sep);
+    out.push({ ...data, body: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCountry: parts[0], slug: (parts[1] || "").replace(/\.md$/, "") });
+  }
+  return out;
+}
+
+const isPhoto = (v) => (isHttpUrl(v) && String(v).startsWith("https:")) || /^photos\/[a-z0-9/_-]+\.(jpe?g|png|webp)$/i.test(String(v));
+
+export function validateProducer(p) {
+  const errors = [];
+  if (p.depth !== 2) return [`producer files go in producers/<country>/<name>.md`];
+  if (!/^[a-z]{2}$/.test(p.pathCountry)) errors.push(`folder must be a two-letter country code, e.g. producers/id/`);
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug)) errors.push(`file name must be lowercase words joined by hyphens, e.g. producers/id/koperasi-gayo.md`);
+  if (!p.name || typeof p.name !== "string") errors.push(`missing required field "name"`);
+  if (p.consent !== true) errors.push(`consent must be true: the producer agreed to have this profile published`);
+  if (p.type !== undefined && !PRODUCER_TYPES.includes(p.type)) errors.push(`type must be one of: ${PRODUCER_TYPES.join(", ")}`);
+  if (p.since !== undefined && !(Number.isInteger(p.since) && p.since > 1700 && p.since <= new Date().getFullYear())) errors.push(`since must be a year, e.g. 2008`);
+  if (p.farm_size_ha !== undefined && !(isNum(p.farm_size_ha) && p.farm_size_ha > 0)) errors.push(`farm_size_ha must be a positive number`);
+  if (p.members !== undefined && !(Number.isInteger(p.members) && p.members > 0)) errors.push(`members must be a whole number`);
+  if (p.website !== undefined && !(isHttpUrl(p.website) && String(p.website).startsWith("https:"))) errors.push(`website must be an https link`);
+  if (p.photo !== undefined && !isPhoto(p.photo)) errors.push(`photo must be an https link or a file in photos/`);
+  if (p.photo !== undefined && !p.photo_credit) errors.push(`photo needs a photo_credit`);
+  if (p.crops !== undefined && !(isStrList(p.crops) && p.crops.every((c) => CROPS[c]))) errors.push(`crops must be a list from: ${Object.keys(CROPS).join(", ")}`);
+  return errors;
+}
+
+// Connects stories to producer profiles through the story's "profile" field. Returns errors keyed by file.
+export function linkProducers(stories, producers) {
+  const errors = new Map();
+  for (const p of producers) p.stories = [];
+  for (const s of stories) {
+    if (s.profile === undefined) continue;
+    const p = producers.find((x) => x.pathCountry === s.pathCountry && x.slug === s.profile);
+    if (!p) errors.set(s.file, [`profile "${s.profile}" not found: add producers/${s.pathCountry}/${s.profile}.md`]);
+    else { s.producerProfile = p; p.stories.push(s); }
+  }
+  return errors;
+}
+
 // A "[n]" footnote in a body must point to one of the entry's sources.
 export function citationErrors(body, sources) {
   const n = Array.isArray(sources) ? sources.length : 0;

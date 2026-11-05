@@ -55,6 +55,12 @@ A variety entry (`type: variety`) adds structured fields: `species`, `lineage`, 
 
 Write entries in your own words. Facts from catalogues such as World Coffee Research are welcome; link them in `sources` rather than copying text. To cite a fact, put its number in brackets after it, like `[2]` for the second link in `sources`; it becomes a footnote. Where sources disagree, give each view with its author and year.
 
+## Producer profiles
+
+A farmer, producer group or estate can have one profile page that gathers all their stories, batches and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `name` and `consent: true` are required; fill in whatever else the producer is happy to share: `type` (farmer, group, estate), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo` and `crops`. The text below the frontmatter is an optional short introduction.
+
+To link a story to the profile, add `profile: <name>` to the story, e.g. `profile: koperasi-gayo`. Do not publish phone numbers or home addresses.
+
 ## Traceability
 
 Not every product can be traced to one farm. A story says how far back it goes with `traceability`:
