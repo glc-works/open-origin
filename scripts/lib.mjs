@@ -135,8 +135,8 @@ export function validateKnowledge(k) {
 // Producer profiles: producers/<country>/<slug>.md. Only id, name and consent are required.
 // The id is 8 random characters that never change, so the name and file can be renamed freely.
 // It starts with a letter so YAML always reads it as text, never as a number.
-export const ID_RE = /^[a-z][a-z0-9]{7}$/;
-const ID_CHARS = "23456789abcdefghjkmnpqrstuvwxyz"; // no 0/o, 1/l/i, easy to read aloud
+export const ID_RE = /^[A-Z][A-Z0-9]{7}$/;
+const ID_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"; // no 0/O, 1/I/L, easy to read aloud
 export function newId() {
   const bytes = crypto.getRandomValues(new Uint8Array(8));
   const letters = ID_CHARS.replace(/[0-9]/g, "");
@@ -165,7 +165,7 @@ export function validateProducer(p) {
   if (!/^[a-z]{2}$/.test(p.pathCountry)) errors.push(`folder must be a two-letter country code, e.g. producers/id/`);
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug)) errors.push(`file name must be lowercase words joined by hyphens, e.g. producers/id/koperasi-gayo.md`);
   if (p.id === undefined) errors.push(`missing required field "id": add a permanent id such as id: ${newId()}`);
-  else if (typeof p.id !== "string" || !ID_RE.test(p.id)) errors.push(`id must be 8 lowercase letters or digits starting with a letter, e.g. ${newId()}`);
+  else if (typeof p.id !== "string" || !ID_RE.test(p.id)) errors.push(`id must be 8 capital letters or digits starting with a letter, e.g. ${newId()}`);
   if (!p.name || typeof p.name !== "string") errors.push(`missing required field "name"`);
   if (p.consent !== true) errors.push(`consent must be true: the producer agreed to have this profile published`);
   if (p.type !== undefined && !PRODUCER_TYPES.includes(p.type)) errors.push(`type must be one of: ${PRODUCER_TYPES.join(", ")}`);
