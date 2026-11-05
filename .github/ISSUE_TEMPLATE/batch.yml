@@ -34,7 +34,8 @@ body:
   - type: input
     id: tested_by
     attributes:
-      label: Tested by (leave empty if you measured it yourself)
+      label: Tested by
+      description: Who measured it, e.g. "Licensed Q Grader, Name" or your own name. Required for a cupping score; for other results you may leave it empty if you measured them yourself.
   - type: input
     id: certificate
     attributes:

@@ -4,7 +4,7 @@ crop: coffee
 type: variety
 species: arabica
 lineage: Typica
-aliases: [Typica, Tipika, Java, Kopi Jawa]
+aliases: [Typica, Tipika]
 stature: tall
 yield_potential: low
 quality_potential: very good

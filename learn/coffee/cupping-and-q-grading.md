@@ -47,4 +47,4 @@ In 2024 the Specialty Coffee Association introduced the **Coffee Value Assessmen
 
 ### On Open Origin
 
-A score belongs to one lot from one harvest, not to a whole region. Farm stories can add `cupping_score`, `graded_by` and `cupping_year`, and we show them as they were reported.
+A score belongs to one lot from one harvest, not to a whole region. That is why scores go in a batch file next to a farm or group story, with `cupping_score` in its `quality` block and the name of whoever scored it in `tested_by`. We show them as they were reported.
