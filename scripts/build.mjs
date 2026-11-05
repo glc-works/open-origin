@@ -2,7 +2,7 @@
 import { mkdir, writeFile, copyFile, cp, rm, access } from "node:fs/promises";
 import path from "node:path";
 import { marked } from "marked";
-import { isHttpUrl, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { isHttpUrl, QUALITY, TRACEABILITY, loadBatches, validateBatch, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 
 const STAGE_LABEL = { farm: "On the farm", harvest: "Harvest", process: "Processing", dry: "Drying", sort: "Sorting", roast: "Roasting", brew: "In the cup", market: "To market", other: "Along the way" };
 const tagFor = (s) => (s.kind === "movement"
@@ -53,6 +53,12 @@ const termLink = (crop, term, prefix, label = term) => {
 const norm = (x) => String(x).toLowerCase().replace(/[^a-z0-9]+/g, "");
 const varietyFor = (crop, name) => knowledge.find((k) => k.type === "variety" && k.crop === crop
   && [k.title, ...(k.aliases || [])].some((a) => norm(a) === norm(name)));
+const batches = (await loadBatches()).filter((b) => validateBatch(b, stories).length === 0)
+  .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+for (const s of stories) s.batches = batches.filter((b) => b.pathCrop === s.pathCrop && b.pathCountry === s.pathCountry && b.storySlug === s.slug);
+const TRACE_LABEL = { farm: "Traced to the farm", group: "Traced to the producer group", region: "Traced to the region", country: "Traced to the country", blend: "Blend" };
+const qField = (crop, k) => (QUALITY[crop] || []).find((f) => f[0] === k);
+const qText = (crop, k, v) => { const f = qField(crop, k); return f ? `${f[1]} ${v}${f[2] ? ` ${f[2]}` : ""}` : `${k} ${v}`; };
 const origins = stories.filter((s) => s.kind === "origin");
 const voices = stories.filter((s) => s.kind !== "origin");
 const submitFor = (o) => `${SUBMIT}&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region)}`;
@@ -94,7 +100,8 @@ function card(s) {
   const cover = s.photo
     ? `<img src="${esc(photoSrc(s, ""))}" alt="" loading="lazy">`
     : s.altitude_masl ? `<span class="alt">${esc(s.altitude_masl[1].toLocaleString("en"))}<small> masl</small></span>` : "";
-  const facts = [s.cupping_score ? `${s.cupping_score} pts (${s.cupping_year})` : "", fmtAlt(s.altitude_masl), (s.varieties || []).slice(0, 2).join(", "), (s.process || []).join(" · ")].filter(Boolean);
+  const latest = s.batches?.[0];
+  const facts = [latest?.quality?.cupping_score ? `${latest.quality.cupping_score} pts (${latest.date})` : "", s.traceability && s.traceability !== "farm" ? TRACE_LABEL[s.traceability] : "", fmtAlt(s.altitude_masl), (s.varieties || []).slice(0, 2).join(", "), (s.process || []).join(" · ")].filter(Boolean);
   return `<a class="card" href="${href(s)}" data-crop="${esc(s.crop)}" data-country="${esc(s.country)}" data-kind="${esc(s.kind)}">
   <div class="cover">${cover}${tagFor(s)}</div>
   <div class="body">
@@ -285,8 +292,7 @@ function storyPage(s, t = null) {
       ${rowHtml("Species", s.species ? termLink(s.crop, s.species, prefix) : "")}
       ${rowHtml("Process", (s.process || []).map((p) => termLink(s.crop, p, prefix)).join(", "))}
       ${row("Harvest", s.harvest)}
-      ${s.lot ? rowHtml("This lot", [s.lot.harvest_year && `harvest ${esc(s.lot.harvest_year)}`, s.lot.moisture_pct && `${esc(s.lot.moisture_pct)}% moisture`, s.lot.water_activity && `aw ${esc(s.lot.water_activity)}`, s.lot.screen_size && `screen ${esc(s.lot.screen_size)}`, s.lot.density_g_l && `${esc(s.lot.density_g_l)} g/L`, s.lot.grade && esc(s.lot.grade)].filter(Boolean).join(" · ")) : ""}
-      ${rowHtml("Cupping", s.cupping_score ? `${esc(s.cupping_score)} points · ${esc(s.graded_by)}, ${esc(s.cupping_year)} · ${termLink(s.crop, "cupping-and-q-grading", prefix, "what this means")}` : "")}
+      ${row("Traceability", s.traceability && TRACE_LABEL[s.traceability])}
       ${row("Tastes of", (v.tasting_notes || []).join(", "))}
       ${row("Told by", TOLD[s.told_by])}
       ${row("Told in", nativeName(s.language))}
@@ -298,6 +304,13 @@ function storyPage(s, t = null) {
     ${s.photo ? `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(s, prefix))}" alt=""><figcaption>Photo: ${esc(s.photo_credit)}</figcaption></figure>` : ""}
     <div class="text" lang="${esc(v.language)}" dir="${dir}">${marked.parse(v.body)}</div>
     ${s.journey?.length ? `<h2 class="journey-title">From farm to cup</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage">${esc(STAGE_LABEL[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
+    ${s.batches.length ? `<h2 class="journey-title">Batches</h2>
+    <p class="part-of">Quality belongs to a batch: each harvest or shipment is measured on its own. ${termLink(s.crop, "cupping-and-q-grading", prefix, "How coffee is scored")}</p>
+    <div class="table-wrap"><table class="batches"><thead><tr><th>Batch</th><th>Quality</th><th>Tested by</th></tr></thead><tbody>
+    ${s.batches.map((b) => `<tr><td><strong>${esc(b.date)}</strong><br><span class="muted">${esc(b.id)}${b.quantity_kg ? ` · ${esc(b.quantity_kg)} kg` : ""}${b.traceability ? ` · ${esc(TRACE_LABEL[b.traceability])}` : ""}</span></td>
+      <td>${Object.entries(b.quality).map(([k, v]) => `<span class="q">${esc(qText(s.crop, k, v))}</span>`).join("")}${b.notes ? `<div class="muted">${esc(b.notes)}</div>` : ""}</td>
+      <td>${esc(b.tested_by || "Self-reported")}${b.certificate ? `<br><a href="${esc(b.certificate)}">Certificate</a>` : ""}</td></tr>`).join("")}
+    </tbody></table></div>` : ""}
     ${s.kind === "origin" ? `<h2 class="journey-title">Farmers from this origin</h2>${s.farms.length
       ? `<div class="cards">${s.farms.map((f) => card(f).replace(`href="${href(f)}"`, `href="${prefix}${href(f)}"`)).join("")}</div>`
       : `<div class="empty"><p>No farmer has told their own story from here yet. Every farm in this region grows it a little differently.</p><a class="btn primary" href="${submitFor(s)}">Tell a farm's story</a></div>`}` : ""}
@@ -340,8 +353,7 @@ async function exportData() {
     ["producer", "string", ""], ["species", "string", ""], ["altitude_min_masl", "integer", ""], ["altitude_max_masl", "integer", ""],
     ["varieties", "string", "separated by ; "], ["process", "string", "separated by ; "], ["harvest", "string", ""],
     ["tasting_notes", "string", "separated by ; "], ["latitude", "number", "rounded to 2 decimals"], ["longitude", "number", "rounded to 2 decimals"],
-    ["lot_harvest_year", "integer", ""], ["lot_moisture_pct", "number", ""], ["lot_screen_size", "string", ""], ["lot_density_g_l", "number", ""], ["lot_grade", "string", ""],
-    ["cupping_score", "number", "for one lot and harvest"], ["cupping_year", "integer", ""],
+    ["traceability", "string", "farm, group, region, country or blend"], ["batches", "integer", "number of batches with quality data"],
     ["title", "string", ""], ["summary", "string", ""], ["language", "string", "BCP 47 code of the original story"],
     ["translations", "string", "available translation languages, separated by ; "], ["told_by", "string", ""], ["contributor", "string", ""],
     ["url", "string", "path of the story page, relative to the site root"],
@@ -352,8 +364,7 @@ async function exportData() {
     producer: s.producer, species: s.species || "", altitude_min_masl: s.altitude_masl?.[0] ?? "", altitude_max_masl: s.altitude_masl?.[1] ?? "",
     varieties: (s.varieties || []).join("; "), process: (s.process || []).join("; "), harvest: s.harvest || "",
     tasting_notes: (s.tasting_notes || []).join("; "), latitude: s.coords?.[0] ?? "", longitude: s.coords?.[1] ?? "",
-    lot_harvest_year: s.lot?.harvest_year ?? "", lot_moisture_pct: s.lot?.moisture_pct ?? "", lot_screen_size: s.lot?.screen_size ?? "", lot_density_g_l: s.lot?.density_g_l ?? "", lot_grade: s.lot?.grade ?? "",
-    cupping_score: s.cupping_score ?? "", cupping_year: s.cupping_year ?? "",
+    traceability: s.traceability || "", batches: s.batches.length,
     title: s.title, summary: s.summary, language: s.language, translations: s.translations.map((t) => t.language).join("; "),
     told_by: s.told_by, contributor: s.contributor, url: href(s),
   }));
@@ -361,13 +372,21 @@ async function exportData() {
   const csv = [FIELDS.map((f) => f[0]).join(","), ...rows.map((r) => FIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n";
   const full = stories.map((s) => ({
     id: id(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
-    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "lot", "cupping_score", "graded_by", "cupping_year"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
     story: s.body, url: href(s),
+    batches: s.batches.map((b) => ({ id: b.id, date: String(b.date), quality: b.quality, tested_by: b.tested_by ?? null, quantity_kg: b.quantity_kg ?? null, traceability: b.traceability ?? null, certificate: b.certificate ?? null })),
     translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
   }));
   await mkdir(path.join(DIST, "data"), { recursive: true });
   await writeFile(path.join(DIST, "data", "stories.csv"), csv);
   await writeFile(path.join(DIST, "data", "stories.json"), JSON.stringify(full, null, 2));
+  // Batches in long format: one row per measured quality value, so every crop fits one table.
+  const BFIELDS = [["batch_id", "string", "story id + batch file name"], ["story_id", "string", ""], ["crop", "string", ""], ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"],
+    ["field", "string", "quality field, see the crop's list in CONTRIBUTING.md"], ["value", "string", ""], ["unit", "string", ""], ["tested_by", "string", ""]];
+  const brows = stories.flatMap((s) => s.batches.flatMap((b) => Object.entries(b.quality).map(([k, v]) => ({
+    batch_id: `${id(s)}/${b.id}`, story_id: id(s), crop: s.crop, date: String(b.date), field: k, value: v, unit: qField(s.crop, k)?.[2] || "", tested_by: b.tested_by || "",
+  }))));
+  await writeFile(path.join(DIST, "data", "batches.csv"), [BFIELDS.map((f) => f[0]).join(","), ...brows.map((r) => BFIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n");
   const varieties = knowledge.filter((k) => k.type === "variety").map((k) => ({
     id: `${k.crop}/${k.slug}`, name: k.title, crop: k.crop, species: k.species, lineage: k.lineage ?? null, aliases: k.aliases || [],
     stature: k.stature ?? null, yield_potential: k.yield_potential ?? null, quality_potential: k.quality_potential ?? null,
@@ -386,6 +405,9 @@ async function exportData() {
         schema: { fields: FIELDS.map(([name, type, description]) => ({ name, type, ...(description && { description }) })), primaryKey: "id" } },
       { name: "stories-full", path: "data/stories.json", format: "json", mediatype: "application/json",
         description: "Every story with its full text, farm-to-cup journey and translations." },
+      { name: "batches", path: "data/batches.csv", format: "csv", mediatype: "text/csv", encoding: "utf-8",
+        description: "Quality measurements per batch, one row per value.",
+        schema: { fields: BFIELDS.map(([name, type, description]) => ({ name, type, ...(description && { description }) })) } },
       { name: "varieties", path: "data/varieties.json", format: "json", mediatype: "application/json",
         description: "Plant varieties with species, lineage, local names and agronomic traits." },
     ],

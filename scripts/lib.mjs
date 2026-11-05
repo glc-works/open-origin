@@ -9,6 +9,22 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 export const STORIES_DIR = path.join(ROOT, "stories");
 
 // Crops that are open for stories. Add a crop here (and a folder under stories/) to open it.
+// Quality fields a batch of each crop may report: [key, label, unit, min, max]; min null = free text.
+const MOISTURE = ["moisture_pct", "Moisture", "%", 0, 40];
+const GRADE = ["grade", "Grade", "", null];
+export const QUALITY = {
+  coffee: [["cupping_score", "Cupping score", "pts", 0, 100], ["cupping_protocol", "Protocol", "", null], MOISTURE,
+    ["water_activity", "Water activity", "aw", 0, 1], ["screen_size", "Screen size", "", null], ["density_g_l", "Density", "g/L", 300, 1000],
+    ["defects_primary", "Primary defects", "per 350 g", 0, 500], ["defects_secondary", "Secondary defects", "per 350 g", 0, 500], GRADE],
+  cocoa: [["fermented_pct", "Well fermented", "%", 0, 100], ["slaty_pct", "Slaty", "%", 0, 100], ["mouldy_pct", "Mouldy", "%", 0, 100],
+    ["bean_count_per_100g", "Bean count", "per 100 g", 30, 250], MOISTURE, GRADE],
+  tea: [GRADE, ["flush", "Flush", "", null], MOISTURE],
+  spice: [GRADE, MOISTURE, ["density_g_l", "Density", "g/L", 100, 1000], ["volatile_oil_pct", "Volatile oil", "%", 0, 30]],
+  vanilla: [GRADE, MOISTURE, ["pod_length_cm", "Pod length", "cm", 5, 35], ["vanillin_pct", "Vanillin", "%", 0, 10]],
+  honey: [["botanical_source", "Nectar source", "", null], MOISTURE, ["hmf_mg_kg", "HMF", "mg/kg", 0, 500], ["diastase_schade", "Diastase", "Schade", 0, 100]],
+  sugar: [["form", "Form", "", null], MOISTURE, ["colour", "Colour", "", null], ["sucrose_pct", "Sucrose", "%", 0, 100]],
+};
+
 // `species` lists the allowed values for the species field of that crop.
 export const CROPS = {
   coffee: { label: "Coffee", species: ["arabica", "robusta", "liberica", "excelsa"] },
@@ -34,7 +50,10 @@ export const KINDS = ["origin", "farm", "movement"];
 // Steps of the farm-to-table journey, in the order they usually happen.
 export const STAGES = ["farm", "harvest", "process", "dry", "sort", "roast", "brew", "market", "other"];
 
-const REQUIRED = ["title", "crop", "country", "region", "producer", "summary", "language", "told_by", "contributor", "consent"];
+// How far back a story's product can be traced. Region and producer may be broad for country or blend.
+export const TRACEABILITY = ["farm", "group", "region", "country", "blend"];
+
+const REQUIRED = ["title", "crop", "country", "producer", "summary", "language", "told_by", "contributor", "consent"];
 
 async function walk(dir) {
   const out = [];
@@ -112,6 +131,47 @@ export function validateKnowledge(k) {
   return errors;
 }
 
+// Batches: batches/<crop>/<country>/<story-slug>/<batch-id>.md. Quality belongs to a batch, not to a story.
+export const BATCHES_DIR = path.join(ROOT, "batches");
+
+export async function loadBatches() {
+  let files = [];
+  try { files = (await walk(BATCHES_DIR)).sort(); } catch { return []; }
+  const out = [];
+  for (const file of files) {
+    const { data, content } = matter(await readFile(file, "utf8"));
+    const parts = path.relative(BATCHES_DIR, file).split(path.sep);
+    const [crop, country, storySlug, name] = parts;
+    out.push({ ...data, notes: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCrop: crop, pathCountry: country, storySlug, id: name ? name.replace(/\.md$/, "") : "" });
+  }
+  return out;
+}
+
+export function validateBatch(b, stories) {
+  const errors = [];
+  if (b.depth !== 4) return [`batch files go in batches/<crop>/<country>/<story>/<batch-id>.md`];
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(b.id)) errors.push(`batch file name must be lowercase words joined by hyphens, e.g. 2025-harvest-1`);
+  const story = stories.find((s) => s.pathCrop === b.pathCrop && s.pathCountry === b.pathCountry && s.slug === b.storySlug);
+  if (!story) errors.push(`no story stories/${b.pathCrop}/${b.pathCountry}/${b.storySlug}.md for this batch`);
+  else if (story.kind === "origin") errors.push(`batches belong to a farm, group or movement story, not an origin profile`);
+  if (!/^\d{4}(-\d{2}(-\d{2})?)?$/.test(String(b.date ?? ""))) errors.push(`date must be YYYY, YYYY-MM or YYYY-MM-DD`);
+  if (b.traceability !== undefined && !TRACEABILITY.includes(b.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
+  if (b.quantity_kg !== undefined && !(isNum(b.quantity_kg) && b.quantity_kg > 0)) errors.push(`quantity_kg must be a positive number`);
+  const spec = QUALITY[b.pathCrop] || [];
+  const q = b.quality;
+  if (!q || typeof q !== "object" || Array.isArray(q) || !Object.keys(q).length) errors.push(`quality needs at least one field (${spec.map((f) => f[0]).join(", ")})`);
+  else for (const [k, v] of Object.entries(q)) {
+    const f = spec.find((x) => x[0] === k);
+    if (!f) errors.push(`quality.${k} is not a ${b.pathCrop} quality field (${spec.map((x) => x[0]).join(", ")})`);
+    else if (f[3] === null ? (typeof v !== "string" && !isNum(v)) : !(isNum(v) && v >= f[3] && v <= f[4])) {
+      errors.push(f[3] === null ? `quality.${k} must be text` : `quality.${k} must be a number from ${f[3]} to ${f[4]}`);
+    }
+  }
+  if (q?.cupping_score !== undefined && !b.tested_by) errors.push(`a cupping score needs tested_by (e.g. "Licensed Q Grader, Name")`);
+  if (b.certificate !== undefined && !(isHttpUrl(b.certificate) && String(b.certificate).startsWith("https:"))) errors.push(`certificate must be an https link`);
+  return errors;
+}
+
 // Links farm and movement stories to their origin profile. Returns errors keyed by file.
 export function linkOrigins(stories) {
   const errors = new Map();
@@ -154,6 +214,7 @@ export function validateStory(s) {
   if (!s.slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(s.slug)) {
     errors.push(`file name must be lowercase words joined by hyphens, e.g. stories/coffee/id/gayo.md`);
   }
+  if (!s.region && !["country", "blend"].includes(s.traceability)) errors.push(`missing required field "region" (optional only when traceability is country or blend)`);
   if (!KINDS.includes(s.kind)) errors.push(`kind must be one of: ${KINDS.join(", ")}`);
   if (s.kind !== "movement" && !s.species) errors.push(`missing required field "species"`);
   if (s.origin !== undefined && s.kind === "origin") errors.push(`an origin profile cannot itself have an "origin" field`);
@@ -201,26 +262,8 @@ export function validateStory(s) {
       }
     });
   }
-  if (s.lot !== undefined) {
-    const l = s.lot;
-    if (!l || typeof l !== "object" || Array.isArray(l)) errors.push(`lot must be a set of fields, e.g. lot: { harvest_year: 2025 }`);
-    else {
-      if (s.kind === "origin") errors.push(`lot data belongs to one farm's harvest; add it to a farm story`);
-      const known = ["harvest_year", "moisture_pct", "screen_size", "grade", "density_g_l", "water_activity"];
-      for (const k of Object.keys(l)) if (!known.includes(k)) errors.push(`lot.${k} is not a known field (${known.join(", ")})`);
-      if (l.harvest_year !== undefined && !Number.isInteger(l.harvest_year)) errors.push(`lot.harvest_year must be a year`);
-      if (l.moisture_pct !== undefined && !(isNum(l.moisture_pct) && l.moisture_pct > 0 && l.moisture_pct < 30)) errors.push(`lot.moisture_pct must be a percentage, e.g. 11.5`);
-      if (l.water_activity !== undefined && !(isNum(l.water_activity) && l.water_activity > 0 && l.water_activity < 1)) errors.push(`lot.water_activity must be between 0 and 1, e.g. 0.55`);
-      if (l.density_g_l !== undefined && !(isNum(l.density_g_l) && l.density_g_l > 300 && l.density_g_l < 1000)) errors.push(`lot.density_g_l must be grams per litre, e.g. 720`);
-      if (l.screen_size !== undefined && typeof l.screen_size !== "string" && !isNum(l.screen_size)) errors.push(`lot.screen_size must be a number or range, e.g. "16-18"`);
-    }
-  }
-  if (s.cupping_score !== undefined) {
-    if (!isNum(s.cupping_score) || s.cupping_score < 0 || s.cupping_score > 100) errors.push(`cupping_score must be a number from 0 to 100`);
-    if (s.kind === "origin") errors.push(`cupping_score belongs to one lot and harvest; add it to a farm story, not an origin profile`);
-    if (!s.graded_by) errors.push(`cupping_score needs graded_by (who scored it, e.g. "Licensed Q Grader")`);
-    if (!Number.isInteger(s.cupping_year)) errors.push(`cupping_score needs cupping_year (the harvest year)`);
-  }
+  if (s.lot !== undefined || s.cupping_score !== undefined) errors.push(`quality and lot data now live in batch files under batches/; see CONTRIBUTING.md`);
+  if (s.traceability !== undefined && !TRACEABILITY.includes(s.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
   if (s.sources !== undefined) {
     if (!Array.isArray(s.sources)) errors.push(`sources must be a list of links, e.g. [https://example.org/page]`);
     else for (const u of s.sources) if (!isHttpUrl(u)) errors.push(`source "${u}" must be an http(s) link`);

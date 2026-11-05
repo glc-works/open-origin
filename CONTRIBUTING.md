@@ -55,19 +55,41 @@ A variety entry (`type: variety`) adds structured fields: `species`, `lineage`, 
 
 Write entries in your own words. Facts from catalogues such as World Coffee Research are welcome; link them in `sources` rather than copying text.
 
-## Lot data
+## Traceability
 
-A farm story can describe one harvest's beans:
+Not every product can be traced to one farm. A story says how far back it goes with `traceability`:
 
-```yaml
-lot:
-  harvest_year: 2025
-  moisture_pct: 11.5     # green coffee moisture
-  water_activity: 0.55   # optional
-  screen_size: "16-18"
-  density_g_l: 720
-  grade: Grade 1
+| Value | Meaning | Example |
+|---|---|---|
+| `farm` | one farm or family | a single-estate coffee |
+| `group` | a cooperative, collector or processing group | a palm sugar cooperative |
+| `region` | a known region, many farms | Kintamani coffee via the subak |
+| `country` | only the country is known | pepper bought from traders |
+| `blend` | several origins mixed | a honey blend |
+
+For `country` and `blend`, `region` may be left out. The story then tells who makes, sorts or trades the product, and why its quality is good.
+
+## Batches: quality belongs to a batch
+
+Quality changes with every harvest, shipment or production run, so it is not part of the story. Each batch is its own file next to nothing else:
+
 ```
+batches/<crop>/<country>/<story-slug>/<batch-id>.md
+```
+
+Copy [`templates/batch.md`](templates/batch.md). A batch has a `date`, optional `quantity_kg`, `traceability` (if it differs from the story), `tested_by`, a `certificate` link, and a `quality` block with fields for its crop:
+
+| Crop | Quality fields |
+|---|---|
+| coffee | cupping_score, cupping_protocol, moisture_pct, water_activity, screen_size, density_g_l, defects_primary, defects_secondary, grade |
+| cocoa | fermented_pct, slaty_pct, mouldy_pct, bean_count_per_100g, moisture_pct, grade |
+| tea | grade, flush, moisture_pct |
+| spice | grade, moisture_pct, density_g_l, volatile_oil_pct |
+| vanilla | grade, moisture_pct, pod_length_cm, vanillin_pct |
+| honey | botanical_source, moisture_pct, hmf_mg_kg, diastase_schade |
+| sugar | form, moisture_pct, colour, sucrose_pct |
+
+The story page shows every batch, newest first, and marks results without `tested_by` as self-reported. The fields are set in `scripts/lib.mjs` (`QUALITY`).
 
 ## Translations
 

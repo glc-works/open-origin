@@ -204,3 +204,11 @@ section { padding-block: clamp(48px, 7vw, 88px); border-top: 1px solid var(--lin
 .learn-item i { font-size: .85rem; color: var(--muted); }
 .learn-item p { margin: 8px 0 0; font-size: .9rem; color: var(--muted); }
 a.term { text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+
+/* Batches */
+.table-wrap { overflow-x: auto; max-width: 100%; }
+table.batches { border-collapse: collapse; width: 100%; font-size: .9rem; min-width: 520px; }
+table.batches th { text-align: left; font-family: var(--mono); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 400; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+table.batches td { padding: 12px 10px; border-bottom: 1px dashed var(--line); vertical-align: top; font-variant-numeric: tabular-nums; }
+table.batches .q { display: inline-block; font-family: var(--mono); font-size: .76rem; background: var(--surface); padding: 2px 8px; border-radius: 4px; margin: 0 4px 4px 0; }
+.muted { color: var(--muted); font-size: .82rem; }

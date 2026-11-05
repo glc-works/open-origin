@@ -4,6 +4,7 @@
 # Copy to stories/<crop>/<country>/<farm-name>.md and fill in. Delete lines starting with # .
 title: Kebun Pak Rahman di lereng Burni Telong
 kind: farm
+traceability: farm                 # farm | group | region | country | blend
 origin: gayo                       # profil asal yang sudah ada / an existing origin profile
 crop: coffee
 country: ID
@@ -30,10 +31,6 @@ journey:
     text: Buah utuh dijemur di para-para bambu selama tiga sampai empat minggu.
   - stage: market
     text: Dijual lewat koperasi ke penyangrai di Medan dan Jakarta.
-lot:                               # opsional, satu panen / optional, one harvest
-  harvest_year: 2025
-  moisture_pct: 11.5
-  screen_size: "16-18"
 sources: []
 ---
 
