@@ -4,12 +4,12 @@ import matter from "gray-matter";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
-import { LANGS, DEFAULT_LANG, strings } from "./i18n.mjs";
-import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { LANGS, DEFAULT_LANG, strings } from "./i18n.ts";
+import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.ts";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
 
-// The site is built once per interface language (scripts/i18n.mjs): English at the root, the others under /<lang>/.
+// The site is built once per interface language (scripts/i18n.ts): English at the root, the others under /<lang>/.
 // setLang() switches the words every template below uses. UP leads from the language's root back to the site root,
 // where the shared files live (style.css, brand/, photos/, s/, data/, codes.json).
 let LANG = DEFAULT_LANG, T = strings(LANG), UP = "";
@@ -37,13 +37,13 @@ const SITE = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "site
 const safeHref = (h) => /^(https?:|mailto:|#|\/|\.\/|\.\.\/)/i.test(String(h).trim()) && !/^\s*(javascript|data|vbscript):/i.test(String(h));
 marked.use({
   renderer: {
-    html(token) { return esc(typeof token === "string" ? token : token.text ?? token.raw ?? ""); },
-    link(href, title, text) {
+    html(token: any) { return esc(typeof token === "string" ? token : token.text ?? token.raw ?? ""); },
+    link(href: any, title, text) {
       const h = typeof href === "object" ? href.href : href;
       const label = typeof href === "object" ? href.text : text;
       return safeHref(h) ? `<a href="${esc(h)}">${label}</a>` : label;
     },
-    image(href, title, text) {
+    image(href: any, title, text) {
       const h = typeof href === "object" ? href.href : href;
       const alt = typeof href === "object" ? href.text : text;
       return /^https:/i.test(String(h)) ? `<img src="${esc(h)}" alt="${esc(alt)}" loading="lazy">` : esc(alt);
@@ -450,7 +450,7 @@ function producerPage(p) {
   const row = (k, val) => (val ? `<div><dt>${k}</dt><dd>${esc(val)}</dd></div>` : "");
   const rowHtml = (k, html) => (html ? `<div><dt>${k}</dt><dd>${html}</dd></div>` : "");
   const crops = producerCrops(p);
-  const grown = [...new Map(p.stories.flatMap((s) => (s.varieties || []).map((v) => [`${s.crop}:${v.toLowerCase()}`, { crop: s.crop, name: v }]))).values()];
+  const grown = [...new Map<string, { crop: string; name: string }>(p.stories.flatMap((s) => (s.varieties || []).map((v) => [`${s.crop}:${v.toLowerCase()}`, { crop: s.crop, name: v }]))).values()];
   const lotsOf = p.stories.filter((s) => s.lots.length);
   // Lots this producer processed or sold for someone else's story.
   const handled = lots.filter((l) => !l.linked.some((x) => p.stories.includes(x)) && (l.owner === p || [l.processed_by, l.roasted_by, l.sold_by, l.tested_by].some((v) => String(v) === String(p.id))));
@@ -538,7 +538,7 @@ async function codesPage() {
       <div><input id="code" name="code" placeholder="L-KPBJF525-D" autocomplete="off" spellcheck="false" autocapitalize="characters"><button>${T.lookupButton}</button></div>
       <p id="lookup-out" role="status"></p></form>
   </div>
-  <div class="prose codes"><div class="text">${marked.parse(content).replace("<p>[[code-anatomy]]</p>", `<div class="code-anatomy" aria-label="L-KPBJF525-D"><span class="p">L</span>-<span class="b">KPBJF525</span>-<span class="c">D</span></div>`)}</div></div>
+  <div class="prose codes"><div class="text">${(marked.parse(content) as string).replace("<p>[[code-anatomy]]</p>", `<div class="code-anatomy" aria-label="L-KPBJF525-D"><span class="p">L</span>-<span class="b">KPBJF525</span>-<span class="c">D</span></div>`)}</div></div>
 </article>
 </div></main>
 ${lookupJs(LOOKUP_TEXT[LANG] ? LANG : DEFAULT_LANG)}
@@ -605,7 +605,7 @@ await writeFile(path.join(DIST, "404.html"), `<!doctype html><html lang="en"><me
 
 // codes.json: every published code with its kind, crop(s), title and page, for the lookup box and for anyone
 // who wants to resolve a code printed on a sack or an invoice.
-const codeIndex = {};
+const codeIndex: Record<string, any> = {};
 for (const st of stories) codeIndex[st.id] = { kind: st.kind === "origin" ? "origin" : "story", crops: [st.crop], title: st.title, url: href(st), country: st.country, place_codes: placeCodes(st) };
 for (const p of producers) codeIndex[p.id] = { kind: "producer", crops: producerCrops(p), title: p.name, url: producerHref(p) };
 for (const l of lots) codeIndex[l.id] = { kind: "lot", crops: [l.pathCrop], title: l.name || `Lot ${l.date}`, url: lotHref(l) };
