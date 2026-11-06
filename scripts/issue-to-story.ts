@@ -3,7 +3,7 @@
 import { mkdir, writeFile, appendFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
-import { ROOT, CROPS, STORIES_DIR, newId, ID_PREFIX } from "./lib.mjs";
+import { ROOT, CROPS, STORIES_DIR, newId, ID_PREFIX } from "./lib.ts";
 
 const LABELS = {
   "What kind of story?": "kind", "Which origin is this part of? (optional)": "origin", "How far can it be traced?": "traceability",
