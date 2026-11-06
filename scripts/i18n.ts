@@ -104,6 +104,7 @@ const en = {
   blendedWith: (crop) => `Blended with ${crop} from`,
   blendFrom: "Blend from", from: "From", filedBy: "Filed by", processedBy: "Processed by", roastedBy: "Roasted by", soldBy: "Sold by",
   testedBy: "Tested by", selfReported: "Self-reported", notMeasured: "Not measured", certificate: "Certificate", source: "Source",
+  qrCode: "QR code", ownCode: (who) => `${who}'s own code`,
   and: "and",
 
   // Learn page
@@ -253,6 +254,7 @@ const id = {
   blendedWith: (crop) => `Dicampur dengan ${crop} dari`,
   blendFrom: "Campuran dari", from: "Dari", filedBy: "Dicatat oleh", processedBy: "Diolah oleh", roastedBy: "Disangrai oleh", soldBy: "Dijual oleh",
   testedBy: "Diuji oleh", selfReported: "Dilaporkan sendiri", notMeasured: "Tidak diukur", certificate: "Sertifikat", source: "Sumber",
+  qrCode: "Kode QR", ownCode: (who) => `kode milik ${who}`,
   and: "dan",
 
   learnBack: "← Belajar",

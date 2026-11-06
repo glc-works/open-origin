@@ -7,6 +7,8 @@ import { marked } from "marked";
 import { LANGS, DEFAULT_LANG, strings } from "./i18n.ts";
 import { buildApi } from "./api.ts";
 import { SCENES, sceneSvg } from "./scenes.ts";
+import QRCode from "qrcode";
+import { REFS } from "./schema.ts";
 import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, licenseUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.ts";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
@@ -359,9 +361,13 @@ const producerCrops = (p) => [...new Set([...(p.crops || []), ...p.stories.map((
 // A code is always shown with its crop beside it (L-KPBJF525-D · COFFEE): the code itself carries no meaning,
 // so it never has to change, but a reader still sees at once what it is.
 const codeTag = (id, crops) => `<code class="code">${esc(id)}</code>${[].concat(crops || []).map((c) => `<span class="crop-tag">${esc(cropLabel(c))}</span>`).join("")}`;
+// A lot's trade references (customs code, ICO mark, barcode, each trader's own code), shown under its code.
+const REF_LABEL = { hs_code: "HS", ico_mark: "ICO", gtin: "GTIN", gln: "GLN", eudr_dds: "EUDR DDS" };
+const refsHtml = (r) => !r ? "" : [...Object.keys(REF_LABEL).filter((k) => r[k]).map((k) => `<span title="${esc(REFS[k].split(",")[0])}">${REF_LABEL[k]} ${esc(r[k])}</span>`),
+  ...Object.entries(r.skus || {}).map(([who, code]) => `<span title="${esc(T.ownCode(who))}">${esc(who)}: ${esc(String(code))}</span>`)].join(" · ");
 const andList = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} ${T.and} ${xs.at(-1)}` : xs[0] || "");
 const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table class="lots"><thead><tr><th>${T.lot}</th><th>${T.specification}</th><th>${T.quality}</th><th>${T.sources}</th></tr></thead><tbody>
-    ${list.map((l) => { const crop = l.pathCrop; const from = l.linked.filter((x) => x !== here); return `<tr id="${esc(l.id)}"><td class="lot-name" data-label="${T.lot}"><strong>${esc(l.name || l.date)}</strong><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}${codeTag(l.id, crop)}${l.quantity_kg ? ` · ${esc(num(l.quantity_kg))} kg` : ""}${l.traceability ? ` · ${esc(T.trace[l.traceability])}` : ""}</span></td>
+    ${list.map((l) => { const crop = l.pathCrop; const from = l.linked.filter((x) => x !== here); return `<tr id="${esc(l.id)}"><td class="lot-name" data-label="${T.lot}"><strong>${esc(l.name || l.date)}</strong><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}${codeTag(l.id, crop)}${l.quantity_kg ? ` · ${esc(num(l.quantity_kg))} kg` : ""}${l.traceability ? ` · ${esc(T.trace[l.traceability])}` : ""}</span>${l.refs ? `<span class="muted lot-refs">${refsHtml(l.refs)}</span>` : ""}<span class="lot-links"><a href="${prefix}${UP}s/${esc(l.id)}/qr.svg" download="${esc(l.id)}.svg">${T.qrCode}</a> · <a href="${prefix}${UP}api/v1/lots/${esc(l.id)}.json">JSON</a></span></td>
       <td data-label="${T.specification}">${[l.form ? term(crop, l.form) : "", (l.process || []).map((p) => term(crop, p)).join(" · "), (l.varieties || []).map((v) => { const k = varietyFor(crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", ")].filter(Boolean).map((x) => (x.startsWith("<") ? x : esc(x))).join(" · ")}
         ${from.length ? `<div class="muted">${here ? esc(T.blendedWith(cropLabel(crop).toLowerCase())) : l.linked.length > 1 ? T.blendFrom : T.from} ${andList(from.map((x) => `<a href="${prefix}${href(x)}">${esc(x.producer)}</a>`))}</div>` : ""}
         ${here && l.owner ? `<div class="muted">${T.filedBy} ${party(l.owner.id, prefix)}</div>` : ""}
@@ -964,6 +970,15 @@ for (const [pid, title, to] of [...stories.map((s) => [s.id, s.title, `../../${h
     await mkdir(dir, { recursive: true });
     await writeFile(path.join(dir, "index.html"), redirect(title, to));
   }
+}
+// A QR code per lot, for a sack, label or invoice: it opens the lot's permanent link, with the code printed under it
+// so it can still be typed when the QR cannot be scanned.
+for (const l of lots) {
+  const qr = await QRCode.toString(`${SITE_URL}s/${l.id}/`, { type: "svg", errorCorrectionLevel: "M", margin: 0 });
+  const n = Number(qr.match(/viewBox="0 0 (\d+) \d+"/)[1]);
+  const inner = qr.replace(/^.*?<svg[^>]*>|<\/svg>\s*$/gs, "").replace(/<path fill="#ffffff"[^>]*\/>/, "");
+  const label = `${l.id} · ${(CROPS[l.pathCrop]?.label || l.pathCrop).toUpperCase()}`;
+  await writeFile(path.join(DIST, "s", l.id, "qr.svg"), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 -4 ${n + 8} ${n + 11}" width="${(n + 8) * 6}" height="${(n + 11) * 6}" shape-rendering="crispEdges"><title>${esc(label)}</title><rect x="-4" y="-4" width="${n + 8}" height="${n + 11}" fill="#fff"/>${inner}<text x="${n / 2}" y="${n + 4}" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="2.4" fill="#000">${esc(label)}</text></svg>\n`);
 }
 await writeFile(path.join(DIST, "s", "index.html"), redirect("Look up a code", "../codes/"));
 // 404.html: a code typed in small letters or with spaces (/s/l-kpbjf525-d/) is sent to its standard spelling.
