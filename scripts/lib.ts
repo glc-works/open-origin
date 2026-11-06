@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 import { latLngToCell } from "h3-js";
+import { STORY, PRODUCER, missingErrors, type Story, type Producer, type Lot } from "./schema.ts";
 
 // OPEN_ORIGIN_ROOT points the scripts at another content folder, e.g. the test fixtures.
 export const ROOT = process.env.OPEN_ORIGIN_ROOT ? path.resolve(process.env.OPEN_ORIGIN_ROOT) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -79,7 +80,6 @@ export const STAGES = ["farm", "harvest", "process", "dry", "sort", "roast", "br
 // How far back a story's product can be traced. Region and producer may be broad for country or blend.
 export const TRACEABILITY = ["farm", "group", "region", "country", "blend"];
 
-const REQUIRED = ["title", "crop", "country", "producer", "summary", "language", "told_by", "contributor", "consent"];
 
 async function walk(dir) {
   const out = [];
@@ -220,15 +220,16 @@ export function plusCode([lat, lon]) {
 export const H3_RES = 7;
 export function h3Cell([lat, lon]) { return latLngToCell(lat, lon, H3_RES); }
 const asList = (v) => (v === undefined ? [] : Array.isArray(v) ? v : [v]);
-export const AREA_KEYS = {
+export const AREA_KEYS: Record<string, [RegExp, string]> = {
   iso3166_2: [/^[A-Z]{2}-[A-Z0-9]{1,3}$/, "a province code such as ID-AC"],
   admin_codes: [/^[0-9A-Z]+([.-][0-9A-Z]+)*$/, "a national area code such as \"11.17\""],
   wikidata: [/^Q[1-9][0-9]*$/, "a Wikidata id such as Q42"],
   geonames: [/^[1-9][0-9]*$/, "a GeoNames id (a number)"],
 };
-export function areaOf(s) {
+export type AreaCodes = Record<"iso3166_2" | "admin_codes" | "wikidata" | "geonames", string[]>;
+export function areaOf(s): AreaCodes {
   const a = s.area && typeof s.area === "object" ? s.area : {};
-  return Object.fromEntries(Object.keys(AREA_KEYS).map((k) => [k, asList(a[k]).map(String)]));
+  return Object.fromEntries(Object.keys(AREA_KEYS).map((k) => [k, asList(a[k]).map(String)])) as AreaCodes;
 }
 export function areaErrors(s) {
   if (s.area === undefined) return [];
@@ -273,14 +274,14 @@ const isPhoto = (v) => (isHttpUrl(v) && String(v).startsWith("https:")) || /^pho
 // A photo taken from elsewhere (e.g. Wikimedia Commons) keeps its own licence: record which one and the page it came
 // from, so the credit on the site can name the author, link the licence and link back to the original.
 export const PHOTO_LICENSES = /^(CC BY(-SA)? [1-4]\.0|CC0|Public domain)$/;
-export function licenseUrl(name) {
+export function licenseUrl(name: unknown): string | null {
   const m = /^CC (BY(?:-SA)?) ([1-4]\.0)$/.exec(String(name));
   if (m) return `https://creativecommons.org/licenses/${m[1].toLowerCase()}/${m[2]}/`;
   if (name === "CC0") return "https://creativecommons.org/publicdomain/zero/1.0/";
   return null;
 }
-export function photoErrors(x) {
-  const errors = [];
+export function photoErrors(x: { photo?: unknown; photo_credit?: unknown; photo_license?: unknown; photo_source?: unknown }): string[] {
+  const errors: string[] = [];
   if (x.photo !== undefined && !isPhoto(x.photo)) errors.push(`photo must be an https link or a file in photos/, e.g. photos/id/gayo.jpg`);
   if (x.photo !== undefined && !x.photo_credit) errors.push(`photo needs a photo_credit`);
   if ((x.photo_license !== undefined || x.photo_source !== undefined) && x.photo === undefined) errors.push(`photo_license and photo_source belong to a photo: add photo`);
@@ -291,13 +292,14 @@ export function photoErrors(x) {
   return errors;
 }
 
-export function validateProducer(p) {
+export function validateProducer(p: Producer): string[] {
   const errors = [];
   if (p.depth !== 2) return [`producer files go in producers/<country>/<name>.md`];
   if (!/^[a-z]{2}$/.test(p.pathCountry)) errors.push(`folder must be a two-letter country code, e.g. producers/id/`);
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug)) errors.push(`file name must be lowercase words joined by hyphens, e.g. producers/id/koperasi-gayo.md`);
   errors.push(...idErrors(p.id, ID_PREFIX.producer));
-  if (!p.name || typeof p.name !== "string") errors.push(`missing required field "name"`);
+  errors.push(...missingErrors(PRODUCER, p, ["id", "consent"]));
+  if (p.name !== undefined && typeof p.name !== "string") errors.push(`name must be text`);
   errors.push(...consentErrors(p.consent, p.sources, "information"));
   if (p.consent === "public" && (p.type === undefined || p.type === "farmer")) errors.push(`consent: public is only for an organisation: set type to group, estate, processor or roaster`);
   if (p.sources !== undefined && !(Array.isArray(p.sources) && p.sources.every(isHttpUrl))) errors.push(`sources must be a list of http(s) links`);
@@ -375,7 +377,7 @@ function isPartialDate(v) {
 
 // Which stories and producer a lot belongs to: the story folder it sits in, plus any `stories: [S-…]` (a blend
 // of several farms or origins) and `producer: P-…` (e.g. a roaster's lot whose farms have no story yet).
-export function resolveLot(l, stories, producers = []) {
+export function resolveLot(l: Lot, stories: Story[], producers: Producer[] = []) {
   const errors = [];
   const out = [];
   if (l.storySlug) {
@@ -410,7 +412,7 @@ const partyErrors = (key, v, producers) => {
   return [];
 };
 
-export function validateLot(l, stories, producers = []) {
+export function validateLot(l: Lot, stories: Story[], producers: Producer[] = []): string[] {
   const errors = [];
   if (l.depth !== 4 && l.depth !== 2) return [`lot files go in lots/<crop>/<country>/<story>/<name>.md, or lots/<crop>/<name>.md with stories or producer`];
   if (!CROPS[l.pathCrop]) return [`lots/${l.pathCrop}/ is not an open crop (${Object.keys(CROPS).join(", ")})`];
@@ -480,11 +482,10 @@ export const isHttpUrl = (u) => { try { return ["http:", "https:"].includes(new 
 const isNum = (n) => typeof n === "number" && Number.isFinite(n);
 const isStrList = (v) => Array.isArray(v) && v.every((s) => typeof s === "string" && s.trim());
 
-export function validateStory(s) {
+export function validateStory(s: Story): string[] {
   const errors = [];
-  for (const key of REQUIRED) {
-    if (s[key] === undefined || s[key] === null || s[key] === "") errors.push(`missing required field "${key}"`);
-  }
+  // id and kind have their own messages below.
+  errors.push(...missingErrors(STORY, s, ["id", "kind"]));
   if (!s.slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(s.slug)) {
     errors.push(`file name must be lowercase words joined by hyphens, e.g. stories/coffee/id/gayo.md`);
   }

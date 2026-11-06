@@ -117,7 +117,7 @@ Quality fields per crop:
 | honey | botanical_source, moisture_pct, hmf_mg_kg, diastase_schade |
 | sugar | moisture_pct, colour, sucrose_pct |
 
-The story page lists every lot, newest first, and marks results without `tested_by` as self-reported. `/s/<lot id>/` jumps straight to a lot. The fields are set in `scripts/lib.mjs` (`QUALITY`).
+The story page lists every lot, newest first, and marks results without `tested_by` as self-reported. `/s/<lot id>/` jumps straight to a lot. The fields are set in `scripts/lib.ts` (`QUALITY`).
 
 ### Processes and forms per crop
 
@@ -131,7 +131,7 @@ The story page lists every lot, newest first, and marks results without `tested_
 | honey | raw, filtered, dehumidified, creamed, other | comb, liquid, crystallised |
 | sugar | open-pan, vacuum, other | sap, block, granulated, liquid |
 
-The lists live in `scripts/lib.mjs` (`CROPS`). If something real does not fit, use `other` and open an issue so we can add it.
+The lists live in `scripts/lib.ts` (`CROPS`). If something real does not fit, use `other` and open an issue so we can add it.
 
 ## Translations
 
@@ -211,3 +211,7 @@ Process values: washed, natural, honey, wet-hulled, anaerobic, fermented, sun-dr
 3. Add `coords` for the nearest town, check the text, and merge. The site publishes automatically.
 
 The repository needs the labels `story` and `approved`, and GitHub Pages set to deploy from **GitHub Actions** (Settings → Pages). Allow Actions to create pull requests under Settings → Actions → General → Workflow permissions.
+
+## For developers
+
+The scripts are TypeScript that Node 22.18 or newer runs directly, with no build step. Every frontmatter field of a story, producer profile and lot is listed once in `scripts/schema.ts`, with its type and whether it is required; the validator and the TypeScript types come from that list, and `npm run schema` prints it as tables. To add a field, add it there first, then any extra rule (allowed values, ranges) in `scripts/lib.ts`. `npm run check` runs the type check (`tsc`), the validator, the tests and the build.

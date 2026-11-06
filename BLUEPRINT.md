@@ -27,7 +27,7 @@ Every cup, bar, jar or spoonful starts with someone's harvest. Open Origin is an
 
 ## 3. Crops
 
-Coffee is open first. The structure is ready for **cocoa, tea, spices, vanilla, honey, and palm and coconut sugar**, and more can be added by one entry in `scripts/lib.mjs` (`CROPS` and `QUALITY`).
+Coffee is open first. The structure is ready for **cocoa, tea, spices, vanilla, honey, and palm and coconut sugar**, and more can be added by one entry in `scripts/lib.ts` (`CROPS` and `QUALITY`).
 
 ## 4. Content model
 

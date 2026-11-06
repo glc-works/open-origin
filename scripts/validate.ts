@@ -1,5 +1,5 @@
 // Checks every story file and exits non-zero with readable messages if any are invalid.
-import { loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge, loadLots, validateLot, loadProducers, validateProducer, linkProducers, duplicateIds } from "./lib.mjs";
+import { loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge, loadLots, validateLot, loadProducers, validateProducer, linkProducers, duplicateIds } from "./lib.ts";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
 
