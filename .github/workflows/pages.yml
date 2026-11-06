@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 } # full history: the API and feeds date each record by its first commit
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci

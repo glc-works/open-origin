@@ -269,3 +269,7 @@ table.lots td .muted { font-size: inherit; }
   table.lots td[data-label]:not(.lot-name)::before { content: attr(data-label); display: block; font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
   table.lots tr.lot-notes td { padding: 4px 0 0; }
 }
+
+/* Code samples (the API page): scroll sideways inside the box, never the page. */
+.prose pre { overflow-x: auto; max-width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; font-size: .82em; line-height: 1.5; }
+.prose td code { overflow-wrap: anywhere; }

@@ -27,6 +27,8 @@ ID は変わらないため、名前やファイル名を変えてもリンク�
 
 ビルドのたびに、コレクション全体を [Frictionless Data Package](https://datapackage.org) として公開します：`datapackage.json` と `stories.csv`/`.json`、`lots.csv`、`lot-quality.csv`、`producers.json`、`varieties.json`。
 
+同じデータは無料の読み取り API としても公開しています：コードごとに 1 つの JSON ファイル（`api/v1/lots/L-KPBJF525-D.json`）、種類別・作物別の一覧、新着の Atom/JSON フィード。[`api/v1/index.json`](https://glc-works.github.io/open-origin/api/v1/index.json) から始めてください。詳しくは [API ページ](https://glc-works.github.io/open-origin/api/)へ。
+
 ## ローカルで動かす
 
 ```sh
