@@ -582,6 +582,7 @@ export function validateStory(s: Story): string[] {
       if (j.count !== undefined) {
         const c = j.count;
         if (!c || typeof c !== "object" || !isNum(c.from) || !isNum(c.to) || typeof c.unit !== "string") errors.push(`journey step ${i + 1}: count is { from, to, unit }, e.g. { from: 40, to: 12, unit: "% water" }`);
+        else if (c.from < 0 || c.to < 0 || Math.max(c.from, c.to) <= 0) errors.push(`journey step ${i + 1}: count from and to must be 0 or more, and at least one above 0`);
       }
       if ((j.more || j.why || j.count) && j.cite === undefined) errors.push(`journey step ${i + 1}: a step with facts (more, why or count) needs cite: [n]`);
       errors.push(...citeErrors(j.cite, s.sources, `journey step ${i + 1}`));

@@ -376,7 +376,12 @@ const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table 
 
 // ---- Illustrated journey and "at a glance" (story pages) ----
 // A step's words in the page's language: the translation's text (a plain string, or { text, title, more, why, then, unit }).
-const stepWords = (j, tj) => (tj == null ? j : typeof tj === "string" ? { ...j, text: tj } : { ...j, ...Object.fromEntries(Object.entries(tj).filter(([, v]) => v)) });
+const TR_KEYS = ["text", "title", "more", "why", "then", "unit"];
+const stepWords = (j, tj) => {
+  if (tj == null) return j;
+  if (typeof tj === "string") return { ...j, text: tj };
+  return { ...j, ...Object.fromEntries(Object.entries(tj).filter(([k, v]) => v && TR_KEYS.includes(k))) };
+};
 const citeLinks = (cite) => (cite || []).map((n) => `<sup class="cite"><a href="#src-${n}">[${n}]</a></sup>`).join("");
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 // "Oct–Jun" -> the twelve months, true where harvested. null when the text is not a simple month range.
