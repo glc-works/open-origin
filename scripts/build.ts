@@ -148,7 +148,7 @@ ${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" href="${prefix}">${LOGO}<b><span>open</span> origin</b></a>
-  <nav><a href="${prefix}#stories">${T.nav.stories}</a><a href="${prefix}#learn">${T.nav.learn}</a><a href="${prefix}codes/">${T.nav.codes}</a><a href="${prefix}#contribute">${T.nav.contribute}</a><a href="${prefix}api/">${T.nav.data}</a><a href="${REPO}">${T.nav.github}</a>${other.map((o) => `<a class="lang-switch" href="${o.to}" hreflang="${o.l}" lang="${o.l}" title="${esc(`${strings(o.l).switchTo} ${o.name}`)}">${o.l.toUpperCase()}</a>`).join("")}</nav>
+  <nav><a href="${prefix}#stories">${T.nav.stories}</a><a href="${prefix}#learn">${T.nav.learn}</a><a href="${prefix}codes/">${T.nav.codes}</a><a href="${prefix}#contribute">${T.nav.share}</a><a href="${prefix}api/">${T.nav.data}</a><a href="${REPO}">${T.nav.github}</a>${other.map((o) => `<a class="lang-switch" href="${o.to}" hreflang="${o.l}" lang="${o.l}" title="${esc(`${strings(o.l).switchTo} ${o.name}`)}">${o.l.toUpperCase()}</a>`).join("")}</nav>
 </div></header>`;
 }
 

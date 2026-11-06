@@ -16,7 +16,9 @@ const en = {
   name: "English",
 
   // Header and footer
-  nav: { stories: "Stories", learn: "Learn", codes: "Codes", contribute: "Contribute", data: "Open data", github: "GitHub" },
+  // Header order: Stories · Discover · Learn · Codes · Share · Open data · GitHub · language. `discover` is for the
+  // map page; it shows in the header once that page is built.
+  nav: { stories: "Stories", discover: "Discover", learn: "Learn", codes: "Codes", share: "Share", contribute: "Contribute", data: "Open data", github: "GitHub" },
   switchTo: "Read this site in",
   footTagline: "Open Origin · stories from where it grows.",
   footLicence: "Stories are CC BY 4.0, credited to the people who told them. Code is Apache-2.0. Altitude and tasting notes are typical ranges; every harvest is different.",
@@ -136,7 +138,7 @@ const id = {
   locale: "id",
   name: "Bahasa Indonesia",
 
-  nav: { stories: "Cerita", learn: "Belajar", codes: "Kode", contribute: "Ikut menulis", data: "Data terbuka", github: "GitHub" },
+  nav: { stories: "Cerita", discover: "Jelajahi", learn: "Belajar", codes: "Kode", share: "Bagikan", contribute: "Ikut menulis", data: "Data terbuka", github: "GitHub" },
   switchTo: "Baca situs ini dalam",
   footTagline: "Open Origin · cerita dari tempat ia tumbuh.",
   footLicence: "Cerita berlisensi CC BY 4.0 dan dikreditkan kepada orang yang menuturkannya. Kode berlisensi Apache-2.0. Ketinggian dan catatan rasa adalah kisaran umum; setiap panen berbeda.",
