@@ -6,8 +6,8 @@ language: id
 translator: Open Origin editors
 ---
 
-Subak dikenal dunia lewat sawah berundak Bali yang diairi bersama. Subak Abian adalah saudaranya untuk lahan kering: kelompok adat petani kebun yang berkumpul di pura, membagi kerja, dan membuat awig-awig, aturan yang mengikat semua anggota.
+Subak dikenal dunia lewat sawah berundak Bali yang diairi bersama. Subak Abian adalah saudaranya untuk lahan kering: kelompok adat petani kebun yang mengurus kehidupan sosial dan keagamaan, sekaligus menjadi wadah ekonomi para petaninya [1].
 
-Di Kintamani, awig-awig itu mengatur cara menanam kopi. Pupuk dan pestisida kimia dilarang, kotoran ternak dan kompos dipakai sebagai gantinya. Buah hanya boleh dipetik saat merah. Kopi ditanam bersama jeruk, pisang, dan sayur, sehingga kebun tetap memberi penghasilan di luar musim panen.
+Di Kintamani, aturan kelompok ini mengatur cara menanam kopi. Pupuk dan pestisida kimia tidak dipakai [1][2]. Buah hanya boleh dipetik saat merah, dan anggota yang memetik buah hijau membayar denda yang dikalikan jumlah petani dalam kelompoknya; pelanggaran berat bisa berujung dikucilkan dari desa [2]. Banyak keluarga menanam pohon jeruk di samping kopinya [4].
 
-Gerakan ini bukan proyek yang dibawa dari luar. Ia tumbuh dari falsafah Tri Hita Karana, keselarasan antara manusia, alam, dan Tuhan, yang dijalankan sehari-hari. Ketika Kintamani mengajukan Indikasi Geografis pada 2008, aturan subak inilah yang menjadi dasar standar mutunya. Bagi petani lain di Nusantara, Subak Abian menunjukkan bahwa adat bisa menjadi sistem mutu yang hidup.
+Cara bertani ini tumbuh dari falsafah Tri Hita Karana, keselarasan antara manusia, alam, dan Tuhan [1]. Para peneliti yang mempelajari Kintamani pada awal 2000-an melihat Subak Abian sebagai dasar alami untuk Indikasi Geografis [1], dan pada 2008 perkumpulan petani dan pengolah setempat memperolehnya [3]. Bagi petani lain di Nusantara, Subak Abian menunjukkan bahwa adat bisa menjadi sistem mutu yang hidup.

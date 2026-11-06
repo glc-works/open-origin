@@ -201,6 +201,8 @@ section { padding-block: clamp(48px, 7vw, 88px); border-top: 1px solid var(--lin
 .filters + .group-title { margin-top: 0; }
 .empty { border: 1px dashed var(--line); border-radius: 6px; padding: 24px; display: grid; gap: 16px; justify-items: start; }
 .empty p { margin: 0; max-width: 62ch; }
+.dyk { margin: 1.5rem 0; padding: .8rem 1rem; border-inline-start: 3px solid var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.dyk b { display: block; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); }
 .part-of { font-family: var(--mono); font-size: .8rem; color: var(--muted); }
 .prose .cards { max-width: none; }
 
