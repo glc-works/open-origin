@@ -440,3 +440,5 @@ table.lots td .muted { font-size: inherit; }
   .vj-js .vj-cap { transition: transform .7s cubic-bezier(.2,.7,.2,1); }
   .vj-js .vj-stop:not(.in) .vj-cap { transform: translateY(14px); }
 }
+table.lots .lot-name .lot-refs { display: block; margin-top: 2px; }
+table.lots .lot-name .lot-links { display: block; margin-top: 4px; font-family: var(--mono); font-size: .72rem; }
