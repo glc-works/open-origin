@@ -1,6 +1,6 @@
-// The one list of frontmatter fields for stories, producer profiles and lots.
-// Validation (required fields), the TypeScript types below, and the docs table (`npm run schema`) all come from here.
-// To add a field: add it here, then add any extra rule (allowed values, ranges) in lib.ts.
+// The one list of frontmatter fields for stories, producer profiles, lots, Learn entries and translations.
+// Validation (required fields, and no field outside the list), the TypeScript types below, and the docs table
+// (`npm run schema`) all come from here. To add a field: add it here, then add any extra rule (allowed values, ranges) in lib.ts.
 
 export type FieldType =
   | "text" | "number" | "integer" | "boolean" | "date" | "id" | "link"
@@ -16,7 +16,7 @@ export const STORY = {
   id: { type: "id", required: true, doc: "permanent id: O- for an origin profile, S- for a farm or movement story" },
   kind: { type: "text", required: true, doc: "origin, farm or movement" },
   title: { type: "text", required: true, doc: "" },
-  crop: { type: "text", required: true, doc: "coffee, cocoa, tea, spices, vanilla, honey, palm-sugar, coconut-sugar" },
+  crop: { type: "text", required: true, doc: "coffee, cocoa, tea, spice, vanilla, honey or sugar (palm and coconut)" },
   country: { type: "text", required: true, doc: "two-letter ISO code, e.g. ID" },
   region: { type: "text", doc: "required unless traceability is country or blend" },
   producer: { type: "text", required: true, doc: "who grows or makes it, as the teller names them" },
@@ -43,6 +43,7 @@ export const STORY = {
   photo_credit: { type: "text", doc: "required with photo" },
   photo_license: { type: "text", doc: "licence of a photo from elsewhere: CC BY 4.0, CC BY-SA 4.0, CC0 or Public domain" },
   photo_source: { type: "link", doc: "https page the photo came from, e.g. on Wikimedia Commons" },
+  issue: { type: "integer", doc: "number of the GitHub issue the story was submitted in (written by the form workflow)" },
 } as const satisfies Record<string, Field>;
 
 export const PRODUCER = {
@@ -85,7 +86,65 @@ export const LOT = {
   sources: { type: "links", doc: "http(s) links" },
 } as const satisfies Record<string, Field>;
 
-export const SCHEMAS = { story: STORY, producer: PRODUCER, lot: LOT } as const;
+// Learn entries: learn/<crop>/<slug>.md. The variety fields are only for type: variety.
+export const LEARN = {
+  title: { type: "text", required: true, doc: "" },
+  crop: { type: "text", required: true, doc: "the crop folder it sits in" },
+  type: { type: "text", required: true, doc: "species, process, variety or term" },
+  summary: { type: "text", required: true, doc: "at most 200 characters" },
+  latin: { type: "text", doc: "scientific name" },
+  species: { type: "text", doc: "variety: the species it belongs to (required for a variety)" },
+  lineage: { type: "text", doc: "variety: where it comes from" },
+  aliases: { type: "list", doc: "variety: other names, including local ones; story varieties link through these" },
+  stature: { type: "text", doc: "variety: dwarf, semi-dwarf or tall" },
+  yield_potential: { type: "text", doc: "variety: low, medium, high or very high" },
+  quality_potential: { type: "text", doc: "variety: fair, good, very good or exceptional" },
+  leaf_rust: { type: "text", doc: "variety: resistant, tolerant or susceptible" },
+  altitude_masl: { type: "range", doc: "variety: [min, max] in metres" },
+  sources: { type: "links", doc: "http(s) links; cite them in the text as [1], [2]" },
+} as const satisfies Record<string, Field>;
+
+// A story translation, <slug>.<lang>.md next to the story: only the words. Facts stay in the story.
+export const STORY_TRANSLATION = {
+  title: { type: "text", required: true, doc: "" },
+  summary: { type: "text", required: true, doc: "at most 200 characters" },
+  language: { type: "text", required: true, doc: "language code; must match the file name" },
+  translator: { type: "text", required: true, doc: "who translated it" },
+  region: { type: "text", doc: "the region's name in this language" },
+  tasting_notes: { type: "list", doc: "at most 4" },
+  journey: { type: "block", doc: "the story's journey steps, translated, in the same order" },
+  did_you_know: { type: "text", doc: "the translated did_you_know text" },
+} as const satisfies Record<string, Field>;
+
+// A Learn translation, <slug>.<lang>.md next to the entry. The language comes from the file name.
+export const LEARN_TRANSLATION = {
+  title: { type: "text", required: true, doc: "" },
+  summary: { type: "text", required: true, doc: "at most 200 characters" },
+  translator: { type: "text", required: true, doc: "who translated it" },
+} as const satisfies Record<string, Field>;
+
+export const SCHEMAS = { story: STORY, producer: PRODUCER, lot: LOT, learn: LEARN, story_translation: STORY_TRANSLATION, learn_translation: LEARN_TRANSLATION } as const;
+
+// Edit distance, to suggest the field someone probably meant.
+function distance(a: string, b: string): number {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+
+/** A field that is not in the schema would be dropped without a word, so it is an error, with the closest known field as a hint. */
+export function unknownErrors(schema: Record<string, Field>, keys: string[] = []): string[] {
+  const known = Object.keys(schema);
+  return keys.filter((k) => !(k in schema)).map((k) => {
+    const low = k.toLowerCase();
+    // The closest field by spelling, or one that starts the same way (quantity -> quantity_kg).
+    const near = known.map((f) => [f, f.startsWith(low) || low.startsWith(f) ? 0 : distance(low, f)] as const).sort((a, b) => a[1] - b[1])[0];
+    const hint = near && near[1] <= Math.max(2, Math.floor(k.length / 3)) ? `; did you mean "${near[0]}"?` : "";
+    return `unknown field "${k}"${hint} (see npm run schema for the fields)`;
+  });
+}
 
 /** Fields a file must have, in the order they are listed. */
 export const requiredKeys = (schema: Record<string, Field>): string[] =>
@@ -112,7 +171,7 @@ export type ProducerFront = Front<typeof PRODUCER>;
 export type LotFront = Front<typeof LOT>;
 
 // Fields the loader adds from the file path.
-interface FileInfo { file: string; slug: string; pathCountry?: string; depth?: number }
+interface FileInfo { file: string; slug: string; pathCountry?: string; depth?: number; frontKeys?: string[] }
 export type Story = StoryFront & FileInfo & { pathCrop: string; body: string; translations?: any[]; [extra: string]: any };
 export type Producer = ProducerFront & FileInfo & { body: string; [extra: string]: any };
 export type Lot = Omit<LotFront, "process"> & FileInfo & { process?: string[]; pathCrop: string; storySlug?: string; notes: string; [extra: string]: any };
