@@ -186,7 +186,7 @@ const en = {
     offline: "No signal right now. Your story is saved on this phone; try again when you are online.",
     failed: "Sending did not work. Your story is still saved on this phone. Please try again in a moment.",
     tooMany: "Too many stories sent from here in a short time. Please wait a minute and try again.",
-    fix: "Please check the marked field.", errors: { required: "Please fill this in.", "too-short": "Please write a little more: a few sentences at least.", "too-long": "This is too long.", invalid: "Please check this." },
+    fix: "Please check the marked field.", errors: { required: "Please fill this in.", "too-short": "Please write a little more: a few sentences at least.", "too-long": "This is too long.", invalid: "Please check this.", "too-many-tastes": "Pick at most 4 tasting notes in all, ticked and typed together." },
     left: "{n} characters left",
   },
   // Discover page (/discover/): search, crop filters, map and table.
@@ -410,7 +410,7 @@ const id = {
     offline: "Sedang tidak ada sinyal. Cerita Anda tersimpan di HP ini; coba kirim lagi saat ada sinyal.",
     failed: "Pengiriman gagal. Cerita Anda masih tersimpan di HP ini. Silakan coba lagi sebentar lagi.",
     tooMany: "Terlalu banyak cerita dikirim dari sini dalam waktu singkat. Tunggu semenit lalu coba lagi.",
-    fix: "Mohon periksa kolom yang ditandai.", errors: { required: "Mohon diisi.", "too-short": "Tulis sedikit lagi, paling tidak beberapa kalimat.", "too-long": "Terlalu panjang.", invalid: "Mohon diperiksa lagi." },
+    fix: "Mohon periksa kolom yang ditandai.", errors: { required: "Mohon diisi.", "too-short": "Tulis sedikit lagi, paling tidak beberapa kalimat.", "too-long": "Terlalu panjang.", invalid: "Mohon diperiksa lagi.", "too-many-tastes": "Pilih paling banyak 4 catatan rasa, yang dicentang dan yang diketik digabung." },
     left: "sisa {n} huruf",
   },
   discover: {

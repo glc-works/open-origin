@@ -108,6 +108,8 @@ for (const expected of [
   `refs.skus must list each trader's code`,
   `tasting note "flowers" is not in the list; did you mean "floral"?`,
   `tasting note "durian" is not in the list; add it to scripts/tastes.ts`,
+  `tasting note "constructor" is not in the list`,
+  `tasting_notes: use at most 4`,
   `tasting note "heavy body" is a basic taste: use the mouthfeel field instead`,
   `acidity must be one of: low, soft, bright, sharp`,
   `defects "smelly" is not one of:`,

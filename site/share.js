@@ -45,12 +45,15 @@
   const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const country = () => (form.country.value || $("f-country-other").value).trim().toUpperCase();
 
-  // Tasting notes: the ticked words, then any typed under "Other", at most D.maxTastes in all.
+  // Tasting notes: the ticked words, then any typed under "Other". All are kept (also in the draft);
+  // more than D.maxTastes is shown as an error on the step instead of being cut.
   const typedTastes = () => ($("f-tasting_other").value || "").split(",").map((s) => s.trim()).filter(Boolean);
   function syncTastes(e) {
     const ticked = [...form.querySelectorAll('input[name="taste"]:checked')];
     if (e && e.target.name === "taste" && e.target.checked && ticked.length + typedTastes().length > D.maxTastes) e.target.checked = false;
-    $("f-tasting_notes").value = [...form.querySelectorAll('input[name="taste"]:checked')].map((i) => i.value).concat(typedTastes()).slice(0, D.maxTastes).join(", ");
+    const all = [...form.querySelectorAll('input[name="taste"]:checked')].map((i) => i.value).concat(typedTastes());
+    $("f-tasting_notes").value = all.join(", ");
+    return all.length;
   }
   form.addEventListener("change", (e) => { if (e.target.name === "taste" || e.target.name === "tasting_other") syncTastes(e); });
 
@@ -105,7 +108,7 @@
   }
 
   // Each step checks only its own fields; the relay checks everything again.
-  const REQUIRED = { 0: ["contributor", "told_by"], 1: ["crop", "kind", "producer", "country", "traceability", "region", "species"], 2: ["title", "summary", "story"], 3: ["consent"] };
+  const REQUIRED = { 0: ["contributor", "told_by"], 1: ["crop", "kind", "producer", "country", "traceability", "region", "species", "tasting_notes"], 2: ["title", "summary", "story"], 3: ["consent"] };
   function check(i) {
     const c = collect();
     const f = c.fields;
@@ -117,6 +120,10 @@
       else if (n === "region") err = f.region || ["country", "blend"].includes(f.traceability) ? "" : T.errors.required;
       else if (n === "species") err = f.species || f.kind !== "farm" ? "" : T.errors.required;
       else if (n === "story" && f.story && f.story.length < D.minStory) err = T.errors["too-short"];
+      else if (n === "tasting_notes") {
+        err = syncTastes() > D.maxTastes ? T.errors["too-many-tastes"] : "";
+        if (err) form.querySelector('[data-field="tasting_notes"]').closest("details").open = true;
+      }
       else err = f[n] ? "" : T.errors.required;
       mark(n, err);
       if (err && !first) first = n;

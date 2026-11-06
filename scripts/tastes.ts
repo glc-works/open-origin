@@ -143,6 +143,9 @@ export const DEFECTS = {
 
 export const MAX_TASTING_NOTES = 4;
 
+// Own keys only, so a name like "constructor" is never taken for a word on the list.
+export const isTasteWord = (w: unknown): boolean => typeof w === "string" && Object.hasOwn(TASTE_WORDS, w);
+
 // Edit distance, for "did you mean".
 function distance(a: string, b: string): number {
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
@@ -161,8 +164,8 @@ const HINTS: Record<string, string> = { flowers: "floral", flower: "floral", her
 export function nearestTaste(word: string): string | null {
   const keys = Object.keys(TASTE_WORDS);
   const one = (x: string): string | null => {
-    if (TASTE_WORDS[x]) return x;
-    if (HINTS[x]) return HINTS[x];
+    if (isTasteWord(x)) return x;
+    if (Object.hasOwn(HINTS, x)) return HINTS[x];
     const byId = Object.entries(TASTE_WORDS).find(([, v]) => v.id === x);
     if (byId) return byId[0];
     const plural = keys.find((k) => x === `${k}s` || x === `${k}es` || (k.endsWith("y") && x === `${k.slice(0, -1)}ies`));
@@ -180,7 +183,7 @@ export function nearestTaste(word: string): string | null {
 // any case). Anything else is kept as typed, so the check names it and an editor can add it.
 export function toTasteKey(word: string): string {
   const x = word.trim().toLowerCase();
-  if (TASTE_WORDS[x]) return x;
+  if (isTasteWord(x)) return x;
   const byId = Object.entries(TASTE_WORDS).find(([, v]) => v.id === x);
   return byId ? byId[0] : word.trim();
 }
@@ -191,7 +194,7 @@ export function tasteErrors(list: unknown): string[] {
   const errors: string[] = [];
   if (list.length > MAX_TASTING_NOTES) errors.push(`tasting_notes: use at most ${MAX_TASTING_NOTES}`);
   for (const n of list) {
-    if (TASTE_WORDS[n]) continue;
+    if (isTasteWord(n)) continue;
     const basic = /\b(body|acidity|acid|bitter(ness)?|sweetness)\b/.exec(n.toLowerCase());
     if (basic) {
       const k = ({ body: "mouthfeel", acid: "acidity", bitter: "bitterness", bitterness: "bitterness" } as Record<string, string>)[basic[1]] || basic[1];
@@ -225,11 +228,11 @@ export function basicTasteErrors(x: Record<string, unknown>): string[] {
 // The groups of a list of words, in the order the words come, each with its detail words
 // (the group's general word left out, since the group name already says it).
 export function tasteGroups(list: string[] = []): { group: TasteGroup; words: string[] }[] {
-  const groups = [...new Set(list.map((n) => TASTE_WORDS[n]?.group).filter(Boolean))] as TasteGroup[];
-  return groups.map((group) => ({ group, words: list.filter((n) => TASTE_WORDS[n]?.group === group && n !== TASTE_GROUPS[group].general) }));
+  const groups = [...new Set(list.filter(isTasteWord).map((n) => TASTE_WORDS[n].group).filter(Boolean))] as TasteGroup[];
+  return groups.map((group) => ({ group, words: list.filter((n) => isTasteWord(n) && TASTE_WORDS[n].group === group && n !== TASTE_GROUPS[group].general) }));
 }
 
 // A word or a group in a language. Only English and Indonesian exist so far; others fall back to English.
-export const tasteWord = (n: string, lang: string) => (lang === "id" ? TASTE_WORDS[n]?.id : null) || n;
+export const tasteWord = (n: string, lang: string) => (lang === "id" && isTasteWord(n) ? TASTE_WORDS[n].id : null) || n;
 export const groupName = (g: TasteGroup, lang: string) => (lang === "id" ? TASTE_GROUPS[g].id : TASTE_GROUPS[g].en);
 export const basicLevel = (k: BasicTaste, v: string, lang: string) => (lang === "id" ? (BASIC_TASTES[k].levels as Record<string, string>)[v] : null) || v;
