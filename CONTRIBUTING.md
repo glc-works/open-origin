@@ -61,7 +61,7 @@ Every story, producer profile and lot has an `id` that never changes: a prefix, 
 
 ## Producer profiles
 
-Everyone who shapes a lot can have one profile page: a farmer, producer group or estate, a processing facility (mill or washing station) or a roaster. The page gathers all their stories, lots and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent` are required. The `id` is `P-`, 8 characters and a check character, e.g. `P-H7FAQRHQ-5` (see [Permanent ids](#permanent-ids)). Fill in whatever else the producer is happy to share: `type` (farmer, group, estate, processor, roaster), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo`, `crops` and `sources`. The text below the frontmatter is an optional short introduction.
+Everyone who shapes a lot can have one profile page: a farmer, producer group or estate, a processing facility (mill or washing station), a roaster, or a testing lab or Q grader. The page gathers all their stories, lots and the varieties they grow. Copy [`templates/producer.md`](templates/producer.md) to `producers/<country>/<name>.md`, for example `producers/id/koperasi-gayo.md`. Only `id`, `name` and `consent` are required. The `id` is `P-`, 8 characters and a check character, e.g. `P-H7FAQRHQ-5` (see [Permanent ids](#permanent-ids)). Fill in whatever else the producer is happy to share: `type` (farmer, group, estate, processor, roaster, lab), `region`, `village`, `since` (year), `farm_size_ha`, `members`, `website`, `photo`, `crops` and `sources`. The text below the frontmatter is an optional short introduction.
 
 `consent: true` means the people named agreed. `consent: public` is allowed only for an organisation (any type except `farmer`), and only when every fact has already been published, by the organisation itself or by its buyers, with those links in `sources`. Stories may use `consent: public` on the same terms, except a story told by a farmer. The page then says it was put together from published sources and invites the organisation to correct or remove it.
 
@@ -103,7 +103,7 @@ Copy [`templates/lot.md`](templates/lot.md). Only `id` (`L-`, 8 characters and a
 - `roasted_by` and `sold_by`: who roasted and who sells it
 - `processed_by`, `roasted_by` and `sold_by` take a name or a producer id (`P-...`). An id links to that producer's profile, and the lot is also listed there.
 - `sources`: links to where the lot's details were published
-- `quality`, `tested_by` and a `certificate` link. A cupping score always needs `tested_by`, even when you scored it yourself.
+- `quality`, `tested_by` and a `certificate` link. A cupping score always needs `tested_by`, even when you scored it yourself. `tested_by` is a name (e.g. "Licensed Q Grader, name and licence number") or the `P-` id of a lab profile, which then links to it and lists the lots it tested.
 
 Quality fields per crop:
 
@@ -173,6 +173,11 @@ summary: One or two sentences, at most 200 characters, shown on the card.
 photo: photos/id/gayo.jpg     # optional, a path in this repo or an https URL
 photo_credit: Name            # required when there is a photo
 coords: [4.62, 96.85]         # optional, latitude and longitude, 2 decimals
+area:                         # optional: public codes for the same area, so other data can be joined to it
+  iso3166_2: ID-AC            #   province, ISO 3166-2
+  admin_codes: ["11.06", "11.17"]  # national area codes (Indonesia: Kemendagri kode wilayah), quoted
+  wikidata: [Q..., Q...]      #   Wikidata ids of the regencies
+  geonames: [1234567]         #   GeoNames ids
 language: id                  # language of the story
 told_by: farmer               # farmer | producer-group | roaster | researcher | editor | other
 contributor: your-github-name

@@ -5,6 +5,10 @@ kind: origin
 crop: sugar
 country: ID
 region: Kulon Progo, Yogyakarta
+coords: [-7.81, 110.15]
+area:
+  iso3166_2: ID-YO
+  geonames: [7910930]
 producer: Coconut sap tappers of Kulon Progo
 species: coconut
 summary: Tappers climb coconut palms twice a day for sap that becomes granulated gula semut, now protected in Indonesia and the EU.

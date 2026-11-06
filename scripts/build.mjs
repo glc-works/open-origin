@@ -4,7 +4,7 @@ import matter from "gray-matter";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
-import { ID_CHARS, ID_SALT, isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
+import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
 
@@ -44,7 +44,7 @@ const langName = new Intl.DisplayNames(["en"], { type: "language" });
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const flag = (cc) => String(cc).toUpperCase().replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
 const fmtAlt = (a) => (Array.isArray(a) ? `${a[0].toLocaleString("en")}${a[1] !== a[0] ? `–${a[1].toLocaleString("en")}` : ""} masl` : "");
-const TOLD = { farmer: "the farmer", "producer-group": "the producer group", roaster: "a roaster", researcher: "a researcher", editor: "the editors", other: "a contributor" };
+const TOLD = { farmer: "the farmer", "producer-group": "the producer group", roaster: "a roaster", researcher: "a researcher", editor: "Open Origin Editorial", other: "a contributor" };
 
 const loaded = await loadStories();
 const stories = loaded.stories.filter((s) => validateStory(s).length === 0);
@@ -185,7 +185,7 @@ function strip() {
     return `<a class="stop" style="left:${pct(lon).toFixed(2)}%" href="#stories" data-jump="${esc(cc)}"><span>${esc(countryName.of(cc))}</span><span class="count">${c.n} ${c.n === 1 ? "story" : "stories"}</span><span class="stem"></span><span class="dot"></span></a>`;
   });
   return `<nav class="route" aria-label="Stories by longitude"><div class="route-inner">${ticks.join("")}<div class="route-belt"></div>${stops.join("")}</div></nav>
-<p class="route-note">Each dot is a country, placed by longitude. The empty stretches are waiting for your stories.</p>`;
+<p class="route-note">Each dot is a country, placed west to east by longitude.</p>`;
 }
 
 function indexPage() {
@@ -212,7 +212,7 @@ function indexPage() {
   </div>
   <h3 class="group-title">Origins <span>Profiles of growing regions</span></h3>
   <div class="cards">${origins.map(card).join("\n")}</div>
-  <h3 class="group-title" id="voices">Farmers &amp; movements <span>Each farm tells its origin differently</span></h3>
+  <h3 class="group-title" id="voices">Farmers &amp; movements <span>Stories from single farms, groups and movements</span></h3>
   ${voices.length
     ? `<div class="cards">${voices.map(card).join("\n")}</div>`
     : `<div class="empty"><p><strong>The first farmer stories are still to come.</strong> Two farms on the same hill can grow something completely different: another slope, another process, another family. That difference is what Open Origin is for. Grow coffee, cocoa, tea or spices, keep bees or tap palms, or work with people who do? Tell their story.</p><a class="btn primary" href="${SUBMIT}">Share a farmer story</a></div>`}
@@ -292,14 +292,37 @@ ${foot}`;
 // A party (processed_by, sold_by) is a name, or a producer id that links to the profile.
 const party = (v, prefix) => { const p = producers.find((x) => String(x.id) === String(v)); return p ? `<a href="${prefix}${producerHref(p)}">${esc(p.name)}</a>` : esc(v); };
 // here: the story whose page shows the table, so its own name is not repeated in "From".
-const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table class="lots"><thead><tr><th>Lot</th><th>What it is</th><th>Quality</th><th>Tested by</th></tr></thead><tbody>
-    ${list.map((l) => { const crop = l.pathCrop; const from = l.linked.filter((x) => x !== here); return `<tr id="${esc(l.id)}"><td class="lot-name"><strong>${esc(l.name || l.date)}</strong><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}<code>${esc(l.id)}</code>${l.quantity_kg ? ` · ${esc(l.quantity_kg)} kg` : ""}${l.traceability ? ` · ${esc(TRACE_LABEL[l.traceability])}` : ""}</span></td>
-      <td>${[l.form ? pretty(l.form) : "", (l.process || []).map(pretty).join(" · "), (l.varieties || []).map((v) => { const k = varietyFor(crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", ")].filter(Boolean).map((x) => `<div>${x.startsWith("<") ? x : esc(x)}</div>`).join("")}
-        ${from.length ? `<div class="muted">${l.linked.length > 1 ? "Blend of" : "From"} ${from.map((x) => `<a href="${prefix}${href(x)}">${esc(x.producer)}</a>`).join(", ")}${here && l.linked.length > 1 ? " and this one" : ""}</div>` : ""}
+// Public codes for the story's area, linked where a public page exists.
+const placeCodes = (s) => ({ ...areaOf(s), plus_code: s.coords ? plusCode(s.coords) : "", h3_cell: s.coords ? h3Cell(s.coords) : "" });
+function areaHtml(s) {
+  const a = placeCodes(s);
+  const parts = [
+    ...a.iso3166_2.map((v) => `<span title="ISO 3166-2">${esc(v)}</span>`),
+    ...a.admin_codes.map((v) => `<span title="National area code${s.country === "ID" ? " (Kemendagri)" : ""}">${esc(v)}</span>`),
+    ...a.wikidata.map((v) => `<a href="https://www.wikidata.org/wiki/${esc(v)}" title="Wikidata">${esc(v)}</a>`),
+    ...a.geonames.map((v) => `<a href="https://www.geonames.org/${esc(v)}" title="GeoNames">GeoNames ${esc(v)}</a>`),
+    a.plus_code && `<a href="https://plus.codes/${encodeURIComponent(a.plus_code)}" title="Plus Code (about 5 km cell)">${esc(a.plus_code)}</a>`,
+    a.h3_cell && `<span title="H3 cell, resolution ${H3_RES}">H3 ${esc(a.h3_cell)}</span>`,
+  ].filter(Boolean);
+  return parts.length ? `<span class="area-codes">${parts.join(" ")}</span>` : "";
+}
+// What a producer grows or works with: its own list, its stories and the lots filed under it.
+const producerCrops = (p) => [...new Set([...(p.crops || []), ...p.stories.map((x) => x.crop), ...lots.filter((l) => l.owner === p).map((l) => l.pathCrop)])];
+// A code is always shown with its crop beside it (L-KPBJF525-D · COFFEE): the code itself carries no meaning,
+// so it never has to change, but a reader still sees at once what it is.
+const codeTag = (id, crops) => `<code class="code">${esc(id)}</code>${[].concat(crops || []).map((c) => `<span class="crop-tag">${esc(CROPS[c]?.label || c)}</span>`).join("")}`;
+const andList = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}` : xs[0] || "");
+const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table class="lots"><thead><tr><th>Lot</th><th>Specification</th><th>Quality</th><th>Sources</th></tr></thead><tbody>
+    ${list.map((l) => { const crop = l.pathCrop; const from = l.linked.filter((x) => x !== here); return `<tr id="${esc(l.id)}"><td class="lot-name" data-label="Lot"><strong>${esc(l.name || l.date)}</strong><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}${codeTag(l.id, crop)}${l.quantity_kg ? ` · ${esc(l.quantity_kg)} kg` : ""}${l.traceability ? ` · ${esc(TRACE_LABEL[l.traceability])}` : ""}</span></td>
+      <td data-label="Specification">${[l.form ? pretty(l.form) : "", (l.process || []).map(pretty).join(" · "), (l.varieties || []).map((v) => { const k = varietyFor(crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", ")].filter(Boolean).map((x) => (x.startsWith("<") ? x : esc(x))).join(" · ")}
+        ${from.length ? `<div class="muted">${here ? `Blended with ${esc(CROPS[crop]?.label.toLowerCase() || crop)} from` : l.linked.length > 1 ? "Blend from" : "From"} ${andList(from.map((x) => `<a href="${prefix}${href(x)}">${esc(x.producer)}</a>`))}</div>` : ""}
         ${here && l.owner ? `<div class="muted">Filed by ${party(l.owner.id, prefix)}</div>` : ""}
         ${l.processed_by ? `<div class="muted">Processed by ${party(l.processed_by, prefix)}</div>` : ""}${l.roasted_by ? `<div class="muted">Roasted by ${party(l.roasted_by, prefix)}</div>` : ""}${l.sold_by ? `<div class="muted">Sold by ${party(l.sold_by, prefix)}</div>` : ""}</td>
-      <td>${Object.entries(l.quality || {}).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("") || `<span class="muted">Not measured</span>`}</td>
-      <td>${l.quality && Object.keys(l.quality).length ? esc(l.tested_by || "Self-reported") : ""}${l.certificate ? `<br><a href="${esc(l.certificate)}">Certificate</a>` : ""}${(l.sources || []).map((u, i) => `<br><a href="${esc(u)}">Source${l.sources.length > 1 ? ` ${i + 1}` : ""}</a>`).join("")}</td></tr>
+      <td data-label="Quality">${l.quality && Object.keys(l.quality).length
+        ? `<div>${Object.entries(l.quality).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("")}</div><div class="muted">${l.tested_by ? `Tested by ${party(l.tested_by, prefix)}` : "Self-reported"}</div>`
+        : `<span class="muted">Not measured</span>`}</td>
+      <td data-label="Sources">${[l.certificate ? `<a href="${esc(l.certificate)}">Certificate</a>` : "",
+        ...(l.sources || []).map((u, i) => `<a href="${esc(u)}">Source${l.sources.length > 1 ? ` ${i + 1}` : ""}</a>`)].filter(Boolean).map((x) => `<div>${x}</div>`).join("")}</td></tr>
       ${l.notes ? `<tr class="lot-notes"><td colspan="4">${esc(l.notes)}</td></tr>` : ""}`; }).join("")}
     </tbody></table></div>`;
 
@@ -333,6 +356,11 @@ function storyPage(s, t = null) {
       name: s.region || countryName.of(s.country),
       address: { "@type": "PostalAddress", addressRegion: s.region, addressCountry: s.country },
       ...(s.coords && { geo: { "@type": "GeoCoordinates", latitude: s.coords[0], longitude: s.coords[1] } }),
+      // One public id per source means it names this same area; several (e.g. two regencies) are places within it.
+      ...(() => { const a = areaOf(s);
+        const uris = [...a.wikidata.map((q) => `https://www.wikidata.org/wiki/${q}`), ...a.geonames.map((g) => `https://sws.geonames.org/${g}/`)];
+        if (!uris.length) return {};
+        return a.wikidata.length <= 1 && a.geonames.length <= 1 ? { sameAs: uris } : { containsPlace: uris.map((u) => ({ "@type": "Place", sameAs: u })) }; })(),
     },
     ...(t && { translator: { "@type": "Person", name: t.translator }, translationOfWork: { "@type": "Article", headline: s.title, inLanguage: s.language } }),
   };
@@ -358,10 +386,11 @@ function storyPage(s, t = null) {
       ${row("Traceability", s.traceability && TRACE_LABEL[s.traceability])}
       ${row("Tastes of", (v.tasting_notes || []).join(", "))}
       ${row("Told by", TOLD[s.told_by])}
-      ${rowHtml("ID", `<a href="${prefix}s/${esc(s.id)}/"><code>${esc(s.id)}</code></a>`)}
+      ${rowHtml("Code", `<a href="${prefix}s/${esc(s.id)}/">${codeTag(s.id, s.crop)}</a>`)}
+      ${rowHtml("Area codes", areaHtml(s))}
       ${row("Told in", nativeName(s.language))}
       ${t ? row("Translated by", t.translator) : ""}
-      ${row("Added by", s.contributor)}
+      ${row("Added by", s.contributor === "open-origin" ? "Open Origin Editorial" : s.contributor)}
     </dl>
   </div>
   <div class="prose">
@@ -369,11 +398,11 @@ function storyPage(s, t = null) {
     <div class="text" lang="${esc(v.language)}" dir="${dir}">${cite(marked.parse(v.body), sources.length)}</div>
     ${s.journey?.length ? `<h2 class="journey-title">${esc(CROPS[s.crop].journey)}</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage">${esc(j.stage === "brew" ? CROPS[s.crop].use : STAGE_LABEL[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
     ${s.lots.length ? `<h2 class="journey-title">Lots</h2>
-    <p class="part-of">A lot is one harvest, shipment or production run, the thing a buyer actually buys. Process, variety and quality belong to the lot, so each one is listed on its own. ${(([slug, label] = CROPS[s.crop].grading || []) => (slug && learnHref(s.crop, slug) ? termLink(s.crop, slug, prefix, label) : ""))()}</p>
+    <p class="part-of">A lot is one harvest, shipment or production run: what a buyer buys. Process, variety and quality can change from lot to lot, so each lot is listed on its own. ${(([slug, label] = CROPS[s.crop].grading || []) => (slug && learnHref(s.crop, slug) ? termLink(s.crop, slug, prefix, label) : ""))()}</p>
     ${lotTable(s.lots, prefix, s)}` : ""}
     ${s.kind === "origin" ? `<h2 class="journey-title">Farmers from this origin</h2>${s.farms.length
       ? `<div class="cards">${s.farms.map((f) => card(f).replace(`href="${href(f)}"`, `href="${prefix}${href(f)}"`)).join("")}</div>`
-      : `<div class="empty"><p>No farmer has told their own story from here yet. Every farm in this region grows it a little differently.</p><a class="btn primary" href="${submitFor(s)}">Tell a farm's story</a></div>`}` : ""}
+      : `<div class="empty"><p>No farmer from here has told their story yet.</p><a class="btn primary" href="${submitFor(s)}">Tell a farm's story</a></div>`}` : ""}
     ${s.originStory ? `<p class="part-of">Part of the origin <a href="${prefix}${href(s.originStory)}">${esc(s.originStory.title)}</a></p>` : ""}
     ${sourceList(sources)}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc((t || s).file)}">Suggest an edit</a> · <a href="${REPO}/issues/new?template=translation.yml&amp;title=${encodeURIComponent(`[Translation] ${s.title}`)}">Translate this story</a></p>
@@ -383,16 +412,16 @@ function storyPage(s, t = null) {
 ${foot}`;
 }
 
-const PTYPE = { farmer: "Farmer", group: "Producer group", estate: "Estate", processor: "Processing facility", roaster: "Roaster" };
+const PTYPE = { farmer: "Farmer", group: "Producer group", estate: "Estate", processor: "Processing facility", roaster: "Roaster", lab: "Testing lab or grader" };
 function producerPage(p) {
   const prefix = "../../";
   const row = (k, val) => (val ? `<div><dt>${k}</dt><dd>${esc(val)}</dd></div>` : "");
   const rowHtml = (k, html) => (html ? `<div><dt>${k}</dt><dd>${html}</dd></div>` : "");
-  const crops = [...new Set([...(p.crops || []), ...p.stories.map((s) => s.crop)])];
+  const crops = producerCrops(p);
   const grown = [...new Map(p.stories.flatMap((s) => (s.varieties || []).map((v) => [`${s.crop}:${v.toLowerCase()}`, { crop: s.crop, name: v }]))).values()];
   const lotsOf = p.stories.filter((s) => s.lots.length);
   // Lots this producer processed or sold for someone else's story.
-  const handled = lots.filter((l) => !l.linked.some((x) => p.stories.includes(x)) && (l.owner === p || [l.processed_by, l.roasted_by, l.sold_by].some((v) => String(v) === String(p.id))));
+  const handled = lots.filter((l) => !l.linked.some((x) => p.stories.includes(x)) && (l.owner === p || [l.processed_by, l.roasted_by, l.sold_by, l.tested_by].some((v) => String(v) === String(p.id))));
   return `${head(`${p.name} · Open Origin`, p.body ? p.body.slice(0, 160) : `${p.name}, ${countryName.of(p.pathCountry.toUpperCase())}`, prefix)}
 <main><div class="wrap">
 <article class="story">
@@ -408,7 +437,7 @@ function producerPage(p) {
       ${row("Growing since", p.since)}
       ${row("Farm size", p.farm_size_ha ? `${p.farm_size_ha} ha` : "")}
       ${row("Members", p.members ? `${p.members.toLocaleString("en")} farmers` : "")}
-      ${rowHtml("ID", `<code>${esc(p.id)}</code>`)}
+      ${rowHtml("Code", codeTag(p.id, crops))}
       ${rowHtml("Website", p.website ? `<a href="${esc(p.website)}">${esc(String(p.website).replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>` : "")}
     </dl>
   </div>
@@ -419,7 +448,7 @@ function producerPage(p) {
     ${p.stories.length ? `<div class="cards">${p.stories.map((r) => card(r).replace(`href="${href(r)}"`, `href="${prefix}${href(r)}"`)).join("")}</div>`
       : `<div class="empty"><p>No stories linked to this profile yet.</p></div>`}
     ${lotsOf.map((s) => `<h2 class="journey-title">Lots · ${esc(s.title)}</h2>${lotTable(s.lots, prefix, s)}`).join("")}
-    ${handled.length ? `<h2 class="journey-title">${p.stories.length ? "Other lots" : "Lots"}</h2><p class="part-of">Lots ${esc(p.name)} grew, processed, roasted or sold.</p>${lotTable(handled, prefix)}` : ""}
+    ${handled.length ? `<h2 class="journey-title">${p.stories.length ? "Other lots" : "Lots"}</h2><p class="part-of">Lots ${esc(p.name)} ${p.type === "lab" ? "tested" : "grew, processed, roasted or sold"}.</p>${lotTable(handled, prefix)}` : ""}
     ${p.consent === "public" ? `<p class="part-of">This profile was put together only from what has already been published about ${esc(p.name)}; see the sources below. If this is you, you can correct, complete or remove it.</p>` : ""}
     ${sourceList(p.sources || [])}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc(p.file)}">Improve this profile</a></p>
@@ -461,13 +490,33 @@ const redirect = (title, to) => `<!doctype html><meta charset="utf-8"><title>${e
 for (const [pid, title, to] of [...stories.map((s) => [s.id, s.title, `../../${href(s)}`]), ...producers.map((p) => [p.id, p.name, `../../${producerHref(p)}`]),
   ...lots.map((l) => [l.id, l.name || `Lot ${l.id}, ${l.date}`, `../../${lotHref(l)}`])]) {
   const bare = String(pid).replace(/-/g, "");
-  for (const spelling of new Set([pid, pid.toLowerCase(), bare, bare.toLowerCase()])) {
+  // Only spellings that differ by more than case: some hosts (GitHub Pages among them) cannot hold two paths
+  // that differ only in case. Small letters are handled by 404.html below.
+  for (const spelling of new Set([pid, bare])) {
     const dir = path.join(DIST, "s", spelling);
     await mkdir(dir, { recursive: true });
     await writeFile(path.join(dir, "index.html"), redirect(title, to));
   }
 }
 await writeFile(path.join(DIST, "s", "index.html"), redirect("Look up a code", "../codes/"));
+// 404.html: a code typed in small letters or with spaces (/s/l-kpbjf525-d/) is sent to its standard spelling.
+await writeFile(path.join(DIST, "404.html"), `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Not found · Open Origin</title>
+<body style="font-family:system-ui,sans-serif;max-width:36rem;margin:15vh auto;padding:0 16px;line-height:1.5">
+<h1>Page not found</h1><p id="msg">This page does not exist. <a id="home" href="/">Go to Open Origin</a>.</p>
+<script>
+(() => {
+  const C = ${JSON.stringify(ID_CHARS)}, SALT = ${JSON.stringify(ID_SALT)};
+  const check = (p, b) => { let t = SALT[p]; for (let i = 0; i < 8; i++) t += (i + 1) * C.indexOf(b[i]); return C[(31 - (t % 31)) % 31]; };
+  const m = decodeURIComponent(location.pathname).match(/^(.*?\\/)s\\/([^/]+)\\/?$/i);
+  const base = m ? m[1] : location.pathname.replace(/^(\\/[^/]+\\/).*$/, "$1");
+  document.getElementById("home").href = base;
+  if (!m) return;
+  const raw = m[2].toUpperCase().replace(/[\\s._-]/g, "");
+  const k = raw.match(new RegExp("^([OSPL])([" + C + "]{8})([" + C + "])$"));
+  if (k && check(k[1], k[2]) === k[3]) location.replace(base + "s/" + k[1] + "-" + k[2] + "-" + k[3] + "/");
+  else document.getElementById("msg").innerHTML = 'This code was not found; it may be mistyped. <a href="' + base + 'codes/">Look up a code</a>.';
+})();
+</script></body></html>`);
 
 // "How to read a code", with a box that checks a code and opens it. pages/ ships with the code, like site/.
 const LOOKUP_TEXT = {
@@ -488,9 +537,11 @@ const lookupJs = (lang) => `<script>
     if (!m) { out.textContent = T.shape; return; }
     const id = m[1] + "-" + m[2] + "-" + m[3];
     if (check(m[1], m[2]) !== m[3]) { out.textContent = id + T.typo; return; }
-    const res = await fetch(base + "s/" + id + "/", { method: "HEAD" }).catch(() => null);
-    if (res && res.ok) location.href = base + "s/" + id + "/";
-    else out.textContent = none(id, T.kind[m[1]]);
+    const codes = await fetch(base + "codes.json").then((r) => r.json()).catch(() => ({}));
+    const hit = codes[id];
+    if (!hit) { out.textContent = none(id, T.kind[m[1]]); return; }
+    out.textContent = id + " · " + hit.crop_labels.join(", ").toUpperCase() + " · " + hit.title + " …";
+    location.href = base + hit.url;
   });
 })();
 </script>`;
@@ -519,6 +570,14 @@ for (const [file, sub, lang, label, button] of [["codes.md", "codes", "en", "Loo
 ${lookupJs(lang)}
 ${foot}`);
 }
+// codes.json: every published code with its kind, crop(s), title and page, for the lookup box and for anyone
+// who wants to resolve a code printed on a sack or an invoice.
+const codeIndex = {};
+for (const st of stories) codeIndex[st.id] = { kind: st.kind === "origin" ? "origin" : "story", crops: [st.crop], title: st.title, url: href(st), country: st.country, place_codes: placeCodes(st) };
+for (const p of producers) codeIndex[p.id] = { kind: "producer", crops: producerCrops(p), title: p.name, url: producerHref(p) };
+for (const l of lots) codeIndex[l.id] = { kind: "lot", crops: [l.pathCrop], title: l.name || `Lot ${l.date}`, url: lotHref(l) };
+for (const v of Object.values(codeIndex)) v.crop_labels = v.crops.map((c) => CROPS[c]?.label || c);
+await writeFile(path.join(DIST, "codes.json"), JSON.stringify(codeIndex, null, 1));
 await writeFile(path.join(DIST, ".nojekyll"), "");
 await exportData();
 
@@ -533,6 +592,9 @@ async function exportData() {
     ["producer", "string", ""], ["species", "string", ""], ["altitude_min_masl", "integer", ""], ["altitude_max_masl", "integer", ""],
     ["varieties", "string", "separated by ; "], ["process", "string", "separated by ; "], ["harvest", "string", ""],
     ["tasting_notes", "string", "separated by ; "], ["latitude", "number", "rounded to 2 decimals"], ["longitude", "number", "rounded to 2 decimals"],
+    ["iso3166_2", "string", "ISO 3166-2 province codes, separated by ; "], ["admin_codes", "string", "national area codes (Indonesia: Kemendagri), separated by ; "],
+    ["wikidata", "string", "Wikidata ids, separated by ; "], ["geonames", "string", "GeoNames ids, separated by ; "],
+    ["plus_code", "string", "Open Location Code of the 0.05 degree cell holding the coordinates"], ["h3_cell", "string", "H3 cell at resolution 7 holding the coordinates"],
     ["traceability", "string", "farm, group, region, country or blend"], ["lots", "integer", "number of lots"],
     ["title", "string", ""], ["summary", "string", ""], ["language", "string", "BCP 47 code of the original story"],
     ["translations", "string", "available translation languages, separated by ; "], ["told_by", "string", ""], ["contributor", "string", ""],
@@ -545,6 +607,7 @@ async function exportData() {
     producer: s.producer, species: s.species || "", altitude_min_masl: s.altitude_masl?.[0] ?? "", altitude_max_masl: s.altitude_masl?.[1] ?? "",
     varieties: (s.varieties || []).join("; "), process: (s.process || []).join("; "), harvest: s.harvest || "",
     tasting_notes: (s.tasting_notes || []).join("; "), latitude: s.coords?.[0] ?? "", longitude: s.coords?.[1] ?? "",
+    ...Object.fromEntries(Object.entries(placeCodes(s)).map(([k, v]) => [k, Array.isArray(v) ? v.join("; ") : v])),
     traceability: s.traceability || "", lots: s.lots.length,
     title: s.title, summary: s.summary, language: s.language, translations: s.translations.map((t) => t.language).join("; "),
     told_by: s.told_by, contributor: s.contributor, url: href(s),
@@ -554,6 +617,7 @@ async function exportData() {
   const full = stories.map((s) => ({
     id: id(s), path: pathOf(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
     ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+    place_codes: placeCodes(s),
     story: s.body, url: href(s),
     lots: s.lots.map(lotJson),
     translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
@@ -564,8 +628,8 @@ async function exportData() {
   // Lots: one row per lot, plus quality in long format (one row per measured value) so every crop fits one table.
   const LFIELDS = [["id", "string", "permanent lot id, e.g. L-K7M2XQ9P-P"], ["story_ids", "string", "stories the lot comes from, separated by ; (several for a blend)"], ["producer", "string", "producer profile the lot is filed under"], ["crop", "string", ""], ["name", "string", ""],
     ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"], ["form", "string", "state the lot is sold in; the options depend on the crop"], ["process", "string", "separated by ; "], ["varieties", "string", "separated by ; "],
-    ["quantity_kg", "number", ""], ["traceability", "string", ""], ["processed_by", "string", "name or producer id"], ["roasted_by", "string", "name or producer id"], ["sold_by", "string", "name or producer id"],
-    ["tested_by", "string", ""], ["certificate", "string", ""]];
+    ["quantity_kg", "number", ""], ["traceability", "string", ""], ["processed_by", "string", "name or producer id"], ["roasted_by", "string", "name or producer id"], ["sold_by", "string", "name or producer id"], ["tested_by", "string", "name or producer id of the lab or grader"],
+    ["certificate", "string", ""]];
   const lrows = lots.map((l) => ({ id: l.id, story_ids: l.linked.map(id).join("; "), producer: l.owner?.id || "", crop: l.pathCrop, name: l.name || "", date: String(l.date), form: l.form || "",
     process: (l.process || []).join("; "), varieties: (l.varieties || []).join("; "), quantity_kg: l.quantity_kg ?? "", traceability: l.traceability || "",
     processed_by: l.processed_by || "", roasted_by: l.roasted_by || "", sold_by: l.sold_by || "", tested_by: l.tested_by || "", certificate: l.certificate || "" }));

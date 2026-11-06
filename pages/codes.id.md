@@ -48,6 +48,25 @@ Karakter cek bisa berupa huruf, sama seperti karakter terakhir ISBN bisa berupa 
 
 Kode boleh diketik dengan huruf kecil, tanpa tanda "-", atau dengan spasi: `lkpbjf525d`, `L KPBJF525 D` dan `L-KPBJF525-D` semuanya menemukan lot yang sama. File dan halaman selalu menampilkannya dalam bentuk baku, huruf besar dengan tanda "-".
 
+## Komoditas ditampilkan di samping kode
+
+Kode itu sendiri tidak menyebut komoditasnya, jadi kode tidak perlu diganti kalau sebuah lot ternyata campuran atau salah dicatat komoditasnya. Halaman, label dan kotak cari selalu menampilkan komoditasnya di samping kode: `L-KPBJF525-D` · COFFEE.
+
+## Origin dan kode wilayah umum
+
+Origin tetap memakai kode `O-` milik kita, lalu dipadankan dengan kode umum untuk wilayah yang sama supaya bisa disambungkan dengan data lain:
+
+| Kode | Contoh | Artinya |
+|---|---|---|
+| ISO 3166-2 | `ID-AC` | Kode internasional untuk provinsi. |
+| Kode wilayah nasional | `11.17` | Kode pemerintah untuk kabupaten; di Indonesia *kode wilayah* Kemendagri. |
+| Wikidata | `Q…` | ID tempat di basis pengetahuan terbuka, tersambung ke Wikipedia dalam semua bahasa. |
+| GeoNames | `1234567` | ID di gazetir GeoNames, dipakai banyak peta dan dataset. |
+| Plus Code | `6MPRJV00+` | Kode grid terbuka yang juga dipakai Google Maps. Dihitung dari koordinat dan mencakup sekitar 5 km, karena koordinat dibulatkan demi privasi. |
+| Sel H3 | `876556163ffffff` | Segi enam di grid H3 (resolusi 7, sekitar 5 km²), dipakai untuk menyambungkan data rantai pasok dan deforestasi. Juga dihitung dari koordinat. |
+
+Semuanya ada di data terbuka (`stories.csv`, `stories.json` dan `codes.json`).
+
 ## Mencari kode
 
 Setiap kode punya tautan pendek: `/s/<kode>/`. Misalnya [/s/L-KPBJF525-D/](../../s/L-KPBJF525-D/) membuka lot itu di halaman cerita tempat lot itu berada.

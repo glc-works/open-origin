@@ -5,6 +5,10 @@ kind: origin
 crop: spice
 country: ID
 region: Banda Islands, Central Maluku
+area:
+  iso3166_2: ID-MA
+  admin_codes: ["81.01"]
+  geonames: [9165982]
 producer: Nutmeg growers of the Banda Islands
 species: nutmeg
 process: [sun-dried]

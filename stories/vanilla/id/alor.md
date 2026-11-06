@@ -5,6 +5,11 @@ kind: origin
 crop: vanilla
 country: ID
 region: South Alor, Alor Regency, East Nusa Tenggara
+coords: [-8.33, 124.75]
+area:
+  iso3166_2: ID-NT
+  admin_codes: ["53.05"]
+  geonames: [1651608]
 producer: Vanilla growers of the Alor Islands (MPIG Kepulauan Alor)
 species: planifolia
 summary: Vanilla grown for almost fifty years on a dry island in East Nusa Tenggara, protected by a Geographical Indication that only allows cured pods.

@@ -247,3 +247,25 @@ table.lots tr:has(+ tr.lot-notes) td { border-bottom: 0; }
 .prose table { border-collapse: collapse; width: 100%; font-size: .95rem; margin: 1em 0; }
 .prose th, .prose td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .codes .text > p:first-of-type::first-letter { float: none; font: inherit; color: inherit; margin: 0; }
+.crop-tag { font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 .4em; margin-left: .45em; white-space: nowrap; }
+code.code { white-space: nowrap; }
+.area-codes { display: inline-flex; flex-wrap: wrap; gap: 4px 10px; font-family: var(--mono); font-size: .8rem; }
+/* Lot table: one size and line height in every cell, so rows read straight across */
+table.lots td { line-height: 1.45; }
+table.lots td > * + * { margin-top: 4px; }
+table.lots td .muted { display: block; }
+table.lots .lot-name .muted { font-family: var(--mono); font-size: .75rem; }
+table.lots .q { margin: 0 4px 0 0; }
+table.lots td .muted { font-size: inherit; }
+/* Narrow screens: each lot becomes a small card instead of a table that scrolls sideways */
+@media (max-width: 640px) {
+  table.lots { min-width: 0; }
+  table.lots thead { display: none; }
+  table.lots, table.lots tbody, table.lots tr, table.lots td { display: block; width: 100%; }
+  table.lots tr { padding: 10px 0; border-bottom: 1px dashed var(--line); }
+  table.lots tr:has(+ tr.lot-notes) { border-bottom: 0; padding-bottom: 0; }
+  table.lots td { border: 0; padding: 4px 0; }
+  table.lots td:empty { display: none; }
+  table.lots td[data-label]:not(.lot-name)::before { content: attr(data-label); display: block; font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  table.lots tr.lot-notes td { padding: 4px 0 0; }
+}

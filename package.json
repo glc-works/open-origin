@@ -11,9 +11,12 @@
     "test": "node tests/run.mjs",
     "new-id": "node scripts/new-id.mjs"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "gray-matter": "4.0.3",
+    "h3-js": "^4.5.0",
     "marked": "12.0.2"
   }
 }

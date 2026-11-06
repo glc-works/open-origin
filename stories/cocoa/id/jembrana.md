@@ -5,6 +5,10 @@ kind: origin
 crop: cocoa
 country: ID
 region: Jembrana Regency, Bali
+area:
+  iso3166_2: ID-BA
+  admin_codes: ["51.01"]
+  geonames: [1642584]
 producer: Cocoa farmers of Jembrana and the KSS cooperative
 process: [fermented]
 summary: Where most Indonesian cocoa is only dried, Jembrana's subak farmers ferment theirs, and it now goes to chocolate makers in Europe and Japan.

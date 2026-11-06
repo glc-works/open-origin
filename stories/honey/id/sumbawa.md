@@ -5,6 +5,11 @@ kind: origin
 crop: honey
 country: ID
 region: Sumbawa Regency, West Nusa Tenggara
+coords: [-8.74, 117.33]
+area:
+  iso3166_2: ID-NB
+  admin_codes: ["52.04"]
+  geonames: [8594735]
 producer: Forest honey harvesters of Sumbawa (JMHS)
 species: apis-dorsata
 process: [raw]
