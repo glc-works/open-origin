@@ -180,6 +180,8 @@ tasting_notes: [cokelat hitam, rempah]     # optional, at most 4
 summary: One or two sentences, at most 200 characters, shown on the card.
 photo: photos/id/gayo.jpg     # optional, a path in this repo or an https URL
 photo_credit: Name            # required when there is a photo
+photo_license: CC BY-SA 4.0   # only for a photo from elsewhere, e.g. Wikimedia Commons: its licence as written there
+photo_source: https://commons.wikimedia.org/wiki/File:...  # and the page it came from
 coords: [4.62, 96.85]         # optional, latitude and longitude, 2 decimals
 area:                         # optional: public codes for the same area, so other data can be joined to it
   iso3166_2: ID-AC            #   province, ISO 3166-2

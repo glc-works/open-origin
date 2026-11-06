@@ -5,7 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import { LANGS, DEFAULT_LANG, strings } from "./i18n.ts";
-import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.ts";
+import { buildApi } from "./api.ts";
+import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, licenseUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.ts";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
 
@@ -51,6 +52,8 @@ marked.use({
   },
 });
 const REPO = "https://github.com/glc-works/open-origin";
+// Where the site is published; absolute links in the API and feeds start here.
+const SITE_URL = (process.env.OPEN_ORIGIN_SITE_URL || "https://glc-works.github.io/open-origin/").replace(/\/?$/, "/");
 const SUBMIT = `${REPO}/issues/new?template=story.yml`;
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -103,6 +106,19 @@ const inLang = (x) => (LANG !== DEFAULT_LANG && x.language !== LANG ? (x.transla
 const readHref = (s) => (inLang(s) ? `${href(s)}${LANG}/` : href(s));
 const producerHref = (p) => `producers/${p.id}/`;
 const photoSrc = (s, prefix) => (/^https?:\/\//.test(s.photo) ? s.photo : prefix + UP + String(s.photo).replace(/^\/+/, ""));
+// Credit line for a photo: who took it, and for a photo from elsewhere its licence and the page it came from.
+const photoSourceName = (u) => { try { const h = new URL(u).hostname; return h === "wikimedia.org" || h.endsWith(".wikimedia.org") ? "Wikimedia Commons" : h.replace(/^www\./, ""); } catch { return T.source.toLowerCase(); } };
+// A copy kept in photos/ of a photo from elsewhere is resized for the web; CC 4.0 asks for changes to be marked.
+const photoResized = (x) => x.photo_source && !/^https?:\/\//.test(x.photo) ? T.resized : "";
+const photoCreditText = (x) => [`${T.photo}: ${x.photo_credit}`, photoResized(x), x.photo_license, x.photo_source && photoSourceName(x.photo_source)].filter(Boolean).join(" · ");
+function photoCreditHtml(x) {
+  const lic = x.photo_license && (licenseUrl(x.photo_license) ? `<a href="${esc(licenseUrl(x.photo_license))}" rel="license">${esc(x.photo_license)}</a>` : esc(x.photo_license));
+  const src = x.photo_source && `<a href="${esc(x.photo_source)}">${esc(photoSourceName(x.photo_source))}</a>`;
+  return [`${T.photo}: ${esc(x.photo_credit)}`, photoResized(x), lic, src].filter(Boolean).join(" · ");
+}
+const photoFigure = (x, prefix) => `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(x, prefix))}" alt=""><figcaption>${photoCreditHtml(x)}</figcaption></figure>`;
+const photoLd = (x, prefix) => x.photo && { image: { "@type": "ImageObject", contentUrl: photoSrc(x, prefix), creditText: x.photo_credit,
+  ...(x.photo_license && licenseUrl(x.photo_license) && { license: licenseUrl(x.photo_license) }), ...(x.photo_source && { acquireLicensePage: x.photo_source }) } };
 
 // The mark is inline so it follows light and dark mode; site/logo.svg is the same mark for the favicon. More versions: site/brand/.
 const LOGO = `<svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M52.1 19.2C53.0 20.6 56.2 24.2 57.4 27.2C58.7 30.2 59.8 33.8 59.8 37.2C59.8 40.5 58.9 44.4 57.4 47.4C55.8 50.4 53.1 53.2 50.4 55.2C47.7 57.1 44.3 58.4 41.2 59.3C38.0 60.2 34.7 60.4 31.6 60.3C28.4 60.3 25.2 59.8 22.2 58.9C19.3 57.9 16.2 56.5 13.7 54.6C11.2 52.7 8.8 50.1 7.2 47.4C5.6 44.7 4.4 41.4 3.9 38.2C3.3 35.0 3.3 31.5 3.9 28.3C4.4 25.1 5.5 21.7 7.1 18.8C8.8 15.9 11.1 13.0 13.7 10.9C16.4 8.9 19.8 7.3 23.0 6.6C26.2 5.9 29.9 6.1 33.1 6.8C36.2 7.5 40.5 9.9 41.9 10.6" fill="none" stroke="var(--forest)" stroke-width="4.6" stroke-linecap="round"/><path d="M49.4 22.6C49.8 23.7 51.7 26.7 52.1 28.8C52.4 30.9 52.1 33.4 51.4 35.5C50.8 37.5 49.6 39.5 48.3 41.2C47.1 42.8 45.5 44.2 43.9 45.4C42.3 46.6 40.5 47.7 38.7 48.4C36.8 49.1 34.8 49.6 32.8 49.7C30.8 49.8 28.6 49.5 26.7 48.9C24.8 48.2 23.0 47.1 21.4 45.8C19.8 44.5 18.4 42.9 17.2 41.2C16.1 39.5 15.1 37.5 14.6 35.4C14.0 33.4 13.7 31.0 14.0 28.9C14.3 26.8 15.1 24.4 16.3 22.6C17.4 20.9 19.2 19.3 21.0 18.2C22.8 17.1 25.0 16.5 27.0 16.1C28.9 15.8 30.9 15.8 32.8 15.9C34.7 15.9 37.6 16.4 38.5 16.5" fill="none" stroke="var(--leaf)" stroke-width="4.6" stroke-linecap="round"/><path d="M43.6 28.0C43.5 28.5 43.6 30.0 43.5 30.9C43.4 31.8 43.1 32.7 42.7 33.6C42.4 34.4 41.9 35.2 41.3 35.9C40.8 36.6 40.1 37.3 39.3 37.8C38.6 38.3 37.7 38.7 36.8 39.0C35.9 39.2 34.9 39.3 34.0 39.2C33.1 39.2 32.2 39.0 31.3 38.7C30.4 38.3 29.5 37.9 28.8 37.4C28.0 36.8 27.2 36.1 26.7 35.3C26.1 34.6 25.6 33.6 25.3 32.7C25.1 31.7 25.0 30.6 25.2 29.7C25.3 28.7 25.7 27.7 26.2 26.9C26.7 26.1 27.4 25.4 28.1 24.8C28.8 24.2 29.5 23.7 30.3 23.3C31.1 22.9 31.8 22.5 32.7 22.2C33.5 21.9 34.9 21.7 35.4 21.6" fill="none" stroke="var(--origin)" stroke-width="4.6" stroke-linecap="round"/><circle cx="35.6" cy="29.6" r="3.7" fill="var(--origin)"/></svg>`;
@@ -126,11 +142,13 @@ function head(title, description, prefix, extra = "", here = "") {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="${prefix}${UP}style.css">
 <link rel="icon" href="${prefix}${UP}logo.svg" type="image/svg+xml">
-${other.map((o) => `<link rel="alternate" hreflang="${o.l}" href="${o.to}">\n`).join("")}${extra}</head>
+${other.map((o) => `<link rel="alternate" hreflang="${o.l}" href="${o.to}">\n`).join("")}<link rel="alternate" type="application/atom+xml" title="Open Origin: what is new" href="${prefix}${UP}feed.xml">
+<link rel="alternate" type="application/feed+json" title="Open Origin: what is new" href="${prefix}${UP}feed.json">
+${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" href="${prefix}">${LOGO}<b><span>open</span> origin</b></a>
-  <nav><a href="${prefix}#stories">${T.nav.stories}</a><a href="${prefix}#learn">${T.nav.learn}</a><a href="${prefix}codes/">${T.nav.codes}</a><a href="${prefix}#contribute">${T.nav.contribute}</a><a href="${prefix}${UP}datapackage.json">${T.nav.data}</a><a href="${REPO}">${T.nav.github}</a>${other.map((o) => `<a class="lang-switch" href="${o.to}" hreflang="${o.l}" lang="${o.l}" title="${esc(`${strings(o.l).switchTo} ${o.name}`)}">${o.l.toUpperCase()}</a>`).join("")}</nav>
+  <nav><a href="${prefix}#stories">${T.nav.stories}</a><a href="${prefix}#learn">${T.nav.learn}</a><a href="${prefix}codes/">${T.nav.codes}</a><a href="${prefix}#contribute">${T.nav.contribute}</a><a href="${prefix}api/">${T.nav.data}</a><a href="${REPO}">${T.nav.github}</a>${other.map((o) => `<a class="lang-switch" href="${o.to}" hreflang="${o.l}" lang="${o.l}" title="${esc(`${strings(o.l).switchTo} ${o.name}`)}">${o.l.toUpperCase()}</a>`).join("")}</nav>
 </div></header>`;
 }
 
@@ -152,7 +170,7 @@ function headline(s) {
 
 // Cover art for a story without a photo: contour lines like a relief map, drawn from the story id so each
 // story keeps its own pattern. Colour follows the crop.
-const CROP_HUE = { coffee: "var(--cherry)", cocoa: "#7A4A2B", tea: "var(--leaf)", spice: "#A0632A", vanilla: "#6B5A2E", honey: "#B7862A", sugar: "#8A5A3C" };
+const CROP_HUE = { coffee: "#A8261B", cocoa: "#7A4A2B", tea: "var(--leaf)", spice: "#A0632A", vanilla: "#6B5A2E", honey: "#B7862A", sugar: "#8A5A3C" };
 function coverArt(s) {
   let h = 0; for (const c of String(s.id || s.slug)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const rnd = () => ((h = (h * 1664525 + 1013904223) >>> 0) / 2 ** 32);
@@ -162,7 +180,7 @@ function coverArt(s) {
     const d = Array.from({ length: pts }, (_, k) => { const a = (k / pts) * 6.283; const rr = r + Math.sin(a * 3 + ph) * wob + Math.cos(a * 2 + i) * wob * 0.6; return `${(cx + Math.cos(a) * rr * 1.6).toFixed(1)},${(cy + Math.sin(a) * rr).toFixed(1)}`; });
     return `<polygon points="${d.join(" ")}" />`;
   }).join("");
-  return `<svg class="cover-art" viewBox="0 0 300 128" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="${CROP_HUE[s.crop] || "var(--cherry)"}" stroke-width="1.1" opacity=".55">${rings}</g></svg>`;
+  return `<svg class="cover-art" viewBox="0 0 300 128" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="${CROP_HUE[s.crop] || "var(--accent)"}" stroke-width="1.1" opacity=".55">${rings}</g></svg>`;
 }
 
 // prefix: from the page the card sits on to its language root.
@@ -170,7 +188,7 @@ function card(s, prefix = "") {
   const tr = inLang(s);
   const v = tr ? { ...s, title: tr.title, summary: tr.summary, region: tr.region || s.region, tasting_notes: tr.tasting_notes || s.tasting_notes } : s;
   const cover = s.photo
-    ? `<img src="${esc(photoSrc(s, prefix))}" alt="" loading="lazy">`
+    ? `<img src="${esc(photoSrc(s, prefix))}" alt="" title="${esc(photoCreditText(s))}" loading="lazy">`
     : `${coverArt(s)}${s.altitude_masl ? `<span class="alt">${esc(num(s.altitude_masl[1]))}<small> ${T.masl}</small></span>` : ""}`;
   const facts = [headline(s), s.traceability && s.traceability !== "farm" ? T.trace[s.traceability] : "", fmtAlt(s.altitude_masl), (s.varieties || []).slice(0, 2).join(", "), (s.process || []).map((p) => term(s.crop, p, p)).join(" · ")].filter(Boolean);
   return `<a class="card" href="${prefix}${readHref(s)}" data-crop="${esc(s.crop)}" data-country="${esc(s.country)}" data-kind="${esc(s.kind)}">
@@ -381,6 +399,7 @@ function storyPage(s, t = null) {
     license: "https://creativecommons.org/licenses/by/4.0/",
     isPartOf: { "@type": "WebSite", name: "Open Origin" },
     about: { "@type": "Thing", name: CROPS[s.crop].label },
+    ...photoLd(s, prefix),
     author: { "@type": s.told_by === "farmer" ? "Person" : "Organization", name: s.producer },
     contentLocation: {
       "@type": "Place",
@@ -427,7 +446,7 @@ function storyPage(s, t = null) {
     </dl>
   </div>
   <div class="prose">
-    ${s.photo ? `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(s, prefix))}" alt=""><figcaption>${T.photo}: ${esc(s.photo_credit)}</figcaption></figure>` : ""}
+    ${s.photo ? photoFigure(s, prefix) : ""}
     <div class="text" lang="${esc(v.language)}" dir="${dir}">${cite(marked.parse(v.body), sources.length)}</div>
     ${s.journey?.length ? `<h2 class="journey-title">${esc(cropWord(s.crop, "journey"))}</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage" lang="${LANG}" dir="ltr">${esc(j.stage === "brew" ? cropWord(s.crop, "use") : T.stage[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
     ${s.lots.length ? `<h2 class="journey-title">${T.lots}</h2>
@@ -475,7 +494,7 @@ function producerPage(p) {
     </dl>
   </div>
   <div class="prose">
-    ${p.photo ? `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(p, prefix))}" alt=""><figcaption>${T.photo}: ${esc(p.photo_credit)}</figcaption></figure>` : ""}
+    ${p.photo ? photoFigure(p, prefix) : ""}
     ${p.body ? `<div class="text">${cite(marked.parse(p.body), (p.sources || []).length)}</div>` : ""}
     <h2 class="journey-title">${T.storiesHead}</h2>
     ${p.stories.length ? `<div class="cards">${p.stories.map((r) => card(r, prefix)).join("")}</div>`
@@ -551,6 +570,28 @@ await copyFile(path.join(SITE, "style.css"), path.join(DIST, "style.css"));
 await copyFile(path.join(SITE, "logo.svg"), path.join(DIST, "logo.svg"));
 await cp(path.join(SITE, "brand"), path.join(DIST, "brand"), { recursive: true });
 try { await access(path.join(ROOT, "photos")); await cp(path.join(ROOT, "photos"), path.join(DIST, "photos"), { recursive: true }); } catch {}
+// The API's own page: what the endpoints are and how to credit the data. The JSON itself is written by api.ts, once,
+// at the site root. pages/api.<lang>.md is used where it exists, otherwise the English text.
+async function apiPage() {
+  const translated = LANG !== DEFAULT_LANG && await access(path.join(PAGES, `api.${LANG}.md`)).then(() => true, () => false);
+  const { data, content } = matter(await readFile(path.join(PAGES, translated ? `api.${LANG}.md` : "api.md"), "utf8"));
+  const prefix = "../", root = `${prefix}${UP}`;
+  return `${head(`${data.title} · Open Origin`, data.summary, prefix, "", "api/")}
+<main><div class="wrap">
+<article class="story" lang="${translated ? LANG : DEFAULT_LANG}">
+  <div>
+    <a class="back" href="${prefix}">${T.backHome}</a>
+    <h1 style="margin-top:18px">${esc(data.title)}</h1>
+    <p style="margin-top:20px">${esc(data.summary)}</p>
+    <p><a class="btn primary" href="${root}api/v1/index.json">api/v1/index.json</a></p>
+    <p class="eyebrow"><a href="${root}feed.xml">Atom feed</a> · <a href="${root}feed.json">JSON Feed</a> · <a href="${root}datapackage.json">Data package</a></p>
+  </div>
+  <div class="prose codes"><div class="text">${marked.parse(content)}</div></div>
+</article>
+</div></main>
+${footer()}`;
+}
+
 // The pages, once per interface language: English at the root, the others under /<lang>/ with the same paths.
 for (const lang of LANGS) {
   setLang(lang);
@@ -564,6 +605,7 @@ for (const lang of LANGS) {
   for (const k of knowledge) await page(path.join("learn", k.crop, k.slug), learnPage(k));
   for (const p of producers) await page(producerHref(p), producerPage(p));
   await page("codes", await codesPage());
+  await page("api", await apiPage());
 }
 setLang(DEFAULT_LANG);
 // The Indonesian code guide used to live at /codes/id/; keep that address working.
@@ -611,14 +653,34 @@ for (const p of producers) codeIndex[p.id] = { kind: "producer", crops: producer
 for (const l of lots) codeIndex[l.id] = { kind: "lot", crops: [l.pathCrop], title: l.name || `Lot ${l.date}`, url: lotHref(l) };
 for (const v of Object.values(codeIndex)) v.crop_labels = v.crops.map((c) => CROPS[c]?.label || c);
 await writeFile(path.join(DIST, "codes.json"), JSON.stringify(codeIndex, null, 1));
+// One JSON shape per record, shared by the data package and the API.
+const lotJson = (l) => ({ id: l.id, name: l.name ?? null, date: String(l.date), form: l.form ?? null, process: l.process ?? null, varieties: l.varieties ?? null,
+  quantity_kg: l.quantity_kg ?? null, traceability: l.traceability ?? null, processed_by: l.processed_by ?? null, roasted_by: l.roasted_by ?? null, sold_by: l.sold_by ?? null,
+  quality: l.quality ?? null, tested_by: l.tested_by ?? null, certificate: l.certificate ?? null, sources: l.sources || [], notes: l.notes || null, stories: l.linked.map((x) => x.id), producer: l.owner?.id ?? null, url: lotHref(l) });
+const storyJson = (s) => ({
+  id: s.id, path: `${s.crop}/${s.pathCountry}/${s.slug}`, kind: s.kind, origin: s.originStory ? s.originStory.id : null,
+  ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile", "photo", "photo_credit", "photo_license", "photo_source"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+  place_codes: placeCodes(s),
+  story: s.body, url: href(s),
+  lots: s.lots.map(lotJson),
+  translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
+});
+const varietyJson = (k) => ({
+  id: `${k.crop}/${k.slug}`, name: k.title, crop: k.crop, species: k.species, lineage: k.lineage ?? null, aliases: k.aliases || [],
+  stature: k.stature ?? null, yield_potential: k.yield_potential ?? null, quality_potential: k.quality_potential ?? null,
+  leaf_rust: k.leaf_rust ?? null, altitude_masl: k.altitude_masl ?? null, summary: k.summary, sources: k.sources || [],
+});
+const producerJson = (p) => ({
+  id: String(p.id), file: p.file, name: p.name, country: p.pathCountry.toUpperCase(), type: p.type ?? null, region: p.region ?? null, village: p.village ?? null,
+  since: p.since ?? null, farm_size_ha: p.farm_size_ha ?? null, members: p.members ?? null, website: p.website ?? null, consent: p.consent, sources: p.sources || [], about: p.body || null,
+  stories: p.stories.map((s) => s.id), url: producerHref(p),
+});
 await writeFile(path.join(DIST, ".nojekyll"), "");
 await exportData();
+await buildApi({ DIST, ROOT, SITE_URL, REPO, stories, producers, lots, knowledge, href, producerHref, lotHref, producerCrops, storyJson, producerJson, lotJson, varietyJson });
 
 // Open data export: a Frictionless Data Package (https://datapackage.org) with CSV + JSON, regenerated on every build.
 async function exportData() {
-  const lotJson = (l) => ({ id: l.id, name: l.name ?? null, date: String(l.date), form: l.form ?? null, process: l.process ?? null, varieties: l.varieties ?? null,
-    quantity_kg: l.quantity_kg ?? null, traceability: l.traceability ?? null, processed_by: l.processed_by ?? null, roasted_by: l.roasted_by ?? null, sold_by: l.sold_by ?? null,
-    quality: l.quality ?? null, tested_by: l.tested_by ?? null, certificate: l.certificate ?? null, sources: l.sources || [], notes: l.notes || null, stories: l.linked.map((x) => x.id), producer: l.owner?.id ?? null, url: lotHref(l) });
   const FIELDS = [
     ["id", "string", "permanent story id, e.g. S-K7M2XQ9P-V"], ["path", "string", "crop/country/slug of the story file"], ["kind", "string", "origin, farm or movement"], ["origin", "string", "id of the origin profile a farm or movement belongs to"],
     ["crop", "string", "coffee, cocoa, tea, spice, vanilla, honey or sugar"], ["country", "string", "ISO 3166-1 alpha-2"], ["region", "string", ""],
@@ -647,14 +709,7 @@ async function exportData() {
   }));
   const cell = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
   const csv = [FIELDS.map((f) => f[0]).join(","), ...rows.map((r) => FIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n";
-  const full = stories.map((s) => ({
-    id: id(s), path: pathOf(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
-    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
-    place_codes: placeCodes(s),
-    story: s.body, url: href(s),
-    lots: s.lots.map(lotJson),
-    translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
-  }));
+  const full = stories.map(storyJson);
   await mkdir(path.join(DIST, "data"), { recursive: true });
   await writeFile(path.join(DIST, "data", "stories.csv"), csv);
   await writeFile(path.join(DIST, "data", "stories.json"), JSON.stringify(full, null, 2));
@@ -673,17 +728,9 @@ async function exportData() {
     lot_id: l.id, crop: l.pathCrop, date: String(l.date), field: k, value: v, unit: qField(l.pathCrop, k)?.[2] || "", tested_by: l.tested_by || "",
   })));
   await writeFile(path.join(DIST, "data", "lot-quality.csv"), [QFIELDS.map((f) => f[0]).join(","), ...qrows.map((r) => QFIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n");
-  const varieties = knowledge.filter((k) => k.type === "variety").map((k) => ({
-    id: `${k.crop}/${k.slug}`, name: k.title, crop: k.crop, species: k.species, lineage: k.lineage ?? null, aliases: k.aliases || [],
-    stature: k.stature ?? null, yield_potential: k.yield_potential ?? null, quality_potential: k.quality_potential ?? null,
-    leaf_rust: k.leaf_rust ?? null, altitude_masl: k.altitude_masl ?? null, summary: k.summary, sources: k.sources || [],
-  }));
+  const varieties = knowledge.filter((k) => k.type === "variety").map(varietyJson);
   await writeFile(path.join(DIST, "data", "varieties.json"), JSON.stringify(varieties, null, 2));
-  const prods = producers.map((p) => ({
-    id: String(p.id), file: p.file, name: p.name, country: p.pathCountry.toUpperCase(), type: p.type ?? null, region: p.region ?? null, village: p.village ?? null,
-    since: p.since ?? null, farm_size_ha: p.farm_size_ha ?? null, members: p.members ?? null, website: p.website ?? null, consent: p.consent, sources: p.sources || [], about: p.body || null,
-    stories: p.stories.map((s) => id(s)), url: producerHref(p),
-  }));
+  const prods = producers.map(producerJson);
   await writeFile(path.join(DIST, "data", "producers.json"), JSON.stringify(prods, null, 2));
   const pkg = {
     name: "open-origin-stories",

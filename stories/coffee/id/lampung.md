@@ -7,6 +7,8 @@ country: ID
 region: West Lampung & Tanggamus, Lampung
 area:
   iso3166_2: ID-LA
+  admin_codes: ["18.04", "18.06"]
+  wikidata: [Q8153, Q8149]
   geonames: [9166059, 9845482]
 producer: Robusta farmers on the slopes of the Barisan Mountains
 species: robusta

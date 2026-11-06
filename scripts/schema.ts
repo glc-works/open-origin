@@ -40,6 +40,8 @@ export const STORY = {
   sources: { type: "links", doc: "http(s) links; cite them in the text as [1], [2]" },
   photo: { type: "link", doc: "https link or a file in photos/" },
   photo_credit: { type: "text", doc: "required with photo" },
+  photo_license: { type: "text", doc: "licence of a photo from elsewhere: CC BY 4.0, CC BY-SA 4.0, CC0 or Public domain" },
+  photo_source: { type: "link", doc: "https page the photo came from, e.g. on Wikimedia Commons" },
 } as const satisfies Record<string, Field>;
 
 export const PRODUCER = {
@@ -57,6 +59,8 @@ export const PRODUCER = {
   logo: { type: "link", doc: "https link or a file in photos/" },
   photo: { type: "link", doc: "https link or a file in photos/" },
   photo_credit: { type: "text", doc: "required with photo" },
+  photo_license: { type: "text", doc: "licence of a photo from elsewhere: CC BY 4.0, CC BY-SA 4.0, CC0 or Public domain" },
+  photo_source: { type: "link", doc: "https page the photo came from, e.g. on Wikimedia Commons" },
   sources: { type: "links", doc: "http(s) links" },
 } as const satisfies Record<string, Field>;
 

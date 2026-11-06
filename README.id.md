@@ -27,6 +27,8 @@ ID tidak pernah berubah, jadi nama dan file boleh diganti tanpa merusak tautan. 
 
 Setiap build menerbitkan koleksi ini sebagai [Frictionless Data Package](https://datapackage.org): `datapackage.json` dengan `stories.csv`/`.json`, `lots.csv`, `lot-quality.csv`, `producers.json` dan `varieties.json`.
 
+Data yang sama juga tersedia sebagai API baca gratis: satu file JSON per kode (`api/v1/lots/L-KPBJF525-D.json`), daftar per jenis dan per komoditas, serta feed Atom/JSON untuk entri baru. Mulai dari [`api/v1/index.json`](https://glc-works.github.io/open-origin/api/v1/index.json); penjelasannya ada di [halaman API](https://glc-works.github.io/open-origin/api/).
+
 ## Menjalankan di komputer sendiri
 
 ```sh
@@ -37,4 +39,4 @@ open dist/index.html
 
 ## Lisensi
 
-Cerita dan foto: [CC BY 4.0](LICENSE-CONTENT.md), cantumkan pencerita dan Open Origin. Kode: [Apache-2.0](LICENSE); salinan dan fork wajib menyertakan file [NOTICE](NOTICE).
+Cerita dan foto: [CC BY 4.0](LICENSE-CONTENT.md), cantumkan pencerita dan Open Origin; foto dari Wikimedia Commons tetap memakai lisensi yang tertulis di bawahnya. Kode: [Apache-2.0](LICENSE); salinan dan fork wajib menyertakan file [NOTICE](NOTICE).

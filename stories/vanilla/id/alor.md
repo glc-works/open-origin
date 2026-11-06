@@ -6,9 +6,14 @@ crop: vanilla
 country: ID
 region: South Alor, Alor Regency, East Nusa Tenggara
 coords: [-8.33, 124.75]
+photo: photos/id/alor.jpg
+photo_credit: "Sims8899"
+photo_license: CC BY-SA 4.0
+photo_source: https://commons.wikimedia.org/wiki/File:Beautiful_view_from_Pura_Island_-_Alor_-_East_Nusa_Tenggara.jpg
 area:
   iso3166_2: ID-NT
   admin_codes: ["53.05"]
+  wikidata: [Q14131]
   geonames: [1651608]
 producer: Vanilla growers of the Alor Islands (MPIG Kepulauan Alor)
 species: planifolia

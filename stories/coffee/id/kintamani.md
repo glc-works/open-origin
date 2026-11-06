@@ -5,9 +5,14 @@ kind: origin
 crop: coffee
 country: ID
 region: Bangli Regency, Bali
+photo: photos/id/kintamani.jpg
+photo_credit: "Denny Octora"
+photo_license: CC BY-SA 4.0
+photo_source: https://commons.wikimedia.org/wiki/File:Gunung_Batur_Kintamani_Bali.jpg
 area:
   iso3166_2: ID-BA
   admin_codes: ["51.06"]
+  wikidata: [Q11491]
   geonames: [1650263]
 producer: Subak Abian farmers of Kintamani
 species: arabica

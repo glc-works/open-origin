@@ -6,9 +6,14 @@ crop: honey
 country: ID
 region: Sumbawa Regency, West Nusa Tenggara
 coords: [-8.74, 117.33]
+photo: photos/id/sumbawa.jpg
+photo_credit: "Torbenbrinker"
+photo_license: CC BY-SA 3.0
+photo_source: https://commons.wikimedia.org/wiki/File:SumbawaPaddyFields.JPG
 area:
   iso3166_2: ID-NB
   admin_codes: ["52.04"]
+  wikidata: [Q14122]
   geonames: [8594735]
 producer: Forest honey harvesters of Sumbawa (JMHS)
 species: apis-dorsata
