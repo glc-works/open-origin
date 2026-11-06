@@ -8,7 +8,7 @@ import path from "node:path";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const run = (script, dir) => spawnSync(process.execPath, [path.join(here, "..", "scripts", script)], {
   env: { ...process.env, OPEN_ORIGIN_ROOT: path.join(here, "fixtures", dir) }, encoding: "utf8" });
-const validate = (dir) => run("validate.mjs", dir);
+const validate = (dir) => run("validate.ts", dir);
 
 let failed = 0;
 const check = (ok, msg) => { if (!ok) failed++; console.log(`${ok ? "✓" : "✗"} ${msg}`); };
@@ -17,7 +17,7 @@ const good = validate("good");
 check(good.status === 0, `good fixtures (cocoa, honey, sugar, tea; blend and roaster-only lots) pass${good.status ? `\n${good.stderr}` : ""}`);
 
 // The good set must also build, and its pages must show the crop-specific parts.
-const built = run("build.mjs", "good");
+const built = run("build.ts", "good");
 check(built.status === 0, `good fixtures build${built.status ? `\n${built.stderr}` : ""}`);
 if (built.status === 0) {
   const read = (p) => readFileSync(path.join(here, "fixtures", "good", "dist", p), "utf8");
@@ -62,7 +62,7 @@ for (const expected of [
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.
-const { parseId, newId } = await import("../scripts/lib.mjs");
+const { parseId, newId } = await import("../scripts/lib.ts");
 const sample = newId("L");
 check(parseId(sample.replace(/-/g, "").toLowerCase()) === sample && parseId(` ${sample.slice(0, 5)} ${sample.slice(5)}`) === sample, "an id typed without \"-\" or in small letters reads back the same");
 let caught = 0, tries = 0;
