@@ -7,7 +7,7 @@ region: Jeju Island
 since: 1979
 crops: [tea]
 sources:
-  - https://en.wikipedia.org/wiki/O%27Sulloc_Tea
+  - https://www.apgroup.com/int/en/news/2019-08-20.html
 ---
 
-A Korean tea company founded in 1979, now part of Amorepacific, that grows green and black tea on about 330 hectares of organic fields, three of its four plantations on Jeju [1].
+A Korean tea company that grew from the green tea fields Amorepacific's founder began clearing on Jeju in 1979, with organic tea gardens at Dosun, Seogwang and Hannam. Since 2019 it has been a subsidiary fully owned by Amorepacific Group [1].

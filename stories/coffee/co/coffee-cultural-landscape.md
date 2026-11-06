@@ -4,11 +4,11 @@ title: The Coffee Axis, Colombia's coffee cultural landscape
 kind: origin
 crop: coffee
 country: CO
-region: Caldas, Risaralda & Quindío
+region: Caldas, Risaralda, Quindío & Valle del Cauca
 area:
-  iso3166_2: [CO-CAL, CO-RIS, CO-QUI]
-  wikidata: [Q230607, Q13993, Q13995]
-  geonames: [3687951, 3670698, 3671087]
+  iso3166_2: [CO-CAL, CO-RIS, CO-QUI, CO-VAC]
+  wikidata: [Q230607, Q13993, Q13995, Q13990]
+  geonames: [3687951, 3670698, 3671087, 3666313]
 producer: Coffee-growing families of the Eje Cafetero
 species: arabica
 summary: Small family coffee farms and the towns built around them in the central Andes, a UNESCO World Heritage landscape since 2011.

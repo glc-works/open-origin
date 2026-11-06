@@ -12,7 +12,6 @@ area:
   geonames: [7765470]
 producer: Baduy (Kanekes) honey gatherers
 process: [raw]
-altitude_masl: [300, 500]
 summary: Wild honey gathered in the protected forests of the Baduy people's customary land, sold on foot by Baduy traders.
 coords: [-6.64, 106.24]
 language: en
@@ -25,9 +24,9 @@ sources:
   - https://www.kompas.tv/regional/123442/masyarakat-baduy-kecewa-madunya-marak-dipalsukan
 ---
 
-The Baduy, who also call themselves Urang Kanekes, are a Sundanese people living in the village of Kanekes in Lebak, Banten, on about 5,100 hectares of hilly forest around the foothills of the Kendeng mountains, at 300 to 500 metres [1]. Their customary law, *pikukuh*, asks that the land be changed as little as possible: no ploughs, no terraces, no fertiliser, no cash crops, and forests and springs kept whole. The Inner Baduy (Baduy Dalam) in Cibeo, Cikertawana and Cikeusik keep these rules most strictly and do not meet foreigners; the Outer Baduy (Baduy Luar) have more contact with outsiders [1].
+The Baduy, who also call themselves Urang Kanekes, are a Sundanese people living in the village of Kanekes in Lebak, Banten, on about 5,100 hectares of hilly forest around the foothills of the Kendeng mountains. The area as a whole lies at about 300 to 500 metres, while the Inner Baduy land rises from 325 metres in the north to 900 metres in the south [1]. Their customary law, *pikukuh*, asks that the land be changed as little as possible: no ploughs, no terraces, no fertiliser, no cash crops, and forests and springs kept whole. The Inner Baduy (Baduy Dalam) in Cibeo, Cikertawana and Cikeusik keep these rules most strictly and do not meet foreigners; the Outer Baduy (Baduy Luar) have more contact with outsiders [1].
 
-Besides their dry-field rice, the Baduy earn money from what the forest gives, such as durian and wild honey [1]. The honey comes from bees that nest in the big trees of the Kendeng forest, on Baduy customary land, so how much there is depends on the bees and the weather. Gatherers take the comb and press out the honey by hand [2]. Baduy traders, often on foot, carry it in bottles to customers in Jakarta, Bogor and other towns, and to herbal medicine makers [2].
+Besides their dry-field rice, the Baduy earn money from what the forest gives, such as durian and wild honey [1]. The honey comes from bees that nest in the big trees of the Kendeng forest, on Baduy customary land, so how much there is depends on the bees and the weather. Gatherers take the comb, which they call *odeng*, and draw the honey out of it in the traditional way [2]. Baduy traders, often on foot, carry it in bottles to customers in Jakarta, Bogor and other towns, and to herbal medicine makers [2].
 
 Its reputation has drawn fakes. In 2020 police found a workshop in Jakarta making "Baduy honey" with no honey in it, and the head of Kanekes village spoke of the harm it did to Baduy honey gatherers [3].
 

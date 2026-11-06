@@ -24,6 +24,7 @@ consent: true
 sources:
   - https://en.wikipedia.org/wiki/O%27Sulloc_Tea
   - https://en.wikipedia.org/wiki/Korean_tea
+  - https://www.apgroup.com/int/en/news/2019-08-20.html
 ---
 
 Jeju is South Korea's largest island and its southernmost province. Its soil comes mostly from basalt and volcanic ash, which holds moisture and lets air through better than the soils of the mainland, and its humid subtropical climate keeps temperatures steady all year [1].
@@ -33,3 +34,8 @@ Large-scale tea on Jeju began in 1979, when Suh Sung-hwan set out to revive Kore
 Korean green tea, *nokcha*, is graded by when it is picked: *ujeon* before the spring rains, then *sejak*, *jungjak* and *daejak* as the leaves grow larger [2]. Jeju also makes black tea, which Koreans call *hongcha*, "red tea" [1][2].
 
 This profile is written from what is published about the island's largest tea company. Smaller Jeju tea farms are welcome to add their own stories.
+
+### Where sources differ
+
+- When the first Dosun fields were planted: **1980** according to Wikipedia [1]; the company says its founder began clearing the Dosun land in **1979** [3].
+- When O'Sulloc became a separate company: **September 2020** according to Wikipedia [1], **September–October 2019** according to Amorepacific's own announcement [3].

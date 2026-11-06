@@ -28,7 +28,7 @@ journey:
   - stage: process
     text: The leaves are fired and rolled into maocha, a mostly unoxidised rough tea.
   - stage: other
-    text: Raw (sheng) pu'er is pressed and aged for years; ripe (shou) pu'er is wet-piled for months first.
+    text: Raw (sheng) pu'er is sold loose or pressed, young or aged; ripe (shou) pu'er is wet-piled for months first.
 sources:
   - https://en.wikipedia.org/wiki/Pu%27er_tea
   - https://en.wikipedia.org/wiki/Pu%27er_City
@@ -38,6 +38,6 @@ Pu'er is a fermented tea from Yunnan, made from the broad-leaf tea plant *Camell
 
 The Blang and Dai peoples have made tea on Jingmai Mountain since at least the 10th century. They plant tea under the forest canopy, after taking out some of the larger trees, and keep a belt of forest around the tea gardens to stop pests and disease spreading [1]. The old tea forests of Jingmai Mountain are the traditional heart of pu'er production [2].
 
-All pu'er starts as *maocha*, a rough, mostly unoxidised tea picked as a bud with three or four leaves. Raw (*sheng*) pu'er is pressed into cakes or bricks and left to ferment and mature slowly over years. Ripe (*shou*) pu'er goes through *wodui*, a wet-piling process developed by the Kunming Tea Factory in 1973, which ferments the leaf in months [1]. Unlike most teas, which are only oxidised by the leaf's own enzymes, pu'er is truly fermented by moulds, bacteria and yeasts [1]. Since 2008, only tea from Yunnan's large-leaf variety may be called pu'er [1].
+All pu'er starts as *maocha*, a rough, mostly unoxidised tea picked as a bud with three or four leaves. *Maocha* can be sold loose, or pressed into cakes or bricks as raw (*sheng*) pu'er, which may be drunk young or left to ferment and mature slowly over years. Ripe (*shou*) pu'er goes through *wodui*, a wet-piling process developed by the Kunming Tea Factory in 1973, which ferments the leaf in months [1]. Unlike most teas, which are only oxidised by the leaf's own enzymes, pu'er is truly fermented by moulds, bacteria and yeasts [1]. Since 2008, only tea from Yunnan's large-leaf variety may be called pu'er [1].
 
 The photo shows the entrance to the Dapingzhang old tea forest on Jingmai Mountain.

@@ -7,8 +7,8 @@ country: BR
 region: Alto Paranaíba, Triângulo Mineiro & northwest Minas Gerais
 area:
   iso3166_2: BR-MG
-  wikidata: [Q39109, Q960694]
-  geonames: [3457153, 6321643]
+  wikidata: [Q960694]
+  geonames: [6321643]
 producer: Coffee growers of the Cerrado Mineiro region
 species: arabica
 altitude_masl: [800, 1300]

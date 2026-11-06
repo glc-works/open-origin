@@ -1,6 +1,6 @@
 ---
 id: O-766HDE38-B
-title: Sidama, washed coffee from Ethiopia's newest region
+title: Sidama, washed coffee from a self-governing Ethiopian region
 kind: origin
 crop: coffee
 country: ET
