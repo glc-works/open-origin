@@ -10,11 +10,11 @@
 //   feed.xml (Atom) and feed.json (JSON Feed 1.1)        newest stories, producers and lots
 //
 // Every file carries the CC BY 4.0 licence and the credit line people must show when they reuse the data.
-// The shape of each record is the same as in the data package (build.mjs: storyJson, producerJson, lotJson).
+// The shape of each record is the same as in the data package (build.ts: storyJson, producerJson, lotJson).
 import { mkdir, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
-import { CROPS } from "./lib.mjs";
+import { CROPS } from "./lib.ts";
 
 export const API_VERSION = "1";
 const LICENSE = { name: "CC-BY-4.0", title: "Creative Commons Attribution 4.0", url: "https://creativecommons.org/licenses/by/4.0/" };
