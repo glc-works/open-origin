@@ -29,6 +29,8 @@
 
 ينشر كل بناء المجموعةَ كاملةً بصيغة [Frictionless Data Package](https://datapackage.org): الملف `datapackage.json` مع `stories.csv`/`.json` و`lots.csv` و`lot-quality.csv` و`producers.json` و`varieties.json`.
 
+والبيانات نفسها متاحة أيضًا كواجهة API مجانية للقراءة: ملف JSON واحد لكل رمز (`api/v1/lots/L-KPBJF525-D.json`)، وقوائم حسب النوع والمحصول، وخلاصات Atom/JSON بالجديد. ابدأ من [`api/v1/index.json`](https://glc-works.github.io/open-origin/api/v1/index.json)؛ وتشرح [صفحة الـ API](https://glc-works.github.io/open-origin/api/) التفاصيل.
+
 ## التشغيل محليًا
 
 </div>

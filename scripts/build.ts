@@ -4,6 +4,7 @@ import matter from "gray-matter";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
+import { buildApi } from "./api.ts";
 import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, licenseUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.ts";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
@@ -37,6 +38,8 @@ marked.use({
   },
 });
 const REPO = "https://github.com/glc-works/open-origin";
+// Where the site is published; absolute links in the API and feeds start here.
+const SITE_URL = (process.env.OPEN_ORIGIN_SITE_URL || "https://glc-works.github.io/open-origin/").replace(/\/?$/, "/");
 const SUBMIT = `${REPO}/issues/new?template=story.yml`;
 const countryName = new Intl.DisplayNames(["en"], { type: "region" });
 const langName = new Intl.DisplayNames(["en"], { type: "language" });
@@ -118,11 +121,13 @@ function head(title, description, prefix, extra = "") {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="${prefix}style.css">
 <link rel="icon" href="${prefix}logo.svg" type="image/svg+xml">
+<link rel="alternate" type="application/atom+xml" title="Open Origin: what is new" href="${prefix}feed.xml">
+<link rel="alternate" type="application/feed+json" title="Open Origin: what is new" href="${prefix}feed.json">
 ${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" href="${prefix}">${LOGO}<b><span>open</span> origin</b></a>
-  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#learn">Learn</a><a href="${prefix}codes/">Codes</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}datapackage.json">Open data</a><a href="${REPO}">GitHub</a></nav>
+  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#learn">Learn</a><a href="${prefix}codes/">Codes</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}api/">Open data</a><a href="${REPO}">GitHub</a></nav>
 </div></header>`;
 }
 
@@ -584,6 +589,25 @@ for (const [file, sub, lang, label, button] of [["codes.md", "codes", "en", "Loo
 ${lookupJs(lang)}
 ${foot}`);
 }
+// The API's own page: what the endpoints are and how to credit the data. The JSON itself is written by api.ts.
+{
+  const { data, content } = matter(await readFile(path.join(PAGES, "api.md"), "utf8"));
+  await mkdir(path.join(DIST, "api"), { recursive: true });
+  await writeFile(path.join(DIST, "api", "index.html"), `${head(`${data.title} · Open Origin`, data.summary, "../")}
+<main><div class="wrap">
+<article class="story" lang="en">
+  <div>
+    <a class="back" href="../">← Open Origin</a>
+    <h1 style="margin-top:18px">${esc(data.title)}</h1>
+    <p style="margin-top:20px">${esc(data.summary)}</p>
+    <p><a class="btn primary" href="v1/index.json">api/v1/index.json</a></p>
+    <p class="eyebrow"><a href="../feed.xml">Atom feed</a> · <a href="../feed.json">JSON Feed</a> · <a href="../datapackage.json">Data package</a></p>
+  </div>
+  <div class="prose codes"><div class="text">${marked.parse(content)}</div></div>
+</article>
+</div></main>
+${foot}`);
+}
 // codes.json: every published code with its kind, crop(s), title and page, for the lookup box and for anyone
 // who wants to resolve a code printed on a sack or an invoice.
 const codeIndex: Record<string, any> = {};
@@ -592,14 +616,34 @@ for (const p of producers) codeIndex[p.id] = { kind: "producer", crops: producer
 for (const l of lots) codeIndex[l.id] = { kind: "lot", crops: [l.pathCrop], title: l.name || `Lot ${l.date}`, url: lotHref(l) };
 for (const v of Object.values(codeIndex)) v.crop_labels = v.crops.map((c) => CROPS[c]?.label || c);
 await writeFile(path.join(DIST, "codes.json"), JSON.stringify(codeIndex, null, 1));
+// One JSON shape per record, shared by the data package and the API.
+const lotJson = (l) => ({ id: l.id, name: l.name ?? null, date: String(l.date), form: l.form ?? null, process: l.process ?? null, varieties: l.varieties ?? null,
+  quantity_kg: l.quantity_kg ?? null, traceability: l.traceability ?? null, processed_by: l.processed_by ?? null, roasted_by: l.roasted_by ?? null, sold_by: l.sold_by ?? null,
+  quality: l.quality ?? null, tested_by: l.tested_by ?? null, certificate: l.certificate ?? null, sources: l.sources || [], notes: l.notes || null, stories: l.linked.map((x) => x.id), producer: l.owner?.id ?? null, url: lotHref(l) });
+const storyJson = (s) => ({
+  id: s.id, path: `${s.crop}/${s.pathCountry}/${s.slug}`, kind: s.kind, origin: s.originStory ? s.originStory.id : null,
+  ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile", "photo", "photo_credit", "photo_license", "photo_source"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+  place_codes: placeCodes(s),
+  story: s.body, url: href(s),
+  lots: s.lots.map(lotJson),
+  translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
+});
+const varietyJson = (k) => ({
+  id: `${k.crop}/${k.slug}`, name: k.title, crop: k.crop, species: k.species, lineage: k.lineage ?? null, aliases: k.aliases || [],
+  stature: k.stature ?? null, yield_potential: k.yield_potential ?? null, quality_potential: k.quality_potential ?? null,
+  leaf_rust: k.leaf_rust ?? null, altitude_masl: k.altitude_masl ?? null, summary: k.summary, sources: k.sources || [],
+});
+const producerJson = (p) => ({
+  id: String(p.id), file: p.file, name: p.name, country: p.pathCountry.toUpperCase(), type: p.type ?? null, region: p.region ?? null, village: p.village ?? null,
+  since: p.since ?? null, farm_size_ha: p.farm_size_ha ?? null, members: p.members ?? null, website: p.website ?? null, consent: p.consent, sources: p.sources || [], about: p.body || null,
+  stories: p.stories.map((s) => s.id), url: producerHref(p),
+});
 await writeFile(path.join(DIST, ".nojekyll"), "");
 await exportData();
+await buildApi({ DIST, ROOT, SITE_URL, REPO, stories, producers, lots, knowledge, href, producerHref, lotHref, producerCrops, storyJson, producerJson, lotJson, varietyJson });
 
 // Open data export: a Frictionless Data Package (https://datapackage.org) with CSV + JSON, regenerated on every build.
 async function exportData() {
-  const lotJson = (l) => ({ id: l.id, name: l.name ?? null, date: String(l.date), form: l.form ?? null, process: l.process ?? null, varieties: l.varieties ?? null,
-    quantity_kg: l.quantity_kg ?? null, traceability: l.traceability ?? null, processed_by: l.processed_by ?? null, roasted_by: l.roasted_by ?? null, sold_by: l.sold_by ?? null,
-    quality: l.quality ?? null, tested_by: l.tested_by ?? null, certificate: l.certificate ?? null, sources: l.sources || [], notes: l.notes || null, stories: l.linked.map((x) => x.id), producer: l.owner?.id ?? null, url: lotHref(l) });
   const FIELDS = [
     ["id", "string", "permanent story id, e.g. S-K7M2XQ9P-V"], ["path", "string", "crop/country/slug of the story file"], ["kind", "string", "origin, farm or movement"], ["origin", "string", "id of the origin profile a farm or movement belongs to"],
     ["crop", "string", "coffee, cocoa, tea, spice, vanilla, honey or sugar"], ["country", "string", "ISO 3166-1 alpha-2"], ["region", "string", ""],
@@ -628,14 +672,7 @@ async function exportData() {
   }));
   const cell = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
   const csv = [FIELDS.map((f) => f[0]).join(","), ...rows.map((r) => FIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n";
-  const full = stories.map((s) => ({
-    id: id(s), path: pathOf(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : null,
-    ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile", "photo", "photo_credit", "photo_license", "photo_source"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
-    place_codes: placeCodes(s),
-    story: s.body, url: href(s),
-    lots: s.lots.map(lotJson),
-    translations: s.translations.map((t) => ({ language: t.language, title: t.title, summary: t.summary, translator: t.translator, story: t.body, ...(t.journey && { journey: t.journey }) })),
-  }));
+  const full = stories.map(storyJson);
   await mkdir(path.join(DIST, "data"), { recursive: true });
   await writeFile(path.join(DIST, "data", "stories.csv"), csv);
   await writeFile(path.join(DIST, "data", "stories.json"), JSON.stringify(full, null, 2));
@@ -654,17 +691,9 @@ async function exportData() {
     lot_id: l.id, crop: l.pathCrop, date: String(l.date), field: k, value: v, unit: qField(l.pathCrop, k)?.[2] || "", tested_by: l.tested_by || "",
   })));
   await writeFile(path.join(DIST, "data", "lot-quality.csv"), [QFIELDS.map((f) => f[0]).join(","), ...qrows.map((r) => QFIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n");
-  const varieties = knowledge.filter((k) => k.type === "variety").map((k) => ({
-    id: `${k.crop}/${k.slug}`, name: k.title, crop: k.crop, species: k.species, lineage: k.lineage ?? null, aliases: k.aliases || [],
-    stature: k.stature ?? null, yield_potential: k.yield_potential ?? null, quality_potential: k.quality_potential ?? null,
-    leaf_rust: k.leaf_rust ?? null, altitude_masl: k.altitude_masl ?? null, summary: k.summary, sources: k.sources || [],
-  }));
+  const varieties = knowledge.filter((k) => k.type === "variety").map(varietyJson);
   await writeFile(path.join(DIST, "data", "varieties.json"), JSON.stringify(varieties, null, 2));
-  const prods = producers.map((p) => ({
-    id: String(p.id), file: p.file, name: p.name, country: p.pathCountry.toUpperCase(), type: p.type ?? null, region: p.region ?? null, village: p.village ?? null,
-    since: p.since ?? null, farm_size_ha: p.farm_size_ha ?? null, members: p.members ?? null, website: p.website ?? null, consent: p.consent, sources: p.sources || [], about: p.body || null,
-    stories: p.stories.map((s) => id(s)), url: producerHref(p),
-  }));
+  const prods = producers.map(producerJson);
   await writeFile(path.join(DIST, "data", "producers.json"), JSON.stringify(prods, null, 2));
   const pkg = {
     name: "open-origin-stories",

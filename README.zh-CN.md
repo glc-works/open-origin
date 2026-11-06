@@ -27,6 +27,8 @@ ID 永不改变，因此名称和文件可以改名而不会断链。`/s/<id>/` 
 
 每次构建都会以 [Frictionless Data Package](https://datapackage.org) 格式发布整个合集：`datapackage.json` 以及 `stories.csv`/`.json`、`lots.csv`、`lot-quality.csv`、`producers.json` 和 `varieties.json`。
 
+同样的数据也以免费的只读 API 提供：每个编码一个 JSON 文件（`api/v1/lots/L-KPBJF525-D.json`）、按类型和作物的列表，以及新条目的 Atom/JSON 订阅源。从 [`api/v1/index.json`](https://glc-works.github.io/open-origin/api/v1/index.json) 开始；[API 页面](https://glc-works.github.io/open-origin/api/)有详细说明。
+
 ## 本地运行
 
 ```sh

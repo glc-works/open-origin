@@ -34,6 +34,21 @@ if (built.status === 0) {
   check(farm.includes('class="crop-tag">Cocoa'), "codes are shown with their crop");
   check(codes["P-TESTPQQW-T"]?.crops.includes("cocoa"), "a producer's crops include the lots filed under it");
   check(farm.includes('Tested by <a href="../../../../producers/P-TESTKABQ-3/">Test cocoa lab</a>') && read("producers/P-TESTKABQ-3/index.html").includes('id="L-TESTCQQ3-3"'), "tested_by can link to a lab profile, which lists the lots it tested");
+  // Public API: one file per code, in the collection its prefix names, with the licence in every response.
+  const api = (p) => JSON.parse(read(`api/v1/${p}`));
+  const idx = api("index.json");
+  check(idx.meta.license.name === "CC-BY-4.0" && idx.meta.attribution.includes("CC BY 4.0") && idx.data.endpoints.lot_by_id.endsWith("/api/v1/lots/{id}.json"), "API index lists endpoints and the licence");
+  const lot = api("lots/L-TESTCQQ3-3.json");
+  check(lot.data.id === "L-TESTCQQ3-3" && lot.data.crop === "cocoa" && lot.meta.links.permalink.endsWith("/s/L-TESTCQQ3-3/") && lot.meta.license.url.includes("by/4.0"), "a lot is served by its code, with crop and licence");
+  const origin = api("origins/O-TESTCQQW-P.json");
+  check(origin.data.place_codes.iso3166_2[0] === "ID-SR" && Array.isArray(origin.data.farms), "an origin is served with its place codes and farms");
+  check(api("producers/P-TESTKABQ-3.json").data.lots.includes("L-TESTCQQ3-3"), "a lab's API record lists the lots it tested");
+  const rows = api("origins.json");
+  check(rows.meta.count === rows.data.length && rows.data.every((r) => r.id.startsWith("O-") && r.api.endsWith(`/origins/${r.id}.json`)), "the origins list has one row per origin, each pointing at its file");
+  check(api("crops/cocoa.json").data.lots.some((r) => r.id === "L-TESTCQQ3-3"), "a crop file lists that crop's lots");
+  const feed = JSON.parse(read("feed.json"));
+  check(feed.version.includes("jsonfeed.org") && feed.items.length > 0 && feed.items.every((i) => i.date_published), "JSON Feed lists new records with dates");
+  check(read("feed.xml").includes("<feed xmlns=\"http://www.w3.org/2005/Atom\">") && read("api/index.html").includes("api/v1/index.json"), "Atom feed and the API page are built");
   rmSync(path.join(here, "fixtures", "good", "dist"), { recursive: true, force: true });
 }
 

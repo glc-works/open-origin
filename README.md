@@ -39,6 +39,8 @@ Ids never change, so names and files can be renamed without breaking links. `/s/
 
 Every build publishes the collection as a [Frictionless Data Package](https://datapackage.org): `datapackage.json` with `stories.csv`/`.json`, `lots.csv`, `lot-quality.csv`, `producers.json` and `varieties.json`. Story pages carry schema.org metadata.
 
+The same data is also a free read API: one JSON file per code (`api/v1/lots/L-KPBJF525-D.json`), lists per kind and per crop, and Atom/JSON feeds of what is new. Start at [`api/v1/index.json`](https://glc-works.github.io/open-origin/api/v1/index.json); the [API page](https://glc-works.github.io/open-origin/api/) explains it.
+
 ## Run it locally
 
 ```sh
