@@ -6,7 +6,7 @@ id: S-K7M2XQ9P-V                     # ID permanen, buat baru: npm run new-id / 
 title: Kebun Pak Rahman di lereng Burni Telong
 kind: farm
 traceability: farm                 # farm | group | region | country | blend
-origin: gayo                       # profil asal yang sudah ada / an existing origin profile
+origin: O-V9VR4CHS-Q               # kode profil asal (Gayo) / the origin profile's id
 crop: coffee
 country: ID
 region: Bener Meriah, Aceh

@@ -3,7 +3,7 @@ id: S-XVA2KFBB-U
 title: YCFCU, the union behind much of Yirgacheffe's coffee
 kind: farm
 traceability: group
-origin: yirgacheffe
+origin: O-SUVAHSWE-Y
 crop: coffee
 country: ET
 region: Gedeo Zone, South Ethiopia

@@ -71,7 +71,7 @@ const formsFor = (crop) => CROPS[crop]?.forms || [];
 export const TOLD_BY = ["farmer", "producer-group", "roaster", "researcher", "editor", "other"];
 
 // origin: a profile of a growing region (Gayo, Yirgacheffe). One per region, written from many sources.
-// farm: one farmer, farm or cooperative's own story. Many per origin; link it with `origin: <slug>`.
+// farm: one farmer, farm or cooperative's own story. Many per origin; link it with `origin: O-…` (the origin's id).
 // movement: a community, cooperative or initiative and what it changes.
 export const KINDS = ["origin", "farm", "movement"];
 
@@ -507,15 +507,28 @@ export function refsErrors(l: Lot): string[] {
   return errors;
 }
 
-// Links farm and movement stories to their origin profile. Returns errors keyed by file.
+// Links farm and movement stories to their origin profile. `origin` is the profile's permanent O- id, so renaming a
+// file never breaks the link; the profile's file name (same crop and country folder) is still read for older files.
+// Returns errors keyed by file.
 export function linkOrigins(stories) {
   const errors = new Map();
   for (const s of stories) {
     s.farms = s.farms || [];
     if (!s.origin) continue;
-    const o = stories.find((x) => x.kind === "origin" && x.slug === s.origin && x.pathCrop === s.pathCrop && x.pathCountry === s.pathCountry);
-    if (!o) errors.set(s.file, [`origin "${s.origin}" does not match an origin profile in stories/${s.pathCrop}/${s.pathCountry}/`]);
-    else { s.originStory = o; (o.farms = o.farms || []).push(s); }
+    const want = String(s.origin).trim();
+    const byId = /^o-?/i.test(want) ? parseId(want) : null;
+    const o = byId
+      ? stories.find((x) => x.kind === "origin" && String(x.id) === byId)
+      : stories.find((x) => x.kind === "origin" && x.slug === want && x.pathCrop === s.pathCrop && x.pathCountry === s.pathCountry);
+    if (!o) {
+      errors.set(s.file, [/^o-?[a-z0-9]{8}/i.test(want)
+        ? `origin "${want}" not found${idHint(want)}: use the O- id of an origin profile`
+        : `origin "${want}" does not match an origin profile; use its O- id (shown on the origin's page), e.g. origin: ${stories.find((x) => x.kind === "origin" && x.pathCrop === s.pathCrop)?.id || "O-…"}`]);
+    } else if (o.crop !== s.crop) errors.set(s.file, [`origin "${want}" is a ${o.crop} origin, but this story is ${s.crop}`]);
+    else {
+      s.originStory = o; (o.farms = o.farms || []).push(s);
+      if (byId && byId !== want) errors.set(s.file, [`write the origin id as ${byId}`]);
+    }
   }
   return errors;
 }

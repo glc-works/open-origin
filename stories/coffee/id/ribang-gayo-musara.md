@@ -3,7 +3,7 @@ id: S-W49ZKKQW-H
 title: Ribang Gayo Musara, naturals from Aceh's smallholders
 kind: farm
 traceability: group
-origin: gayo
+origin: O-V9VR4CHS-Q
 crop: coffee
 country: ID
 region: Aceh

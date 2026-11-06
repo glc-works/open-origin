@@ -23,7 +23,7 @@ export function sharePage({ t, lang, prefix, root, crops, origins, config, esc }
   const data = {
     lang, minStory: MIN_STORY, config: { relay_url: config.relay_url || "", turnstile_site_key: config.turnstile_site_key || "", photos: Boolean(config.photos && relay), contacts: Boolean(config.contacts && relay) },
     crops: Object.fromEntries(CROP_KEYS.map((c) => [c, { species: crops[c].species, processes: crops[c].processes }])),
-    origins: origins.map((o) => ({ slug: o.slug, title: o.title, crop: o.crop, country: o.country })),
+    origins: origins.map((o) => ({ id: o.id, title: o.title, crop: o.crop, country: o.country })),
     t: { next: t.next, back: t.back, send: relay ? t.send : t.sendGithub, sending: t.sending, speciesNone: t.speciesNone, originNone: t.originNone, located: t.located, locateFail: t.locateFail, unlocate: t.unlocate,
       thanks: t.thanks, thanksBody: t.thanksBody, another: t.another, offline: t.offline, failed: t.failed, tooMany: t.tooMany, fix: t.fix, errors: t.errors, left: t.left, githubLong: t.githubLong },
   };

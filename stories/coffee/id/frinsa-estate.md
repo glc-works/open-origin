@@ -3,7 +3,7 @@ id: S-JVWZ7AZR-B
 title: Frinsa Estate, a family farm and mill in Pangalengan
 kind: farm
 traceability: farm
-origin: java-preanger
+origin: O-CTAS36V5-R
 crop: coffee
 country: ID
 region: Pangalengan, Bandung, West Java

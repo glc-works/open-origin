@@ -39,7 +39,7 @@ Coffee is open first. The structure is ready for **cocoa, tea, spices, vanilla, 
 | `farm` | One farmer, farm or cooperative in their own words | Many per origin |
 | `movement` | A community, cooperative or initiative and what it changes | Many per origin |
 
-Farm and movement stories link to their region with `origin: <slug>`. Two farms in Gayo can be completely different; that difference is the point.
+Farm and movement stories link to their region with the origin's permanent id (`origin: O-…`). Two farms in Gayo can be completely different; that difference is the point.
 
 Every story can carry a **farm-to-cup journey**: ordered steps (`farm`, `harvest`, `process`, `dry`, `sort`, `roast`, `brew`, `market`).
 

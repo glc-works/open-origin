@@ -3,7 +3,7 @@ id: S-SKES2PCM-3
 title: Permata Gayo, a cooperative that sells honey lots direct
 kind: farm
 traceability: group
-origin: gayo
+origin: O-V9VR4CHS-Q
 crop: coffee
 country: ID
 region: Gayo Highlands, Aceh

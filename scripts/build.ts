@@ -99,7 +99,7 @@ const qField = (crop, k) => (QUALITY[crop] || []).find((f) => f[0] === k);
 const qText = (crop, k, v) => { const f = qField(crop, k); return f ? `${T.qfields[k] ?? f[1]} ${v}${f[2] ? ` ${f[2]}` : ""}` : `${k} ${v}`; };
 const origins = stories.filter((s) => s.kind === "origin");
 const voices = stories.filter((s) => s.kind !== "origin");
-const submitFor = (o, prefix) => `${prefix}${SUBMIT}?kind=farm&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region || "")}`;
+const submitFor = (o, prefix) => `${prefix}${SUBMIT}?kind=farm&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.id)}&region=${encodeURIComponent(o.region || "")}`;
 const nativeName = (code) => { try { return new Intl.DisplayNames([code], { type: "language" }).of(code); } catch { return code; } };
 // A language's name in the page's language ("Inggris" on an Indonesian page), for labels rather than switchers.
 const langLabel = (code) => { try { return new Intl.DisplayNames([T.locale], { type: "language" }).of(code); } catch { return code; } };

@@ -107,6 +107,7 @@ for (const expected of [
   `refs.barcode is not known`,
   `refs.skus must list each trader's code`,
   `an origin profile needs sources`,
+  `origin "O-TESTQQQQ-F" not found`,
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.
@@ -168,6 +169,10 @@ check(caught === tries, `every one-character typo of an id is caught (${caught}/
   check((await post({ ...good, fields: { ...sample, photo: "https://evil.example/x.jpg" } }).then(() => JSON.parse(sent.at(-1).init.body).body.includes("evil.example"))) === false, "only the relay can set the photo link");
   globalThis.fetch = realFetch;
 }
+// A form answer for "Which origin" becomes the origin's permanent id, whether typed as a code or a name.
+const { resolveOrigin } = await import("../scripts/issue-to-story.ts");
+const gayo = [{ id: "O-V9VR4CHS-Q", slug: "gayo", title: "Gayo, coffee from the shores of Lake Laut Tawar", crop: "coffee" }];
+check(resolveOrigin("o v9vr4chs q", "coffee", gayo) === "O-V9VR4CHS-Q" && resolveOrigin("Gayo", "coffee", gayo) === "O-V9VR4CHS-Q" && resolveOrigin("Gayo Highlands", "coffee", gayo) === "gayo-highlands", "a form's origin answer becomes the origin's id when it matches one");
 
 const broken = validate("broken");
 check(broken.status === 1 && broken.stderr.includes("broken.md (line 3)") && !broken.stderr.includes("    at "), "a YAML mistake names the file and line, without a stack trace");

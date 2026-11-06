@@ -2,7 +2,7 @@
 id: S-G8W36AFF-R
 title: Subak Abian, the custom that guards Kintamani's coffee
 kind: movement
-origin: kintamani
+origin: O-FAFSGWK5-P
 crop: coffee
 country: ID
 region: Bangli Regency, Bali
