@@ -10,6 +10,7 @@ import { buildApi } from "./api.ts";
 import { SCENES, sceneSvg } from "./scenes.ts";
 import QRCode from "qrcode";
 import { REFS } from "./schema.ts";
+import { TASTE_GROUPS, TASTE_WORDS, BASIC_TASTES, ACIDITY_TYPES, AFTERTASTE, DEFECTS, tasteGroups, tasteWord, groupName, basicLevel, type TasteGroup, type BasicTaste } from "./tastes.ts";
 import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, licenseUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.ts";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
@@ -188,10 +189,34 @@ function coverArt(s) {
   return `<svg class="cover-art" viewBox="0 0 300 128" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="${CROP_HUE[s.crop] || "var(--accent)"}" stroke-width="1.1" opacity=".55">${rings}</g></svg>`;
 }
 
+// Tasting notes in two levels: the group in everyday words ("Fruity"), then the taster's words ("lemon, orange").
+const tasteList = (words) => words.map((w) => tasteWord(w, LANG)).join(", ");
+const tastesHtml = (list) => tasteGroups(list).map(({ group, words }) =>
+  `<span class="tg tg-${group}"><b>${esc(groupName(group, LANG))}</b>${words.length ? `<span class="tw">${esc(tasteList(words))}</span>` : ""}</span>`).join(" ");
+// On a card only the groups show; the words are in the tooltip.
+const tasteChips = (list) => tasteGroups(list).map(({ group, words }) =>
+  `<span class="tg tg-${group}"${words.length ? ` title="${esc(tasteList(words))}"` : ""}>${esc(groupName(group, LANG))}</span>`).join("");
+const BASIC_KEYS = Object.keys(BASIC_TASTES) as BasicTaste[];
+const basicName = (k: BasicTaste) => (LANG === "id" ? BASIC_TASTES[k].id : BASIC_TASTES[k].en);
+const basicText = (x) => BASIC_KEYS.filter((k) => x[k]).map((k) => `${basicName(k)}: ${basicLevel(k, x[k], LANG)}`).join(" · ");
+// The four basic tastes as short scales, for the "at a glance" box and the lot table.
+const basicBars = (x) => BASIC_KEYS.filter((k) => x[k]).map((k) => {
+  const levels = Object.keys(BASIC_TASTES[k].levels), at = levels.indexOf(x[k]);
+  return `<div class="tb"><span>${esc(basicName(k))}</span><i role="img" aria-label="${esc(`${basicName(k)}: ${basicLevel(k, x[k], LANG)}`)}">${levels.map((_, i) => `<s${i <= at ? ' class="on"' : ""}></s>`).join("")}</i><em>${esc(basicLevel(k, x[k], LANG))}</em></div>`; }).join("");
+const pickWord = (map, v) => (LANG === "id" ? map[v] : null) || v;
+// Everything a lot says about its taste. Faults are only shown when someone tested the lot.
+const lotTaste = (l) => [
+  l.tasting_notes?.length ? `<div class="tastes">${tastesHtml(l.tasting_notes)}</div>` : "",
+  basicText(l) ? `<div>${esc(basicText(l))}</div>` : "",
+  l.acidity_type?.length ? `<div>${T.fields.acidityType}: ${esc(l.acidity_type.map((a) => pickWord(ACIDITY_TYPES, a)).join(", "))}</div>` : "",
+  l.aftertaste ? `<div>${T.fields.aftertaste}: ${esc(pickWord(AFTERTASTE, l.aftertaste))}</div>` : "",
+  l.defects?.length ? `<div>${T.fields.faults}: ${esc(l.defects.map((d) => pickWord(DEFECTS, d)).join(", "))}</div>` : "",
+].join("");
+
 // prefix: from the page the card sits on to its language root.
 function card(s, prefix = "") {
   const tr = inLang(s);
-  const v = tr ? { ...s, title: tr.title, summary: tr.summary, region: tr.region || s.region, tasting_notes: tr.tasting_notes || s.tasting_notes } : s;
+  const v = tr ? { ...s, title: tr.title, summary: tr.summary, region: tr.region || s.region } : s;
   const cover = s.photo
     ? `<img src="${esc(photoSrc(s, prefix))}" alt="" title="${esc(photoCreditText(s))}" loading="lazy">`
     : `${coverArt(s)}${s.altitude_masl ? `<span class="alt">${esc(num(s.altitude_masl[1]))}<small> ${T.masl}</small></span>` : ""}`;
@@ -203,7 +228,7 @@ function card(s, prefix = "") {
     <h3${tr ? ` lang="${LANG}"` : ""}>${esc(v.title)}</h3>
     <p${tr ? ` lang="${LANG}"` : ""}>${esc(v.summary)}</p>
     ${facts.length ? `<div class="facts">${facts.map((f) => `<span>${esc(f)}</span>`).join("")}</div>` : ""}
-    ${v.tasting_notes?.length ? `<div class="notes">${v.tasting_notes.map((n) => `<span>${esc(n)}</span>`).join("")}</div>` : ""}
+    ${s.tasting_notes?.length ? `<div class="notes tastes">${tasteChips(s.tasting_notes)}</div>` : ""}
     ${tr ? `<div class="facts"><span>${T.inYourLanguage}</span></div>`
       : s.translations.length ? `<div class="facts"><span>${T.alsoIn}: ${s.translations.map((t) => esc(nativeName(t.language))).join(", ")}</span></div>` : ""}
     <footer>${s.kind === "origin"
@@ -271,7 +296,7 @@ ${knowledge.length ? `<section id="learn"><div class="wrap">
   <p>${T.learnLede}</p></div>
   ${["species", "process", "variety", "term"].filter((t) => knowledge.some((k) => k.type === t)).map((t) => `
   <h3 class="group-title">${T.learnTypes[t]}</h3>
-  <div class="learn-grid">${knowledge.filter((k) => k.type === t).map((k) => { const v = inLang(k) || k; return `<a class="learn-item" href="learn/${k.crop}/${k.slug}/"${v !== k ? ` lang="${LANG}"` : ""}><h4>${esc(v.title)}</h4>${k.latin ? `<i>${esc(k.latin)}</i>` : ""}<p>${esc(v.summary)}</p></a>`; }).join("")}</div>`).join("")}
+  <div class="learn-grid">${knowledge.filter((k) => k.type === t).map((k) => { const v = inLang(k) || k; return `<a class="learn-item" href="learn/${k.crop}/${k.slug}/"${v !== k ? ` lang="${LANG}"` : ""}><h4>${esc(v.title)}</h4>${k.latin ? `<i>${esc(k.latin)}</i>` : ""}<p>${esc(v.summary)}</p></a>`; }).join("")}${t === "term" ? `<a class="learn-item" href="learn/tastes/"><h4>${T.tastesTitle}</h4><p>${esc(Object.keys(TASTE_GROUPS).map((g) => groupName(g as TasteGroup, LANG)).join(" · "))}</p></a>` : ""}</div>`).join("")}
 </div></section>` : ""}
 
 <section id="contribute"><div class="wrap">
@@ -298,6 +323,37 @@ document.querySelectorAll("[data-jump]").forEach((a) => a.addEventListener("clic
   if (b) apply(b);
 }));
 </script>
+${footer()}`;
+}
+
+// The tasting list: the ten groups with their words, the basic tastes and the faults.
+function tastesPage() {
+  const prefix = "../../";
+  const wordsOf = (g) => Object.entries(TASTE_WORDS).filter(([, w]) => w.group === g);
+  const name = (en, w) => (LANG === "id" ? `${w.id}${w.id !== en ? ` <span class="muted">(${esc(en)})</span>` : ""}` : `${esc(en)}${w.id !== en ? ` <span class="muted" lang="id">(${esc(w.id)})</span>` : ""}`);
+  return `${head(`${T.tastesTitle} · Open Origin`, T.tastesIntro, prefix, "", "learn/tastes/")}
+<main><div class="wrap">
+<article class="story">
+  <div>
+    <a class="back" href="${prefix}#learn">${T.learnBack}</a>
+    <h1 style="margin-top:18px">${T.tastesTitle}</h1>
+    <p style="margin-top:20px">${T.tastesIntro}</p>
+    <p class="part-of">${T.tastesAdd}</p>
+  </div>
+  <div class="prose">
+    <div class="taste-groups">${(Object.keys(TASTE_GROUPS) as TasteGroup[]).map((g) => `<section class="taste-group tg-${g}" id="${g}">
+      <h2><span class="tg tg-${g}">${esc(groupName(g, LANG))}</span></h2>
+      <ul>${wordsOf(g).map(([en, w]) => `<li>${name(en, w)}${w.wheel ? ` <small title="${T.tastesWheel}">${esc(w.wheel)}</small>` : ""}</li>`).join("")}</ul></section>`).join("")}</div>
+    <h2 class="journey-title">${T.tastesBasic}</h2>
+    <p>${T.tastesBasicIntro}</p>
+    <dl class="passport">${BASIC_KEYS.map((k) => `<div><dt>${esc(basicName(k))} <code>${k}</code></dt><dd>${Object.keys(BASIC_TASTES[k].levels).map((lv) => esc(basicLevel(k, lv, LANG))).join(" · ")}</dd></div>`).join("")}</dl>
+    <h2 class="journey-title">${T.tastesFaults}</h2>
+    <p>${T.tastesFaultsIntro}</p>
+    <p>${Object.keys(DEFECTS).map((d) => esc(pickWord(DEFECTS, d))).join(" · ")}</p>
+    <p class="eyebrow" style="margin-top:2em"><a href="${prefix}${UP}data/tastes.json">tastes.json</a> · <a href="${REPO}/blob/main/scripts/tastes.ts">scripts/tastes.ts</a></p>
+  </div>
+</article>
+</div></main>
 ${footer()}`;
 }
 
@@ -374,8 +430,8 @@ const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table 
         ${from.length ? `<div class="muted">${here ? esc(T.blendedWith(cropLabel(crop).toLowerCase())) : l.linked.length > 1 ? T.blendFrom : T.from} ${andList(from.map((x) => `<a href="${prefix}${href(x)}">${esc(x.producer)}</a>`))}</div>` : ""}
         ${here && l.owner ? `<div class="muted">${T.filedBy} ${party(l.owner.id, prefix)}</div>` : ""}
         ${l.processed_by ? `<div class="muted">${T.processedBy} ${party(l.processed_by, prefix)}</div>` : ""}${l.roasted_by ? `<div class="muted">${T.roastedBy} ${party(l.roasted_by, prefix)}</div>` : ""}${l.sold_by ? `<div class="muted">${T.soldBy} ${party(l.sold_by, prefix)}</div>` : ""}</td>
-      <td data-label="${T.quality}">${l.quality && Object.keys(l.quality).length
-        ? `<div>${Object.entries(l.quality).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("")}</div><div class="muted">${l.tested_by ? `${T.testedBy} ${party(l.tested_by, prefix)}` : T.selfReported}</div>`
+      <td data-label="${T.quality}">${(l.quality && Object.keys(l.quality).length) || lotTaste(l)
+        ? `${l.quality && Object.keys(l.quality).length ? `<div>${Object.entries(l.quality).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("")}</div>` : ""}${lotTaste(l) ? `<div class="lot-taste">${lotTaste(l)}</div>` : ""}<div class="muted">${l.tested_by ? `${T.testedBy} ${party(l.tested_by, prefix)}` : T.selfReported}</div>`
         : `<span class="muted">${T.notMeasured}</span>`}</td>
       <td data-label="${T.sources}">${[l.certificate ? `<a href="${esc(l.certificate)}">${T.certificate}</a>` : "",
         ...(l.sources || []).map((u, i) => `<a href="${esc(u)}">${T.source}${l.sources.length > 1 ? ` ${i + 1}` : ""}</a>`)].filter(Boolean).map((x) => `<div>${x}</div>`).join("")}</td></tr>
@@ -417,6 +473,10 @@ function glance(s, v, prefix) {
   if (s.process?.length || s.species) {
     panels.push(`<figure class="g-panel g-words"><div>${[s.species ? termLink(s.crop, s.species, prefix, term(s.crop, s.species)) : "", ...(s.process || []).map((p) => termLink(s.crop, p, prefix, term(s.crop, p, p)))].filter(Boolean).join("<br>")}</div>
       <figcaption><b>${esc(cropLabel(s.crop))}</b><span>${s.varieties?.length ? esc(s.varieties.join(" · ")) : T.fields.process}</span></figcaption></figure>`);
+  }
+  if (s.tasting_notes?.length || basicText(s)) {
+    panels.push(`<figure class="g-panel g-taste">${basicBars(s) ? `<div class="tbars">${basicBars(s)}</div>` : ""}${s.tasting_notes?.length ? `<div class="tastes">${tastesHtml(s.tasting_notes)}</div>` : ""}
+      <figcaption><b>${T.fields.tasteProfile}</b><span><a href="${prefix}learn/tastes/">${T.tastesTitle}</a></span></figcaption></figure>`);
   }
   return panels.length >= 2 ? `<section class="glance" aria-label="${T.glance}"><h2 class="eyebrow">${T.glance}</h2><div class="g-grid">${panels.join("")}</div></section>` : "";
 }
@@ -467,7 +527,7 @@ const JOURNEY_JS = `(() => {
 
 function storyPage(s, t = null) {
   const prefix = t ? "../../../../../" : "../../../../";
-  const v = t ? { ...s, ...Object.fromEntries(["title", "summary", "region", "tasting_notes"].filter((k) => t[k]).map((k) => [k, t[k]])), body: t.body, language: t.language } : s;
+  const v = t ? { ...s, ...Object.fromEntries(["title", "summary", "region"].filter((k) => t[k]).map((k) => [k, t[k]])), body: t.body, language: t.language } : s;
   // On a page in another interface language, point to the story's translation into it when there is one.
   const own = LANG !== DEFAULT_LANG && v.language !== LANG && s.translations.some((x) => x.language === LANG) ? `${t ? "../" : ""}${LANG}/` : "";
   const journeyText = (j, i) => (t?.journey ? t.journey[i] : j.text);
@@ -529,7 +589,8 @@ function storyPage(s, t = null) {
       ${rowHtml(F.process, (s.process || []).map((p) => termLink(s.crop, p, prefix, term(s.crop, p, p))).join(", "))}
       ${row(F.harvest, s.harvest)}
       ${row(F.traceability, s.traceability && T.trace[s.traceability])}
-      ${row(F.tastes, (v.tasting_notes || []).join(", "))}
+      ${rowHtml(F.tastes, s.tasting_notes?.length ? `<a class="tastes" href="${prefix}learn/tastes/">${tastesHtml(s.tasting_notes)}</a>` : "")}
+      ${row(F.tasteProfile, basicText(s))}
       ${row(F.toldBy, T.told[s.told_by])}
       ${rowHtml(F.code, `<a href="${prefix}${UP}s/${esc(s.id)}/">${codeTag(s.id, s.crop)}</a>`)}
       ${rowHtml(F.areaCodes, areaHtml(s))}
@@ -695,7 +756,7 @@ function discoverPage() {
       crop: s.crop, kind: s.kind,
       // What the search box matches: names, places, varieties, processes, the code, the crop.
       text: [s.title, s.producer, s.region, countryName.of(s.country), s.country, CROPS[s.crop].label, cropLabel(s.crop), s.crop, KIND[s.kind] || s.kind, s.species,
-        ...(s.varieties || []), ...(s.process || []), ...(s.tasting_notes || []), s.id, s.originStory?.title].filter(Boolean).join(" ").toLowerCase(),
+        ...(s.varieties || []), ...(s.process || []), ...(s.tasting_notes || []).flatMap((n) => [n, tasteWord(n, LANG)]), ...tasteGroups(s.tasting_notes).map((g) => groupName(g.group, LANG)), s.id, s.originStory?.title].filter(Boolean).join(" ").toLowerCase(),
       html: `<a href="${prefix}${href(s)}">${esc(s.title)}</a><span>${esc(KIND[s.kind] || s.kind)} · ${esc(cropLabel(s.crop))}${s.region ? ` · ${esc(s.region)}` : ""}</span>`,
     };
   });
@@ -962,6 +1023,7 @@ for (const lang of LANGS) {
   for (const k of knowledge) await page(path.join("learn", k.crop, k.slug), learnPage(k));
   for (const p of producers) await page(producerHref(p), producerPage(p));
   await page("codes", await codesPage());
+  await page(path.join("learn", "tastes"), tastesPage());
   await page("api", await apiPage());
   await page("share", sharePageHtml());
   await page("discover", discoverPage());
@@ -1024,10 +1086,14 @@ await writeFile(path.join(DIST, "codes.json"), JSON.stringify(codeIndex, null, 1
 // One JSON shape per record, shared by the data package and the API.
 const lotJson = (l) => ({ id: l.id, name: l.name ?? null, date: String(l.date), form: l.form ?? null, process: l.process ?? null, varieties: l.varieties ?? null,
   quantity_kg: l.quantity_kg ?? null, traceability: l.traceability ?? null, processed_by: l.processed_by ?? null, roasted_by: l.roasted_by ?? null, sold_by: l.sold_by ?? null,
-  quality: l.quality ?? null, tested_by: l.tested_by ?? null, certificate: l.certificate ?? null, sources: l.sources || [], notes: l.notes || null, stories: l.linked.map((x) => x.id), producer: l.owner?.id ?? null, url: lotHref(l) });
+  quality: l.quality ?? null,
+  ...Object.fromEntries(["tasting_notes", "acidity", "sweetness", "bitterness", "mouthfeel", "acidity_type", "aftertaste", "defects"].filter((k) => l[k] !== undefined).map((k) => [k, l[k]])),
+  ...(l.tasting_notes && { taste_groups: tasteGroups(l.tasting_notes).map((g) => g.group) }),
+  tested_by: l.tested_by ?? null, certificate: l.certificate ?? null, sources: l.sources || [], notes: l.notes || null, stories: l.linked.map((x) => x.id), producer: l.owner?.id ?? null, url: lotHref(l) });
 const storyJson = (s) => ({
   id: s.id, path: `${s.crop}/${s.pathCountry}/${s.slug}`, kind: s.kind, origin: s.originStory ? s.originStory.id : null,
-  ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile", "photo", "photo_credit", "photo_license", "photo_source"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+  ...Object.fromEntries(["crop", "country", "region", "producer", "species", "altitude_masl", "varieties", "process", "harvest", "tasting_notes", "acidity", "sweetness", "bitterness", "mouthfeel", "coords", "title", "summary", "language", "told_by", "contributor", "journey", "sources", "traceability", "profile", "photo", "photo_credit", "photo_license", "photo_source"].filter((k) => s[k] !== undefined).map((k) => [k, s[k]])),
+  ...(s.tasting_notes && { taste_groups: tasteGroups(s.tasting_notes).map((g) => g.group) }),
   place_codes: placeCodes(s),
   story: s.body, url: href(s),
   lots: s.lots.map(lotJson),
@@ -1054,7 +1120,8 @@ async function exportData() {
     ["crop", "string", "coffee, cocoa, tea, spice, vanilla, honey or sugar"], ["country", "string", "ISO 3166-1 alpha-2"], ["region", "string", ""],
     ["producer", "string", ""], ["species", "string", ""], ["altitude_min_masl", "integer", ""], ["altitude_max_masl", "integer", ""],
     ["varieties", "string", "separated by ; "], ["process", "string", "separated by ; "], ["harvest", "string", ""],
-    ["tasting_notes", "string", "separated by ; "], ["latitude", "number", "rounded to 2 decimals"], ["longitude", "number", "rounded to 2 decimals"],
+    ["tasting_notes", "string", "words from the tasting list (data/tastes.json), separated by ; "], ["taste_groups", "string", "the groups of those words, separated by ; "],
+    ["acidity", "string", "low, soft, bright or sharp"], ["sweetness", "string", "low, medium or high"], ["bitterness", "string", "low, medium or high"], ["mouthfeel", "string", "body: light, medium, heavy or syrupy"], ["latitude", "number", "rounded to 2 decimals"], ["longitude", "number", "rounded to 2 decimals"],
     ["iso3166_2", "string", "ISO 3166-2 province codes, separated by ; "], ["admin_codes", "string", "national area codes (Indonesia: Kemendagri), separated by ; "],
     ["wikidata", "string", "Wikidata ids, separated by ; "], ["geonames", "string", "GeoNames ids, separated by ; "],
     ["plus_code", "string", "Open Location Code of the 0.05 degree cell holding the coordinates"], ["h3_cell", "string", "H3 cell at resolution 7 holding the coordinates"],
@@ -1069,7 +1136,8 @@ async function exportData() {
     id: id(s), path: pathOf(s), kind: s.kind, origin: s.originStory ? id(s.originStory) : "", crop: s.crop, country: s.country, region: s.region || "",
     producer: s.producer, species: s.species || "", altitude_min_masl: s.altitude_masl?.[0] ?? "", altitude_max_masl: s.altitude_masl?.[1] ?? "",
     varieties: (s.varieties || []).join("; "), process: (s.process || []).join("; "), harvest: s.harvest || "",
-    tasting_notes: (s.tasting_notes || []).join("; "), latitude: s.coords?.[0] ?? "", longitude: s.coords?.[1] ?? "",
+    tasting_notes: (s.tasting_notes || []).join("; "), taste_groups: tasteGroups(s.tasting_notes).map((g) => g.group).join("; "),
+    acidity: s.acidity || "", sweetness: s.sweetness || "", bitterness: s.bitterness || "", mouthfeel: s.mouthfeel || "", latitude: s.coords?.[0] ?? "", longitude: s.coords?.[1] ?? "",
     ...Object.fromEntries(Object.entries(placeCodes(s)).map(([k, v]) => [k, Array.isArray(v) ? v.join("; ") : v])),
     traceability: s.traceability || "", lots: s.lots.length,
     title: s.title, summary: s.summary, language: s.language, translations: s.translations.map((t) => t.language).join("; "),
@@ -1085,10 +1153,13 @@ async function exportData() {
   const LFIELDS = [["id", "string", "permanent lot id, e.g. L-K7M2XQ9P-P"], ["story_ids", "string", "stories the lot comes from, separated by ; (several for a blend)"], ["producer", "string", "producer profile the lot is filed under"], ["crop", "string", ""], ["name", "string", ""],
     ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"], ["form", "string", "state the lot is sold in; the options depend on the crop"], ["process", "string", "separated by ; "], ["varieties", "string", "separated by ; "],
     ["quantity_kg", "number", ""], ["traceability", "string", ""], ["processed_by", "string", "name or producer id"], ["roasted_by", "string", "name or producer id"], ["sold_by", "string", "name or producer id"], ["tested_by", "string", "name or producer id of the lab or grader"],
-    ["certificate", "string", ""]];
+    ["certificate", "string", ""], ["tasting_notes", "string", "words from the tasting list, separated by ; (tested_by says who tasted; empty means self-reported)"],
+    ["acidity", "string", ""], ["sweetness", "string", ""], ["bitterness", "string", ""], ["mouthfeel", "string", "body"], ["acidity_type", "string", "separated by ; "], ["aftertaste", "string", ""], ["defects", "string", "faults in the cup, separated by ; "]];
   const lrows = lots.map((l) => ({ id: l.id, story_ids: l.linked.map(id).join("; "), producer: l.owner?.id || "", crop: l.pathCrop, name: l.name || "", date: String(l.date), form: l.form || "",
     process: (l.process || []).join("; "), varieties: (l.varieties || []).join("; "), quantity_kg: l.quantity_kg ?? "", traceability: l.traceability || "",
-    processed_by: l.processed_by || "", roasted_by: l.roasted_by || "", sold_by: l.sold_by || "", tested_by: l.tested_by || "", certificate: l.certificate || "" }));
+    processed_by: l.processed_by || "", roasted_by: l.roasted_by || "", sold_by: l.sold_by || "", tested_by: l.tested_by || "", certificate: l.certificate || "",
+    tasting_notes: (l.tasting_notes || []).join("; "), acidity: l.acidity || "", sweetness: l.sweetness || "", bitterness: l.bitterness || "", mouthfeel: l.mouthfeel || "",
+    acidity_type: (l.acidity_type || []).join("; "), aftertaste: l.aftertaste || "", defects: (l.defects || []).join("; ") }));
   await writeFile(path.join(DIST, "data", "lots.csv"), [LFIELDS.map((f) => f[0]).join(","), ...lrows.map((r) => LFIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n");
   const QFIELDS = [["lot_id", "string", "permanent lot id"], ["crop", "string", ""], ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"],
     ["field", "string", "quality field, see the crop's list in CONTRIBUTING.md"], ["value", "string", ""], ["unit", "string", ""], ["tested_by", "string", ""]];
@@ -1097,6 +1168,7 @@ async function exportData() {
   })));
   await writeFile(path.join(DIST, "data", "lot-quality.csv"), [QFIELDS.map((f) => f[0]).join(","), ...qrows.map((r) => QFIELDS.map((f) => cell(r[f[0]])).join(","))].join("\n") + "\n");
   const varieties = knowledge.filter((k) => k.type === "variety").map(varietyJson);
+  await writeFile(path.join(DIST, "data", "tastes.json"), JSON.stringify({ groups: TASTE_GROUPS, words: TASTE_WORDS, basic_tastes: BASIC_TASTES, acidity_types: ACIDITY_TYPES, aftertaste: AFTERTASTE, defects: DEFECTS }, null, 2));
   await writeFile(path.join(DIST, "data", "varieties.json"), JSON.stringify(varieties, null, 2));
   const prods = producers.map(producerJson);
   await writeFile(path.join(DIST, "data", "producers.json"), JSON.stringify(prods, null, 2));
@@ -1120,6 +1192,7 @@ async function exportData() {
         schema: { fields: QFIELDS.map(([name, type, description]) => ({ name, type, ...(description && { description }) })) } },
       { name: "producers", path: "data/producers.json", format: "json", mediatype: "application/json",
         description: "Profiles of farmers, producer groups, estates, processing facilities and roasters, and the stories linked to them." },
+      { name: "tastes", path: "data/tastes.json", format: "json", mediatype: "application/json", description: "The tasting list: ten groups, the words in each (English and Indonesian), basic tastes, acidity types, aftertaste and faults" },
       { name: "varieties", path: "data/varieties.json", format: "json", mediatype: "application/json",
         description: "Plant varieties with species, lineage, local names and agronomic traits." },
     ],

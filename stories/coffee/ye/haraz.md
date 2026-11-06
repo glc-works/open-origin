@@ -16,7 +16,7 @@ area:
 producer: Coffee farmers of the Haraz mountains
 species: arabica
 process: [natural]
-tasting_notes: [flowers, dark berries, chocolate, cedar]
+tasting_notes: [floral, berry, chocolate, cedar]
 summary: Stone terraces and fortified villages between Sanaa and the Red Sea, one of the old sources of the coffee once shipped from the port of Mocha.
 coords: [15.17, 43.75]
 language: en

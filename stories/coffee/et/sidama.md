@@ -17,7 +17,7 @@ producer: Sidama smallholder coffee farmers
 species: arabica
 altitude_masl: [1500, 2200]
 process: [washed]
-tasting_notes: [berries, citrus, lemon]
+tasting_notes: [berry, citrus, lemon]
 summary: Highland farms north of Gedeo that supply a large share of Ethiopia's washed coffee, in a region that won self-rule by referendum in 2019.
 coords: [6.67, 38.5]
 language: en

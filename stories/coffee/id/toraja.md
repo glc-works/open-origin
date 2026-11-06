@@ -20,7 +20,7 @@ altitude_masl: [1400, 1900]
 varieties: [S795, Typica]
 process: [wet-hulled, washed]
 harvest: May–Sep
-tasting_notes: [milk chocolate, sweet spice, dark fruit]
+tasting_notes: [milk chocolate, spice, dark fruit]
 summary: Farms among rocky hills and terraced rice fields, revived in the 1970s and now a pride of Japanese cafés.
 coords: [-3.05, 119.85]
 language: en

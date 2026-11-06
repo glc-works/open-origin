@@ -127,6 +127,7 @@ Copy [`templates/lot.md`](templates/lot.md). Only `id` (`L-`, 8 characters and a
 - `processed_by`, `roasted_by` and `sold_by` take a name or a producer id (`P-...`). An id links to that producer's profile, and the lot is also listed there.
 - `sources`: links to where the lot's details were published
 - `quality`, `tested_by` and a `certificate` link. A cupping score always needs `tested_by`, even when you scored it yourself. `tested_by` is a name (e.g. "Licensed Q Grader, name and licence number") or the `P-` id of a lab profile, which then links to it and lists the lots it tested.
+- How it tastes, all optional: `tasting_notes` (at most 4 words from the tasting list), the basic tastes `acidity`, `sweetness`, `bitterness` and `mouthfeel`, and for a taster `acidity_type` (citric, malic, phosphoric, acetic, tartaric), `aftertaste` (short, medium, long) and `defects` (faults in the cup, e.g. [musty]). Without `tested_by` they show as self-reported.
 
 Quality fields per crop:
 
@@ -184,7 +185,6 @@ summary: Translated summary, at most 200 characters.
 language: en            # must match the file name
 translator: Your name
 region: Central Aceh & Bener Meriah, Aceh     # optional
-tasting_notes: [dark chocolate, spice]        # optional
 journey:                                      # optional, same number of steps as the story
   - Ripe red cherries are picked by hand.
 ---
@@ -199,6 +199,17 @@ A Learn entry is translated the same way: add `<entry>.<language>.md` next to it
 ### Translating the site itself
 
 The site's own words (menus, labels, buttons) live in [`scripts/i18n.ts`](scripts/i18n.ts). English is served at the root of the site and Indonesian under `/id/`, with the same paths below it. To add a language, copy the `id` block in that file, give it the new language code, translate the values and add the code to `LANGS`; anything you leave out shows in English. A translated page such as `pages/codes.id.md` is picked up by its language code. On a page in another language, each story card leads to the story's translation into that language when there is one; otherwise the story is shown as it was told.
+
+## Tasting notes
+
+Tasting notes come from one list, [`scripts/tastes.ts`](scripts/tastes.ts), shown on the site at [Learn › Tasting words](https://glc-works.github.io/open-origin/learn/tastes/). It has two levels:
+
+- **Ten groups** in everyday words: Fruity, Floral, Sweet, Chocolate, Nutty, Spice, Fresh & herbal, Earthy & woody, Smoky & roasted, Fermented. Cards and the "at a glance" box show these.
+- **Detail words** such as lemon, palm sugar or cinnamon. Each belongs to exactly one group, so a story only lists the words and the group follows.
+
+The groups follow the structure of the Coffee Taster's Flavor Wheel ([Spencer et al. 2016](https://escholarship.org/uc/item/11x4j422)) (SCA and World Coffee Research), written in our own words. Body and acidity are not tasting notes: use the `mouthfeel` and `acidity` fields. Faults in the cup go in a lot's `defects`.
+
+Write the words in English in the file; the site shows them in the reader's language. A word that is not on the list fails `npm run check` with the nearest known word as a hint. If it really is a different taste, add a line to `TASTE_WORDS` with its group and Indonesian name in the same pull request. The story forms offer the list as tick boxes, plus an "Other" box for anything missing, which an editor then adds.
 
 ## Story format
 
@@ -216,7 +227,9 @@ altitude_masl: [1200, 1700]   # optional, metres above sea level
 varieties: [Tim Tim, Ateng Super]          # optional
 process: [wet-hulled, natural]             # optional
 harvest: Okt–Jun                           # optional
-tasting_notes: [cokelat hitam, rempah]     # optional, at most 4
+tasting_notes: [dark chocolate, spice, palm sugar]  # optional, at most 4, from the tasting list (below)
+acidity: soft                 # optional basic tastes: acidity low|soft|bright|sharp, sweetness and bitterness low|medium|high,
+mouthfeel: heavy              #   mouthfeel (body) light|medium|heavy|syrupy
 summary: One or two sentences, at most 200 characters, shown on the card.
 photo: photos/id/gayo.jpg     # optional, a path in this repo or an https URL
 photo_credit: Name            # required when there is a photo

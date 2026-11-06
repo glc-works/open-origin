@@ -6,6 +6,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { ROOT, CROPS, STORIES_DIR, newId, ID_PREFIX } from "./lib.ts";
 import { LABELS, ORDER } from "./story-form.ts";
+import { toTasteKey, MAX_TASTING_NOTES } from "./tastes.ts";
 
 
 // Splits the issue body on the form's own headings only, so a "### ..." line written inside a story stays in the story.
@@ -62,7 +63,7 @@ export function toStory(f, { number, author }) {
     ...(f.varieties && { varieties: list(f.varieties) }),
     ...(f.process && { process: list(f.process) }),
     ...(f.harvest && { harvest: f.harvest }),
-    ...(f.tasting_notes && { tasting_notes: list(f.tasting_notes).slice(0, 4) }),
+    ...(f.tasting_notes && { tasting_notes: [...new Set(list(f.tasting_notes).map(toTasteKey))].slice(0, MAX_TASTING_NOTES) }),
     ...(journey?.length && { journey }),
     summary: f.summary?.replace(/\s+/g, " ").trim(),
     ...(coords && { coords: [Math.round(coords[1] * 100) / 100, Math.round(coords[2] * 100) / 100] }),

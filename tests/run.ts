@@ -35,6 +35,8 @@ if (built.status === 0) {
   check(farm.includes('class="crop-tag">Cocoa'), "codes are shown with their crop");
   check(codes["P-TESTPQQW-T"]?.crops.includes("cocoa"), "a producer's crops include the lots filed under it");
   check(farm.includes('Tested by <a href="../../../../producers/P-TESTKABQ-3/">Test cocoa lab</a>') && read("producers/P-TESTKABQ-3/index.html").includes('id="L-TESTCQQ3-3"'), "tested_by can link to a lab profile, which lists the lots it tested");
+  check(farm.includes('class="tg tg-fruity"><b>Fruity</b><span class="tw">red fruit</span>') && farm.includes("Bitterness: low") && read("id/stories/cocoa/id/test-cocoa-farm/index.html").includes("<b>Buah</b><span class=\"tw\">buah merah</span>"), "tasting notes show their group, in the page's language");
+  check(read("learn/tastes/index.html").includes('id="fermented"') && JSON.parse(read("data/tastes.json")).words["palm sugar"].id === "gula aren", "the tasting list has its own page and data file");
   const share = read("id/share/index.html");
   check(share.includes('<html lang="id">') && share.includes('id="share"') && share.includes("Kirim") && share.includes('src="../../share.js"') && read("share/index.html").includes('src="../share.js"'), "the story form is built in English at /share/ and Indonesian at /id/share/");
   check(read("index.html").includes('href="share/"') && read("id/index.html").includes('href="share/"'), "the header and buttons lead to the story form in the page's language");
@@ -104,7 +106,22 @@ for (const expected of [
   `refs.gln 614141000005 must be in quotes`,
   `refs.barcode is not known`,
   `refs.skus must list each trader's code`,
+  `tasting note "flowers" is not in the list; did you mean "floral"?`,
+  `tasting note "durian" is not in the list; add it to scripts/tastes.ts`,
+  `tasting note "heavy body" is a basic taste: use the mouthfeel field instead`,
+  `acidity must be one of: low, soft, bright, sharp`,
+  `defects "smelly" is not one of:`,
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
+
+// The tasting list: every word in a known group, Indonesian names unique, form input read back to the list's words.
+{
+  const { TASTE_WORDS, TASTE_GROUPS, toTasteKey, tasteGroups } = await import("../scripts/tastes.ts");
+  const ids = Object.values(TASTE_WORDS).map((w) => w.id);
+  check(Object.values(TASTE_WORDS).every((w) => TASTE_GROUPS[w.group]) && new Set(ids).size === ids.length, "every tasting word has a group and its own Indonesian name");
+  check(Object.values(TASTE_GROUPS).every((g) => !g.general || TASTE_WORDS[g.general]?.group === Object.keys(TASTE_GROUPS).find((k) => TASTE_GROUPS[k] === g)), "each group's general word belongs to that group");
+  check(toTasteKey("Gula Aren") === "palm sugar" && toTasteKey("lemon") === "lemon" && toTasteKey("durian") === "durian", "a typed tasting word in English or Indonesian becomes the list's word");
+  check(JSON.stringify(tasteGroups(["lemon", "palm sugar", "orange", "floral"])) === JSON.stringify([{ group: "fruity", words: ["lemon", "orange"] }, { group: "sweet", words: ["palm sugar"] }, { group: "floral", words: [] }]), "words are grouped in the order they come, the group's own word left out");
+}
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.
 const { parseId, newId } = await import("../scripts/lib.ts");

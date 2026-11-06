@@ -20,7 +20,8 @@ altitude_masl: [1100, 1600]
 varieties: [Typica, USDA, Kartika]
 process: [washed]
 harvest: Jun–Sep
-tasting_notes: [nuts, gentle spice, soft acidity]
+tasting_notes: [nuts, spice]
+acidity: soft
 summary: Dutch-era estates near the famous blue-fire crater, processed by the fully washed method for a clean, tidy cup.
 coords: [-7.98, 114.05]
 language: en

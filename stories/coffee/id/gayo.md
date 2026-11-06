@@ -20,7 +20,8 @@ altitude_masl: [900, 1700]
 varieties: [Tim Tim, Ateng Super, Gayo 1]
 process: [wet-hulled, natural, honey]
 harvest: Oct–Jun
-tasting_notes: [dark chocolate, spice, herbs, heavy body]
+tasting_notes: [dark chocolate, spice, herbal]
+mouthfeel: heavy
 summary: Family plots shaded by lamtoro trees, rebuilt by farmer cooperatives after peace came to Aceh in 2005.
 coords: [4.62, 96.85]
 language: en

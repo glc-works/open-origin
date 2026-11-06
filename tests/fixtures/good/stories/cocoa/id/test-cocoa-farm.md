@@ -10,7 +10,9 @@ producer: Test group
 species: trinitario
 varieties: [MCC 02, Sulawesi 1]
 process: [fermented]
-tasting_notes: [red fruit, caramel]
+tasting_notes: [red fruit, caramel, roasted nut]
+bitterness: low
+mouthfeel: heavy
 summary: test
 language: en
 told_by: farmer

@@ -17,7 +17,7 @@ altitude_masl: [1450, 1550]
 varieties: [Ateng Super, Tim Tim]
 process: [natural]
 harvest: Okt–Mar
-tasting_notes: [nangka, cokelat, gula aren]
+tasting_notes: [jackfruit, chocolate, palm sugar]  # kata dari daftar rasa / words from the tasting list
 summary: Kebun keluarga dua hektare yang beralih dari giling basah ke proses natural agar rasa buahnya lebih keluar.
 coords: [4.77, 96.81]              # 2 desimal saja / 2 decimals only
 # area:                            # opsional: kode wilayah umum / optional public area codes

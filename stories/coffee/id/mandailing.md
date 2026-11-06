@@ -20,7 +20,7 @@ altitude_masl: [1000, 1500]
 varieties: [Sigarar Utang, Ateng, Lini S]
 process: [wet-hulled]
 harvest: Sep–Dec
-tasting_notes: [cinnamon, wet earth, palm sugar]
+tasting_notes: [cinnamon, earthy, palm sugar]
 summary: The coffee that shaped the "Sumatran taste" in world markets, with a variety whose name means "debt payer".
 coords: [0.75, 99.45]
 language: en

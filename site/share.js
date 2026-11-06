@@ -45,7 +45,17 @@
   const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const country = () => (form.country.value || $("f-country-other").value).trim().toUpperCase();
 
+  // Tasting notes: the ticked words, then any typed under "Other", at most D.maxTastes in all.
+  const typedTastes = () => ($("f-tasting_other").value || "").split(",").map((s) => s.trim()).filter(Boolean);
+  function syncTastes(e) {
+    const ticked = [...form.querySelectorAll('input[name="taste"]:checked')];
+    if (e && e.target.name === "taste" && e.target.checked && ticked.length + typedTastes().length > D.maxTastes) e.target.checked = false;
+    $("f-tasting_notes").value = [...form.querySelectorAll('input[name="taste"]:checked')].map((i) => i.value).concat(typedTastes()).slice(0, D.maxTastes).join(", ");
+  }
+  form.addEventListener("change", (e) => { if (e.target.name === "taste" || e.target.name === "tasting_other") syncTastes(e); });
+
   function collect() {
+    syncTastes();
     const v = (n) => (form.elements[n] && form.elements[n].value ? form.elements[n].value.trim() : "");
     const fields = {};
     for (const n of ["contributor", "told_by", "language", "crop", "kind", "producer", "region", "town", "origin", "traceability", "species", "varieties", "altitude", "harvest", "tasting_notes", "title", "summary", "story", "journey", "sources", "photo_credit"]) {
@@ -68,6 +78,15 @@
     for (const n of ["crop", "kind", "country", "origin", "region"]) if (params.get(n)) d[n] = params.get(n);
     for (const [k, val] of Object.entries(d)) {
       if (val === undefined || val === null || k === "process" || k === "step" || k === "coords") continue;
+      if (k === "tasting_notes") {
+        const other = [];
+        for (const w of String(val).split(",").map((s) => s.trim()).filter(Boolean)) {
+          const box = form.querySelector(`input[name="taste"][value="${CSS.escape(w)}"]`);
+          if (box) { box.checked = true; box.closest("details").open = true; } else other.push(w);
+        }
+        $("f-tasting_other").value = other.join(", ");
+        continue;
+      }
       const radio = form.querySelector(`input[type=radio][name="${k}"][value="${CSS.escape(String(val))}"]`);
       if (radio) { radio.checked = true; continue; }
       if (k === "country") {

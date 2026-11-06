@@ -498,3 +498,35 @@ table.lots td .muted { font-size: inherit; }
 }
 table.lots .lot-name .lot-refs { display: block; margin-top: 2px; }
 table.lots .lot-name .lot-links { display: block; margin-top: 4px; font-family: var(--mono); font-size: .72rem; }
+
+/* Tasting notes: the group in everyday words, with a coloured dot, then the taster's words. */
+.tg { --dot: var(--muted); display: inline-flex; align-items: baseline; gap: 6px; }
+.tg::before { content: ""; width: .6em; height: .6em; border-radius: 50%; background: var(--dot); flex: none; align-self: center; }
+.tg b { font-weight: 600; }
+.tg .tw { color: var(--muted); }
+.tg:has(.tw) { flex-wrap: wrap; column-gap: 6px; }
+.g-taste .tastes { display: grid; gap: 4px; font-size: .9rem; }
+.g-taste .tg { display: flex; }
+.tg-fruity { --dot: #C2410C; } .tg-floral { --dot: #B4579B; } .tg-sweet { --dot: #C9922E; } .tg-chocolate { --dot: #6B4226; }
+.tg-nutty { --dot: #A97C50; } .tg-spice { --dot: #A63D2F; } .tg-herbal { --dot: #4F8A3A; } .tg-earthy { --dot: #6E6A55; }
+.tg-roasted { --dot: #4B4B48; } .tg-fermented { --dot: #7D3C98; }
+@media (prefers-color-scheme: dark) { .tg-chocolate { --dot: #A87452; } .tg-roasted { --dot: #8C8C86; } .tg-earthy { --dot: #9C977E; } }
+.tastes { display: flex; flex-wrap: wrap; gap: 4px 12px; color: inherit; text-decoration: none; }
+a.tastes:hover b { text-decoration: underline; }
+.notes.tastes span { font-family: var(--body); background: none; padding: 0; }
+.tbars { display: grid; gap: 6px; font-size: .82rem; }
+.tb { display: grid; grid-template-columns: 6.5em auto 1fr; gap: 8px; align-items: center; }
+.tb i { display: inline-flex; gap: 3px; }
+.tb s { width: 14px; height: 6px; border-radius: 3px; background: var(--line); text-decoration: none; }
+.tb s.on { background: var(--accent); }
+.tb em { font-style: normal; color: var(--muted); }
+.lot-taste { margin-top: 6px; display: grid; gap: 2px; font-size: .9rem; }
+.taste-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 18px 24px; }
+.taste-group h2 { font-size: 1.1rem; margin: 0 0 6px; }
+.taste-group ul { margin: 0; padding-left: 1.1em; line-height: 1.6; }
+.taste-group small { color: var(--muted); font-size: .75rem; }
+.share .taste-pick { border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); margin-bottom: 8px; }
+.share .taste-pick summary { padding: 12px 14px; cursor: pointer; min-height: 48px; display: flex; align-items: center; }
+.share .taste-pick .checks { padding: 0 10px 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 6px; }
+.share .taste-pick .choice { min-height: 40px; padding: 6px 10px; }
+.share .tastes-pick .sub { display: block; font-size: .9rem; margin: 10px 0 4px; }
