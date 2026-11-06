@@ -3,6 +3,7 @@
 // It needs no GitHub account when the relay in relay/ is running (relay/public-config.json says where it is);
 // until then it fills in the GitHub issue form instead. The form logic is in site/share.js.
 import { CROP_KEYS, KINDS, TRACEABILITY, TOLD_BY, MAX, MIN_STORY } from "./story-form.ts";
+import { TASTE_GROUPS, TASTE_WORDS, MAX_TASTING_NOTES, tasteWord, groupName, type TasteGroup } from "./tastes.ts";
 
 // Countries listed first; any other two-letter code can be typed under "Other".
 const COUNTRIES = ["ID", "TL", "PG", "MY", "PH", "VN", "LA", "TH", "MM", "IN", "LK", "CN", "TW", "JP", "YE", "ET", "KE", "UG", "RW", "BI", "TZ", "CD", "CM", "CI", "GH", "NG", "MG", "BR", "CO", "PE", "EC", "BO", "HN", "GT", "SV", "NI", "CR", "PA", "MX", "US"];
@@ -21,7 +22,7 @@ export function sharePage({ t, lang, prefix, root, crops, origins, config, esc }
 
   // Data the script needs: per-crop species and processes, origins for the "part of an origin" list, and the strings.
   const data = {
-    lang, minStory: MIN_STORY, config: { relay_url: config.relay_url || "", turnstile_site_key: config.turnstile_site_key || "", photos: Boolean(config.photos && relay), contacts: Boolean(config.contacts && relay) },
+    lang, minStory: MIN_STORY, maxTastes: MAX_TASTING_NOTES, config: { relay_url: config.relay_url || "", turnstile_site_key: config.turnstile_site_key || "", photos: Boolean(config.photos && relay), contacts: Boolean(config.contacts && relay) },
     crops: Object.fromEntries(CROP_KEYS.map((c) => [c, { species: crops[c].species, processes: crops[c].processes }])),
     origins: origins.map((o) => ({ id: o.id, title: o.title, crop: o.crop, country: o.country })),
     t: { next: t.next, back: t.back, send: relay ? t.send : t.sendGithub, sending: t.sending, speciesNone: t.speciesNone, originNone: t.originNone, located: t.located, locateFail: t.locateFail, unlocate: t.unlocate,
@@ -58,7 +59,10 @@ export function sharePage({ t, lang, prefix, root, crops, origins, config, esc }
         ${field("varieties", t.varieties, text("varieties"), t.varietiesHint)}
         ${field("altitude", t.altitude, text("altitude", 'inputmode="numeric"'), t.altitudeHint)}
         ${field("harvest", t.harvest, text("harvest"), t.harvestHint)}
-        ${field("tasting_notes", t.notes, text("tasting_notes"), t.notesHint)}
+        <fieldset class="f tastes-pick" data-field="tasting_notes"><legend>${esc(t.notes)}</legend><p class="hint">${esc(t.notesHint)}</p>
+          ${(Object.keys(TASTE_GROUPS) as TasteGroup[]).map((g) => `<details class="taste-pick"><summary><span class="tg tg-${g}">${esc(groupName(g, lang))}</span></summary><div class="checks">${Object.entries(TASTE_WORDS).filter(([, w]) => w.group === g).map(([k]) => `<label class="choice"><input type="checkbox" name="taste" value="${esc(k)}"><span>${esc(tasteWord(k, lang))}</span></label>`).join("")}</div></details>`).join("")}
+          <label for="f-tasting_other" class="sub">${esc(t.notesOther)}</label><input id="f-tasting_other" name="tasting_other" maxlength="${MAX.tasting_notes}">
+          <input type="hidden" id="f-tasting_notes" name="tasting_notes"><p class="err" role="alert"></p></fieldset>
       </details>
     </fieldset>
 

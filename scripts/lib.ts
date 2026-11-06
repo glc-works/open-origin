@@ -7,6 +7,7 @@ import matter from "gray-matter";
 import { latLngToCell } from "h3-js";
 import { STORY, PRODUCER, LOT, LEARN, STORY_TRANSLATION, LEARN_TRANSLATION, REFS, requiredKeys, missingErrors, unknownErrors, type Story, type Producer, type Lot } from "./schema.ts";
 import { SCENES } from "./scenes.ts";
+import { tasteErrors, basicTasteErrors, pickErrors, pickListErrors, ACIDITY_TYPES, AFTERTASTE, DEFECTS } from "./tastes.ts";
 
 // OPEN_ORIGIN_ROOT points the scripts at another content folder, e.g. the test fixtures.
 export const ROOT = process.env.OPEN_ORIGIN_ROOT ? path.resolve(process.env.OPEN_ORIGIN_ROOT) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -467,6 +468,11 @@ export function validateLot(l: Lot, stories: Story[], producers: Producer[] = []
       }
     }
   }
+  if (l.tasting_notes !== undefined) errors.push(...tasteErrors(l.tasting_notes));
+  errors.push(...basicTasteErrors(l));
+  errors.push(...pickListErrors("acidity_type", l.acidity_type, Object.keys(ACIDITY_TYPES)));
+  errors.push(...pickErrors("aftertaste", l.aftertaste, Object.keys(AFTERTASTE)));
+  errors.push(...pickListErrors("defects", l.defects, Object.keys(DEFECTS)));
   if (q?.cupping_score !== undefined && !(typeof l.tested_by === "string" && l.tested_by.trim())) errors.push(`a cupping score needs tested_by (e.g. "Licensed Q Grader, Name")`);
   if (l.sources !== undefined && !(Array.isArray(l.sources) && l.sources.every(isHttpUrl))) errors.push(`sources must be a list of http(s) links`);
   if (l.certificate !== undefined && !(isHttpUrl(l.certificate) && String(l.certificate).startsWith("https:"))) errors.push(`certificate must be an https link`);
@@ -606,10 +612,8 @@ export function validateStory(s: Story): string[] {
     else for (const p of s.process) if (!processesFor(s.crop).includes(p)) errors.push(`process "${p}" is not a ${s.crop} process (${processesFor(s.crop).join(", ")})`);
   }
   if (s.varieties !== undefined && !isStrList(s.varieties)) errors.push(`varieties must be a list of names`);
-  if (s.tasting_notes !== undefined) {
-    if (!isStrList(s.tasting_notes)) errors.push(`tasting_notes must be a list of words`);
-    else if (s.tasting_notes.length > 4) errors.push(`tasting_notes: use at most 4`);
-  }
+  if (s.tasting_notes !== undefined) errors.push(...tasteErrors(s.tasting_notes));
+  errors.push(...basicTasteErrors(s));
   if (s.coords !== undefined) {
     const c = s.coords;
     if (!Array.isArray(c) || c.length !== 2 || !c.every(isNum) || Math.abs(c[0]) > 90 || Math.abs(c[1]) > 180) {

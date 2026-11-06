@@ -4,10 +4,6 @@ summary: "Arabika di lereng vulkanik Gunung Inerie yang subur, dengan Indikasi G
 region: Kabupaten Ngada, Flores, Nusa Tenggara Timur
 language: id
 translator: Open Origin editors
-tasting_notes:
-- cokelat
-- vanila
-- bunga
 ---
 
 Dataran tinggi Ngada Bajawa terletak di lereng gunung api Inerie. Tanahnya vulkanik dan subur, iklimnya kering [1]. Di seluruh Flores, arabika tumbuh di ketinggian 1.200 sampai 1.800 meter, kebanyakan di bawah pohon naungan [2].

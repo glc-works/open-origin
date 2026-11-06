@@ -4,10 +4,6 @@ summary: "Kebun hutan kecil tanpa bahan kimia di pegunungan Papua, banyak yang h
 region: Lembah Baliem, Jayawijaya, Papua Pegunungan
 language: id
 translator: Open Origin editors
-tasting_notes:
-- cokelat
-- kayu manis
-- karamel
 ---
 
 Di ujung timur perjalanan, Lembah Baliem terbentang di antara pegunungan tinggi Papua, di ketinggian 1.400 sampai 2.000 meter [1]. Pertanian kopi di pegunungan Papua tumbuh sejak 1950-an, ketika pemerintah Belanda dan para misionaris mendorongnya [2].

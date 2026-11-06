@@ -4,11 +4,6 @@ summary: Kebun keluarga di bawah naungan lamtoro, dibangun kembali oleh koperasi
 region: Aceh Tengah & Bener Meriah, Aceh
 language: id
 translator: Open Origin editors
-tasting_notes:
-- cokelat hitam
-- rempah
-- herbal
-- badan tebal
 journey:
   - title: Di lereng
     text: Biji kita bermula di kebun keluarga yang kecil, tinggi di atas danau.

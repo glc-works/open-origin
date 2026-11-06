@@ -88,7 +88,8 @@ body:
     id: tasting_notes
     attributes:
       label: Tasting notes (optional, up to 4, separate with commas)
-      placeholder: "dark chocolate, spice, herbs"
+      description: Use words from the tasting list (https://glc-works.github.io/open-origin/learn/tastes/), in English or Indonesian. Another word is fine too; an editor adds it to the list.
+      placeholder: "dark chocolate, spice, palm sugar"
   - type: input
     id: town
     attributes:

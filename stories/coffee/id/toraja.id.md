@@ -4,10 +4,6 @@ summary: "Kebun di antara bukit batu dan sawah bertingkat, dihidupkan kembali pa
 region: Tana Toraja & Enrekang (Kalosi), Sulawesi Selatan
 language: id
 translator: Open Origin editors
-tasting_notes:
-- kacang
-- kayu manis
-- kapulaga
 ---
 
 Di negeri rumah adat tongkonan, kopi tumbuh di dataran tinggi Toraja dan di Enrekang di sebelah selatannya. Kopi dari kawasan ini umumnya dipasarkan lewat kota Kalosi di Enrekang, sehingga dua nama itu sering dipakai bersama [1]. Di Toraja sebagian besar desa kopi berada di atas 1.500 meter; di Enrekang kopi umumnya ditanam di ketinggian 1.000–1.500 meter [4].

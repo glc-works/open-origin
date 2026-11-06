@@ -20,7 +20,8 @@ altitude_masl: [1100, 1600]
 varieties: [Typica, USDA, Kartika]
 process: [washed]
 harvest: Jun–Sep
-tasting_notes: [nuts, gentle spice, soft acidity]
+tasting_notes: [nuts, spice]
+acidity: soft
 summary: "Dutch-era estates on the Ijen Plateau, wet-processed at their own mills, and smallholders of Bondowoso's Coffee Republic."
 coords: [-7.98, 114.05]
 language: en

@@ -4,9 +4,6 @@ summary: Ditanam berselang dengan pohon jeruk di bawah aturan adat Tri Hita Kara
 region: Kabupaten Bangli, Bali
 language: id
 translator: Open Origin editors
-tasting_notes:
-- lemon
-- jeruk
 ---
 
 Di bawah bayang-bayang Gunung Batur, petani Kintamani mengelola kebun lewat Subak Abian, organisasi adat untuk pertanian lahan kering [2][3]. Subak Abian berpegang pada falsafah Tri Hita Karana: keselarasan dengan Tuhan, sesama manusia, dan alam [3].

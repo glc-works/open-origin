@@ -4,10 +4,6 @@ summary: "Bibit dari Malabar tiba pada 1699 dan menjadikan \"java\" sebutan untu
 region: Pegunungan Priangan, Jawa Barat
 language: id
 translator: Open Origin editors
-tasting_notes:
-- jeruk
-- gula merah
-- teh hitam
 ---
 
 Di sinilah kisah kopi Indonesia dimulai. Pada 1696 gubernur Belanda di Malabar, India, mengirim bibit arabika ke Batavia. Banjir merusak kiriman pertama, tetapi kiriman kedua pada 1699 bertahan [1]. Kopi Jawa segera merajai lelang di Amsterdam, dan "java" menjadi sebutan lain untuk kopi [2].

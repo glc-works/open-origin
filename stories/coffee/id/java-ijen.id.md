@@ -4,10 +4,6 @@ summary: "Perkebunan peninggalan Belanda di Dataran Tinggi Ijen yang diolah basa
 region: Dataran tinggi Ijen, Bondowoso, Jawa Timur
 language: id
 translator: Open Origin editors
-tasting_notes:
-- kacang
-- rempah halus
-- asam lembut
 ---
 
 Arabika Jawa berpusat di Dataran Tinggi Ijen di ujung timur pulau, di atas 1.400 meter. Kopinya kebanyakan tumbuh di perkebunan besar yang dibangun Belanda; lima yang terbesar adalah Blawan, Jampit, Pancoer, Kayumas, dan Tugosari [1]. Kebun seperti Jampit, Blawan, dan Pancur lama dikelola perusahaan perkebunan negara PTPN XII [2]. Sejak PTPN XII bergabung ke PTPN I pada 2023, kebun-kebun itu dikelola PTPN I Regional 5 dengan nama Java Coffee Estate [5].
