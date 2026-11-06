@@ -10,11 +10,33 @@ tasting_notes:
 - herbal
 - badan tebal
 journey:
-- Buah merah dipetik tangan, beberapa putaran dalam satu musim.
-- Kulit buah dikupas dengan pulper di rumah petani, lalu biji didiamkan semalam dan dicuci.
-- Gabah dijemur sebentar sampai kadar air sekitar 30–50%, lalu dijual ke pengepul.
-- Kulit tanduk digiling saat biji masih basah, dijemur lagi hingga sekitar 12%, lalu disortir tangan.
-- Koperasi mengumpulkan, mengemas, dan mengirim biji hijau ke penyangrai di Indonesia dan luar negeri.
+  - title: Di lereng
+    text: Biji kita bermula di kebun keluarga yang kecil, tinggi di atas danau.
+    more: Arabika Gayo tumbuh di ketinggian 900 sampai 1.700 m, di Aceh Tengah, Bener Meriah, dan Gayo Lues.
+    why: Apakah ketinggian mengubah rasa? Peneliti menanam Gayo 1 dan Gayo 3 di 900, 1.300, dan 1.500 m. Semua cangkir mendapat skor di atas 80, kelas specialty.
+    then: Oktober sampai Juni, dipetik beberapa putaran
+  - title: Dipetik saat merah
+    text: Tangan petani memetiknya hanya setelah buahnya merah.
+    more: Buah hijau menunggu putaran berikutnya. Paling sedikit 85 dari setiap 100 buah yang diolah harus matang.
+    why: Aturan 85% dan petik tangan sama-sama tertulis dalam aturan Indikasi Geografis yang melindungi nama Gayo.
+    then: menuruni jalan ke rumah petani, di hari yang sama
+  - title: Hari itu juga, sebelum tengah malam
+    text: Sore itu, di rumah petani, kulit merahnya dikupas.
+    more: Biji lalu difermentasi 12 sampai 24 jam supaya lendirnya lepas, kemudian dicuci bersih.
+    why: Aturannya membolehkan pengupasan di hari petik sampai tengah malam, jadi buah tidak pernah menginap.
+    then: pagi berikutnya, dijemur di bawah matahari
+  - title: Digiling basah
+    text: Biji dijemur sebentar, lalu kulit tanduknya dilepas saat masih lembap.
+    more: Inilah giling basah. Kulit tanduk dilepas pada kadar air 35–40%, membuat biji berwarna biru kehijauan, lalu biji dijemur lagi.
+    then: dari sekitar 40% turun ke 12% air
+    unit: "% air"
+  - title: Di koperasi
+    text: Setelah kering sampai 12%, biji disortir tangan bersama ribuan biji lain.
+    more: Alat ukur kadar air memeriksa setiap partai di 12–12,5% sebelum boleh meninggalkan dataran tinggi.
+    then: turun dari dataran tinggi ke pelabuhan
+  - title: Menyeberangi laut
+    text: Lalu biji berlayar sebagai Kopi Arabika Gayo, nama yang dilindungi sejak 2010.
+    more: Indikasi Geografis diberikan pada 28 April 2010. Koperasi mengirim biji hijau ke penyangrai di Indonesia dan luar negeri.
 ---
 
 Di sekitar Danau Laut Tawar, kopi adalah urat nadi hidup orang Gayo. Hampir setiap keluarga punya kebun kecil, biasanya kurang dari dua hektare, dinaungi pohon lamtoro dan petai cina. Kopi masuk ke dataran tinggi ini pada masa kolonial Belanda di awal abad ke-20, dan sejak itu tak pernah pergi.

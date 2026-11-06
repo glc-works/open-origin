@@ -16,7 +16,7 @@ area:
   geonames: [1215633, 6712486]
 producer: Gayo highland coffee farmers
 species: arabica
-altitude_masl: [1200, 1700]
+altitude_masl: [900, 1700]
 varieties: [Tim Tim, Ateng Super, Gayo 1]
 process: [wet-hulled, natural, honey]
 harvest: Oct–Jun
@@ -27,13 +27,56 @@ language: en
 told_by: editor
 contributor: open-origin
 consent: true
-sources: []
+sources:
+  - https://assets.publishing.service.gov.uk/media/665851b97b792ffff71a853c/Kopi_Arabika_Gayo.pdf
+  - https://doi.org/10.1515/opag-2022-0249
+  - https://iopscience.iop.org/article/10.1088/1755-1315/1133/1/012002/pdf
 journey:
-- {stage: harvest, text: 'Ripe red cherries are picked by hand, in several rounds each season.'}
-- {stage: process, text: The skin is pulped off at the farmer's home; the beans rest overnight and are washed.}
-- {stage: dry, text: The parchment is dried briefly to about 30–50% moisture and sold to collectors.}
-- {stage: sort, text: 'The parchment is hulled while still wet, dried again to about 12%, and sorted by hand.'}
-- {stage: market, text: 'Cooperatives gather, pack and ship the green coffee to roasters in Indonesia and abroad.'}
+  - stage: farm
+    title: On the slopes
+    scene: coffee-slopes
+    text: Our bean starts on a small family plot, high above the lake.
+    more: Gayo arabica grows between 900 and 1,700 m, in Central Aceh, Bener Meriah and Gayo Lues.
+    why: Does height change the cup? Researchers grew Gayo 1 and Gayo 3 at 900, 1,300 and 1,500 m. Every cup scored above 80, specialty grade.
+    then: October to June, picked in several rounds
+    cite: [1, 2, 3]
+  - stage: harvest
+    title: Picked when red
+    scene: coffee-picking
+    text: A hand picks it only once it has turned red.
+    more: Green cherries wait for a later round. At least 85 of every 100 cherries sent on must be ripe.
+    why: The 85% rule and hand-picking are both written into the Geographical Indication rules that protect the Gayo name.
+    then: down the path to the farmer's house, the same day
+    cite: [1]
+  - stage: process
+    title: Same day, before midnight
+    scene: coffee-pulping
+    text: That evening, at the farmer's house, its red skin comes off.
+    more: The bean then ferments for 12 to 24 hours to loosen its sticky coat, and is washed clean.
+    why: The rules allow pulping on picking day up to midnight, so cherries never wait overnight.
+    then: next morning, out into the sun
+    cite: [1]
+  - stage: dry
+    title: Hulled while wet
+    scene: coffee-wet-hulling
+    text: It dries for a short while, then loses its husk while still damp.
+    more: This is giling basah, wet-hulling. The husk comes off at 35–40% water, which turns the bean blue-green, and the bean is dried again.
+    count: { from: 40, to: 12, unit: "% water" }
+    then: from about 40% down to 12% water
+    cite: [1]
+  - stage: sort
+    title: At the cooperative
+    scene: coffee-sorting
+    text: Dried down to 12%, it is sorted by hand with thousands of others.
+    more: A moisture meter checks every batch at 12–12.5% before it can leave the highland.
+    then: down from the highland to the port
+    cite: [1]
+  - stage: market
+    title: Across the sea
+    scene: ship
+    text: Then it sails as Kopi Arabika Gayo, a name protected since 2010.
+    more: The Geographical Indication was granted on 28 April 2010. Cooperatives ship the green coffee to roasters in Indonesia and abroad.
+    cite: [1]
 ---
 
 Around Lake Laut Tawar, coffee is the lifeblood of the Gayo people. Almost every family has a small plot, usually under two hectares, shaded by lamtoro and other leguminous trees. Coffee came to these highlands under Dutch colonial rule in the early twentieth century and has never left.
