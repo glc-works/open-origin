@@ -52,6 +52,7 @@ if (built.status === 0) {
   check(idx.meta.license.name === "CC-BY-4.0" && idx.meta.attribution.includes("CC BY 4.0") && idx.data.endpoints.lot_by_id.endsWith("/api/v1/lots/{id}.json"), "API index lists endpoints and the licence");
   const lot = api("lots/L-TESTCQQ3-3.json");
   check(lot.data.id === "L-TESTCQQ3-3" && lot.data.crop === "cocoa" && lot.meta.links.permalink.endsWith("/s/L-TESTCQQ3-3/") && lot.meta.license.url.includes("by/4.0"), "a lot is served by its code, with crop and licence");
+  check(lot.data.refs?.gtin === "4006381333931", "a lot's trade references are in its API record");
   const origin = api("origins/O-TESTCQQW-P.json");
   check(origin.data.place_codes.iso3166_2[0] === "ID-SR" && Array.isArray(origin.data.farms), "an origin is served with its place codes and farms");
   check(api("producers/P-TESTKABQ-3.json").data.lots.includes("L-TESTCQQ3-3"), "a lab's API record lists the lots it tested");
@@ -61,6 +62,9 @@ if (built.status === 0) {
   const feed = JSON.parse(read("feed.json"));
   check(feed.version.includes("jsonfeed.org") && feed.items.length > 0 && feed.items.every((i) => i.date_published), "JSON Feed lists new records with dates");
   check(read("feed.xml").includes("<feed xmlns=\"http://www.w3.org/2005/Atom\">") && read("api/index.html").includes("api/v1/index.json"), "Atom feed and the API page are built");
+  check(farm.includes("HS 1801.00") && farm.includes("GTIN 4006381333931") && farm.includes("Test Trader: TT-COCOA-25") && farm.includes('href="../../../../s/L-TESTCQQ3-3/qr.svg"') && farm.includes('href="../../../../api/v1/lots/L-TESTCQQ3-3.json"'), "a lot shows its trade references and a QR code link");
+  const qr = read("s/L-TESTCQQ3-3/qr.svg");
+  check(qr.startsWith("<svg") && qr.includes("L-TESTCQQ3-3 · COCOA</text>"), "each lot gets a QR code with its code printed under it");
   rmSync(path.join(here, "fixtures", "good", "dist"), { recursive: true, force: true });
 }
 
@@ -95,6 +99,11 @@ for (const expected of [
   `unknown field "websit"; did you mean "website"?`,
   `unknown field "translater"; did you mean "translator"?`,
   `unknown field "constructor"`,
+  `refs.ico_mark "002/1234/0123" must be an ICO mark such as "002/1234/0123" (coffee only)`,
+  `refs.gtin "4006381333932" must be a GTIN of 8, 12, 13 or 14 digits with a correct last (check) digit`,
+  `refs.gln 614141000005 must be in quotes`,
+  `refs.barcode is not known`,
+  `refs.skus must list each trader's code`,
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.

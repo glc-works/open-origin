@@ -84,7 +84,18 @@ export const LOT = {
   quality: { type: "block", doc: "the crop's quality fields" },
   certificate: { type: "link", doc: "https link" },
   sources: { type: "links", doc: "http(s) links" },
+  refs: { type: "block", doc: "trade references, all quoted: hs_code, ico_mark, gtin, gln, eudr_dds, skus (trader name: code)" },
 } as const satisfies Record<string, Field>;
+
+// Trade references a lot can carry. The L- id stays the reference; these let a trader find it from their own papers.
+export const REFS = {
+  hs_code: "customs (HS) code, e.g. \"0901.11\"",
+  ico_mark: "ICO mark on a coffee bag, e.g. \"002/1234/0123\"",
+  gtin: "GS1 barcode number (GTIN-8, 12, 13 or 14)",
+  gln: "GS1 location number of the seller (13 digits)",
+  eudr_dds: "EU deforestation regulation due diligence statement reference",
+  skus: "each trader's own code, e.g. { Kopi Kita: \"GAYO-HONEY-25\" }",
+} as const;
 
 // Learn entries: learn/<crop>/<slug>.md. The variety fields are only for type: variety.
 export const LEARN = {

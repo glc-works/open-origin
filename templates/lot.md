@@ -23,6 +23,13 @@ quality:                           # opsional; field mutu sesuai komoditas / opt
   defects_secondary: 3
 tested_by: Licensed Q Grader, nama lab   # wajib untuk cupping_score; boleh kode P- profil lab / required for a cupping score; may be a lab P- id
 certificate: https://example.org/sertifikat.pdf   # opsional / optional
+refs:                              # opsional: kode dagang, selalu pakai tanda kutip / optional trade codes, always in quotes
+  hs_code: "0901.11"               # kode HS bea cukai / customs code
+  ico_mark: "002/1234/0123"        # tanda ICO di karung (khusus kopi) / ICO mark on the bag (coffee only)
+  gtin: "4006381333931"            # nomor barcode GS1 / GS1 barcode number
+  eudr_dds: "25IDXXXXXXXX"         # nomor referensi DDS EUDR / EUDR due diligence statement reference
+  skus:                            # kode milik tiap pedagang / each trader's own code
+    Kopi Kita: "GAYO-HONEY-25"
 ---
 
 Catatan singkat tentang lot ini (opsional). Short notes about this lot (optional).

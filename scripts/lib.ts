@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 import { latLngToCell } from "h3-js";
-import { STORY, PRODUCER, LOT, LEARN, STORY_TRANSLATION, LEARN_TRANSLATION, requiredKeys, missingErrors, unknownErrors, type Story, type Producer, type Lot } from "./schema.ts";
+import { STORY, PRODUCER, LOT, LEARN, STORY_TRANSLATION, LEARN_TRANSLATION, REFS, requiredKeys, missingErrors, unknownErrors, type Story, type Producer, type Lot } from "./schema.ts";
 import { SCENES } from "./scenes.ts";
 
 // OPEN_ORIGIN_ROOT points the scripts at another content folder, e.g. the test fixtures.
@@ -471,6 +471,39 @@ export function validateLot(l: Lot, stories: Story[], producers: Producer[] = []
   if (l.sources !== undefined && !(Array.isArray(l.sources) && l.sources.every(isHttpUrl))) errors.push(`sources must be a list of http(s) links`);
   if (l.certificate !== undefined && !(isHttpUrl(l.certificate) && String(l.certificate).startsWith("https:"))) errors.push(`certificate must be an https link`);
   errors.push(...unknownErrors(LOT, l.frontKeys));
+  errors.push(...refsErrors(l));
+  return errors;
+}
+
+// GS1 numbers (GTIN, GLN) end in a mod-10 check digit: weights 3,1,3,1… from the right, not counting the check digit.
+export function gs1Valid(code: string): boolean {
+  if (!/^\d+$/.test(code)) return false;
+  const d = [...code].map(Number);
+  const check = d.pop();
+  const sum = d.reverse().reduce((t, n, i) => t + n * (i % 2 ? 1 : 3), 0);
+  return (10 - (sum % 10)) % 10 === check;
+}
+const REF_RULES: Record<string, [(v: string, l: Lot) => boolean, string]> = {
+  hs_code: [(v) => /^\d{4}(\.?\d{2}){0,3}$/.test(v), `a customs code of 4 to 10 digits, e.g. "0901.11"`],
+  ico_mark: [(v, l) => l.pathCrop === "coffee" && /^\d{1,3}\/\d{1,5}\/[A-Z0-9-]{1,10}$/i.test(v), `an ICO mark such as "002/1234/0123" (coffee only)`],
+  gtin: [(v) => /^(\d{8}|\d{12,14})$/.test(v) && gs1Valid(v), `a GTIN of 8, 12, 13 or 14 digits with a correct last (check) digit`],
+  gln: [(v) => /^\d{13}$/.test(v) && gs1Valid(v), `a GLN of 13 digits with a correct last (check) digit`],
+  eudr_dds: [(v) => /^[A-Z0-9][A-Z0-9-]{5,39}$/i.test(v), `a due diligence statement reference (letters, digits and -)`],
+};
+// refs: codes other systems give the same lot. All are text: YAML would turn 0890… into a number and drop the 0.
+export function refsErrors(l: Lot): string[] {
+  const r = l.refs;
+  if (r === undefined) return [];
+  if (!r || typeof r !== "object" || Array.isArray(r)) return [`refs must list codes, e.g. refs: { hs_code: "0901.11", skus: { Kopi Kita: "GAYO-1" } }`];
+  const errors = [];
+  for (const [k, v] of Object.entries(r)) {
+    if (k === "skus") {
+      if (!v || typeof v !== "object" || Array.isArray(v)) errors.push(`refs.skus must list each trader's code, e.g. skus: { Kopi Kita: "GAYO-1" }`);
+      else for (const [who, code] of Object.entries(v)) if (typeof code !== "string" || !code.trim() || code.length > 64) errors.push(`refs.skus "${who}" must be a code in quotes, up to 64 characters`);
+    } else if (!REFS[k]) errors.push(`refs.${k} is not known (use ${Object.keys(REFS).join(", ")})`);
+    else if (typeof v !== "string") errors.push(`refs.${k} ${v} must be in quotes, e.g. "${v}"`);
+    else if (!REF_RULES[k][0](v.trim(), l)) errors.push(`refs.${k} "${v}" must be ${REF_RULES[k][1]}`);
+  }
   return errors;
 }
 

@@ -140,6 +140,23 @@ Quality fields per crop:
 | honey | botanical_source, moisture_pct, hmf_mg_kg, diastase_schade |
 | sugar | moisture_pct, colour, sucrose_pct |
 
+### Trade references and QR codes
+
+A trader does not need a new SKU: the lot id (`L-…`) is the reference. To find a lot from other papers, add the codes other systems already give it under `refs`, always in quotes (YAML would drop the leading 0 of a barcode number):
+
+```yaml
+refs:
+  hs_code: "0901.11"          # customs (HS) code, 4 to 10 digits
+  ico_mark: "002/1234/0123"   # ICO mark on the bag, coffee only
+  gtin: "4006381333931"       # GS1 barcode number; its check digit is verified
+  gln: "0614141000005"        # GS1 location number of the seller
+  eudr_dds: "25IDXXXXXXXX"    # EU deforestation regulation due diligence statement reference
+  skus:
+    Kopi Kita: "GAYO-HONEY-25"  # each trader's own code
+```
+
+They show under the lot's code. No farm plot boundaries are stored here: an EUDR statement keeps those in the EU system, and only its reference goes in the lot. Every lot also gets a printable QR code at `/s/<lot id>/qr.svg`, linked as "QR code" in the lot table next to its JSON record (`/api/v1/lots/<lot id>.json`). It opens the lot's permanent link and has the code printed under it, so it can be typed in when it cannot be scanned.
+
 The story page lists every lot, newest first, and marks results without `tested_by` as self-reported. `/s/<lot id>/` jumps straight to a lot. The fields are set in `scripts/lib.ts` (`QUALITY`).
 
 ### Processes and forms per crop
