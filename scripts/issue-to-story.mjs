@@ -1,29 +1,18 @@
 // Turns an approved "Share a story" issue into a story file.
-// Used by .github/workflows/issue-to-story.yml. Inputs come from env: ISSUE_BODY, ISSUE_NUMBER, ISSUE_AUTHOR.
+// Used by .github/workflows/issue-to-story.yml. Inputs come from env: ISSUE_BODY, ISSUE_NUMBER, ISSUE_AUTHOR, ISSUE_LABELS.
+// Issues come from the GitHub form or from the web form relay (relay/worker.mjs); both use the fields in story-form.mjs.
 import { mkdir, writeFile, appendFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
 import { ROOT, CROPS, STORIES_DIR, newId, ID_PREFIX } from "./lib.mjs";
-
-const LABELS = {
-  "What kind of story?": "kind", "Which origin is this part of? (optional)": "origin", "How far can it be traced?": "traceability",
-  "From farm to cup (optional)": "journey", "Crop": "crop", "Story title": "title", "Country code": "country", "Region": "region",
-  "Farmer, farm or cooperative": "producer", "Species or type": "species",
-  "Altitude in metres (optional)": "altitude", "Varieties (optional, separate with commas)": "varieties",
-  "Process (optional)": "process", "Harvest months (optional)": "harvest",
-  "Tasting notes (optional, up to 4, separate with commas)": "tasting_notes",
-  "Nearest town or village (optional)": "town", "Short summary": "summary", "The story": "story",
-  "Photo (optional)": "photo", "Photo credit (optional)": "photo_credit",
-  "Who is telling this story?": "told_by", "Language of the story": "language",
-  "Sources (optional)": "sources", "Consent": "consent",
-};
+import { LABELS, ORDER } from "./story-form.mjs";
 
 // Splits the issue body on the form's own headings only, so a "### ..." line written inside a story stays in the story.
 export function parseIssueForm(body) {
   const out = {};
   const lines = String(body).replace(/\r\n/g, "\n").split("\n");
-  // Form fields in the order the form shows them; a heading only counts if it comes after the current one.
-  const order = ["kind", "crop", "title", "country", "traceability", "region", "origin", "producer", "species", "altitude", "varieties", "process", "harvest", "tasting_notes", "town", "summary", "story", "journey", "photo", "photo_credit", "told_by", "language", "sources", "consent"];
+  // A heading only counts if it comes after the current one, in the order the form shows them.
+  const order = ORDER;
   let key = null;
   let buf = [];
   const flush = () => {
@@ -48,6 +37,9 @@ export const slugify = (s) =>
   s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "story";
 
 export function toStory(f, { number, author }) {
+  // The web form posts through a bot account; the person's own name comes in the "Name to credit" field.
+  const by = f.contributor || author;
+  const coords = f.coords?.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
   const alt = f.altitude?.match(/(\d[\d.,]*)\D+(\d[\d.,]*)/);
   const num = (s) => Number(s.replace(/[.,]/g, ""));
   const photo = f.photo?.match(/https:\/\/[^\s)"'>]+/)?.[0];
@@ -72,10 +64,11 @@ export function toStory(f, { number, author }) {
     ...(f.tasting_notes && { tasting_notes: list(f.tasting_notes).slice(0, 4) }),
     ...(journey?.length && { journey }),
     summary: f.summary?.replace(/\s+/g, " ").trim(),
-    ...(photo && { photo, photo_credit: f.photo_credit || author }),
+    ...(coords && { coords: [Math.round(coords[1] * 100) / 100, Math.round(coords[2] * 100) / 100] }),
+    ...(photo && { photo, photo_credit: f.photo_credit || by }),
     language: f.language?.trim().toLowerCase(),
     told_by: f.told_by,
-    contributor: author,
+    contributor: by,
     consent: consentOk,
     sources: list(f.sources) || [],
     issue: Number(number),
@@ -88,8 +81,11 @@ export function toStory(f, { number, author }) {
 }
 
 if (process.argv[1] === new URL(import.meta.url).pathname) {
-  const { ISSUE_BODY, ISSUE_NUMBER, ISSUE_AUTHOR, GITHUB_OUTPUT } = process.env;
-  const { file, text, town } = toStory(parseIssueForm(ISSUE_BODY), { number: ISSUE_NUMBER, author: ISSUE_AUTHOR });
+  const { ISSUE_BODY, ISSUE_NUMBER, ISSUE_AUTHOR, ISSUE_LABELS, GITHUB_OUTPUT } = process.env;
+  const fields = parseIssueForm(ISSUE_BODY);
+  // Only the web form relay may name someone else to credit; it is the only one that can add the web-form label.
+  if (!String(ISSUE_LABELS || "").split(",").map((l) => l.trim()).includes("web-form")) { delete fields.contributor; delete fields.coords; }
+  const { file, text, town } = toStory(fields, { number: ISSUE_NUMBER, author: ISSUE_AUTHOR });
   const dest = path.resolve(ROOT, file);
   if (!dest.startsWith(STORIES_DIR + path.sep)) throw new Error(`Refusing to write outside stories/: ${file}`);
   await mkdir(path.dirname(dest), { recursive: true });

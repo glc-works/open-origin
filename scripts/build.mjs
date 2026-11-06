@@ -4,6 +4,7 @@ import matter from "gray-matter";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
+import { sharePage } from "./share-page.mjs";
 import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.mjs";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
@@ -37,7 +38,8 @@ marked.use({
   },
 });
 const REPO = "https://github.com/glc-works/open-origin";
-const SUBMIT = `${REPO}/issues/new?template=story.yml`;
+// The story form on this site (/share/); it works without a GitHub account once the relay is running.
+const SUBMIT = "share/";
 const countryName = new Intl.DisplayNames(["en"], { type: "region" });
 const langName = new Intl.DisplayNames(["en"], { type: "language" });
 
@@ -81,7 +83,7 @@ const qField = (crop, k) => (QUALITY[crop] || []).find((f) => f[0] === k);
 const qText = (crop, k, v) => { const f = qField(crop, k); return f ? `${f[1]} ${v}${f[2] ? ` ${f[2]}` : ""}` : `${k} ${v}`; };
 const origins = stories.filter((s) => s.kind === "origin");
 const voices = stories.filter((s) => s.kind !== "origin");
-const submitFor = (o) => `${SUBMIT}&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region || "")}`;
+const submitFor = (o, prefix) => `${prefix}${SUBMIT}?kind=farm&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region || "")}`;
 const nativeName = (code) => { try { return new Intl.DisplayNames([code], { type: "language" }).of(code); } catch { return code; } };
 const dirOf = (lang) => (RTL.includes(String(lang).split("-")[0]) ? "rtl" : "ltr");
 const href = (s) => `stories/${s.crop}/${s.pathCountry}/${s.slug}/`;
@@ -402,7 +404,7 @@ function storyPage(s, t = null) {
     ${lotTable(s.lots, prefix, s)}` : ""}
     ${s.kind === "origin" ? `<h2 class="journey-title">Farmers from this origin</h2>${s.farms.length
       ? `<div class="cards">${s.farms.map((f) => card(f).replace(`href="${href(f)}"`, `href="${prefix}${href(f)}"`)).join("")}</div>`
-      : `<div class="empty"><p>No farmer from here has told their story yet.</p><a class="btn primary" href="${submitFor(s)}">Tell a farm's story</a></div>`}` : ""}
+      : `<div class="empty"><p>No farmer from here has told their story yet.</p><a class="btn primary" href="${submitFor(s, prefix)}">Tell a farm's story</a></div>`}` : ""}
     ${s.originStory ? `<p class="part-of">Part of the origin <a href="${prefix}${href(s.originStory)}">${esc(s.originStory.title)}</a></p>` : ""}
     ${sourceList(sources)}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc((t || s).file)}">Suggest an edit</a> · <a href="${REPO}/issues/new?template=translation.yml&amp;title=${encodeURIComponent(`[Translation] ${s.title}`)}">Translate this story</a></p>
@@ -462,6 +464,7 @@ await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 await copyFile(path.join(SITE, "style.css"), path.join(DIST, "style.css"));
 await copyFile(path.join(SITE, "logo.svg"), path.join(DIST, "logo.svg"));
+await copyFile(path.join(SITE, "share.js"), path.join(DIST, "share.js"));
 await cp(path.join(SITE, "brand"), path.join(DIST, "brand"), { recursive: true });
 try { await access(path.join(ROOT, "photos")); await cp(path.join(ROOT, "photos"), path.join(DIST, "photos"), { recursive: true }); } catch {}
 await writeFile(path.join(DIST, "index.html"), indexPage());
@@ -568,6 +571,16 @@ for (const [file, sub, lang, label, button] of [["codes.md", "codes", "en", "Loo
 </article>
 </div></main>
 ${lookupJs(lang)}
+${foot}`);
+}
+// The story form, in English and Bahasa Indonesia. relay/public-config.json says where the no-account relay is.
+const shareConfig = JSON.parse(await readFile(path.join(path.dirname(SITE), "relay", "public-config.json"), "utf8"));
+for (const [sub, lang, title, summary] of [["share", "en", "Share a story", "Tell the story of your farm, group or region. Works on a phone, no account needed."],
+  ["share/id", "id", "Bagikan cerita", "Ceritakan kebun, kelompok atau daerah Anda. Bisa dari HP, tanpa akun."]]) {
+  const prefix = "../".repeat(sub.split("/").length);
+  await mkdir(path.join(DIST, sub), { recursive: true });
+  await writeFile(path.join(DIST, sub, "index.html"), `${head(`${title} · Open Origin`, summary, prefix).replace('<html lang="en">', `<html lang="${lang}">`)}
+${sharePage({ lang, prefix, crops: CROPS, origins, config: shareConfig, esc })}
 ${foot}`);
 }
 // codes.json: every published code with its kind, crop(s), title and page, for the lookup box and for anyone

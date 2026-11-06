@@ -269,3 +269,56 @@ table.lots td .muted { font-size: inherit; }
   table.lots td[data-label]:not(.lot-name)::before { content: attr(data-label); display: block; font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
   table.lots tr.lot-notes td { padding: 4px 0 0; }
 }
+
+/* Share a story form (/share/): one step at a time, big touch targets for phones */
+.share { max-width: 640px; padding-block: 24px 64px; }
+.share h1 { font-size: clamp(2.2rem, 8vw, 3.4rem); font-weight: 800; letter-spacing: -.03em; margin-top: 18px; }
+.share .lede { font-size: 1.1rem; margin-top: 14px; }
+.share .steps { display: flex; gap: 6px; list-style: none; padding: 0; margin: 24px 0 8px; font-family: var(--mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; counter-reset: s; }
+.share .steps li { flex: 1; color: var(--muted); border-top: 3px solid var(--line); padding-top: 6px; counter-increment: s; }
+.share .steps li::before { content: counter(s) ". "; }
+.share .steps li.done { border-color: var(--leaf); }
+.share .steps li.now { border-color: var(--cherry); color: var(--fg); }
+.share form { margin: 0; }
+.share fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.share .step-title { font-family: var(--display); font-weight: 700; font-size: 1.5rem; margin: 18px 0 6px; padding: 0; }
+.share .f { margin: 20px 0 0; }
+.share .f > label, .share .f > legend { display: block; font-family: var(--display); font-weight: 600; font-size: 1.05rem; padding: 0; margin-bottom: 4px; }
+.share .hint { color: var(--muted); font-size: .92rem; margin: 0 0 8px; line-height: 1.45; }
+.share input:not([type=radio]):not([type=checkbox]):not([type=file]), .share select, .share textarea {
+  display: block; width: 100%; font: inherit; font-size: 1rem; padding: 12px 12px; min-height: 48px;
+  border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); color: var(--fg);
+}
+.share textarea { line-height: 1.55; resize: vertical; }
+.share input:focus, .share select:focus, .share textarea:focus { outline: 2px solid var(--origin); outline-offset: 1px; border-color: var(--origin); }
+.share #f-country-other { margin-top: 8px; max-width: 8em; text-transform: uppercase; font-family: var(--mono); }
+.share .choices { display: grid; gap: 8px; }
+.share .choices.crops { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.share .choices legend { margin-bottom: 8px; }
+.share .choice { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); cursor: pointer; line-height: 1.35; }
+.share .choice input { width: 22px; height: 22px; flex: none; margin: 0; accent-color: var(--leaf); }
+.share .choice:has(input:checked) { border-color: var(--leaf); background: color-mix(in srgb, var(--leaf) 10%, var(--card)); }
+.share .choice:has(input:focus-visible) { outline: 2px solid var(--origin); outline-offset: 2px; }
+.share .checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.share .prompts { margin: 0 0 10px; padding-left: 1.2em; color: var(--muted); font-size: .95rem; }
+.share details.more { margin-top: 24px; border-top: 1px dashed var(--line); padding-top: 12px; }
+.share details.more summary { font-family: var(--display); font-weight: 600; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.share .err { color: var(--cherry); font-size: .92rem; margin: 6px 0 0; min-height: 0; }
+.share .err:empty { display: none; }
+.share .bad input, .share .bad textarea, .share .bad select, .share .bad .choice { border-color: var(--cherry); }
+.share .btn { font-size: 1rem; min-height: 48px; cursor: pointer; background: transparent; color: var(--fg); }
+.share .btn.primary { background: var(--fg); color: var(--bg); }
+.share .btn.small { min-height: 44px; padding: 8px 16px; font-size: .95rem; }
+.share .btn:disabled { opacity: .6; cursor: progress; }
+.share .nav { display: flex; gap: 12px; justify-content: space-between; margin-top: 28px; position: sticky; bottom: 0; padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border-top: 1px solid var(--line); }
+.share .nav .primary { flex: 1; max-width: 320px; margin-left: auto; }
+.share #form-msg { color: var(--cherry); margin: 16px 0 0; }
+.share #form-msg:empty { display: none; }
+.share #where { margin: 8px 0 0; font-size: .95rem; }
+.share .linkish { background: none; border: 0; padding: 0 4px; font: inherit; color: var(--cherry); text-decoration: underline; cursor: pointer; }
+.share #photo-preview { margin-top: 10px; max-height: 240px; border-radius: 8px; }
+.share .draft { margin-top: 12px; font-size: .85rem; }
+.share #turnstile { margin-top: 16px; }
+.share #done h2 { font-size: 2rem; margin-top: 24px; }
+.share .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

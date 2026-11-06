@@ -25,16 +25,17 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
       - uses: peter-evans/create-pull-request@v6
         with:
           branch: story/issue-${{ github.event.issue.number }}
           title: "Add story: ${{ github.event.issue.title }}"
           commit-message: "Add story from #${{ github.event.issue.number }}"
           body: |
-            Story submitted in #${{ github.event.issue.number }} by @${{ github.event.issue.user.login }}.
+            Story submitted in #${{ github.event.issue.number }} by @${{ github.event.issue.user.login }} (if that is the web form bot, the storyteller's name is in the story's `contributor`).
 
             Before merging:
-            - [ ] Add `coords` (2 decimals) for the nearest town: ${{ steps.story.outputs.town }}
+            - [ ] Add `coords` (2 decimals) if the story has none, for the nearest town: ${{ steps.story.outputs.town }}
             - [ ] Read the story and summary once more with the contributor
             - [ ] Optionally download the photo into `photos/` and point `photo` at it
 

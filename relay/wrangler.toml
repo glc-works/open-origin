@@ -1,0 +1,28 @@
+# Cloudflare Worker that turns the /share/ web form into a "Share a story" issue. See README.md here.
+name = "open-origin-relay"
+main = "worker.mjs"
+compatibility_date = "2026-10-01"
+
+[vars]
+REPO = "glc-works/open-origin"
+# Pages allowed to post stories, separated by commas.
+ALLOWED_ORIGINS = "https://glc-works.github.io"
+# Public address of the PHOTOS bucket (R2 > bucket > Settings > Public access). Leave empty to switch photos off.
+PHOTO_BASE_URL = ""
+
+# Photos people add to their story. Create it first: npx wrangler r2 bucket create open-origin-photos
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "open-origin-photos"
+
+# Private contacts for the review, never published. Create it first: npx wrangler kv namespace create CONTACTS
+# then paste the id it prints here.
+[[kv_namespaces]]
+binding = "CONTACTS"
+id = "REPLACE_WITH_KV_ID"
+
+# At most 5 stories per minute from one address.
+[[ratelimits]]
+name = "LIMITER"
+namespace_id = "1001"
+simple = { limit = 5, period = 60 }
