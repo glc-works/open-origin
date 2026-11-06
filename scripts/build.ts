@@ -4,6 +4,7 @@ import matter from "gray-matter";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
+import { sharePage } from "./share-page.ts";
 import { LANGS, DEFAULT_LANG, strings } from "./i18n.ts";
 import { buildApi } from "./api.ts";
 import { SCENES, sceneSvg } from "./scenes.ts";
@@ -57,7 +58,8 @@ marked.use({
 const REPO = "https://github.com/glc-works/open-origin";
 // Where the site is published; absolute links in the API and feeds start here.
 const SITE_URL = (process.env.OPEN_ORIGIN_SITE_URL || "https://glc-works.github.io/open-origin/").replace(/\/?$/, "/");
-const SUBMIT = `${REPO}/issues/new?template=story.yml`;
+// The story form on this site (/share/, /id/share/); it works without a GitHub account once the relay is running.
+const SUBMIT = "share/";
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const flag = (cc) => String(cc).toUpperCase().replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
@@ -97,7 +99,7 @@ const qField = (crop, k) => (QUALITY[crop] || []).find((f) => f[0] === k);
 const qText = (crop, k, v) => { const f = qField(crop, k); return f ? `${T.qfields[k] ?? f[1]} ${v}${f[2] ? ` ${f[2]}` : ""}` : `${k} ${v}`; };
 const origins = stories.filter((s) => s.kind === "origin");
 const voices = stories.filter((s) => s.kind !== "origin");
-const submitFor = (o) => `${SUBMIT}&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region || "")}`;
+const submitFor = (o, prefix) => `${prefix}${SUBMIT}?kind=farm&crop=${encodeURIComponent(o.crop)}&country=${encodeURIComponent(o.country)}&origin=${encodeURIComponent(o.slug)}&region=${encodeURIComponent(o.region || "")}`;
 const nativeName = (code) => { try { return new Intl.DisplayNames([code], { type: "language" }).of(code); } catch { return code; } };
 // A language's name in the page's language ("Inggris" on an Indonesian page), for labels rather than switchers.
 const langLabel = (code) => { try { return new Intl.DisplayNames([T.locale], { type: "language" }).of(code); } catch { return code; } };
@@ -151,7 +153,7 @@ ${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" href="${prefix}">${LOGO}<b><span>open</span> origin</b></a>
-  <nav><a href="${prefix}#stories">${T.nav.stories}</a><a href="${prefix}discover/">${T.nav.discover}</a><a href="${prefix}#learn">${T.nav.learn}</a><a href="${prefix}codes/">${T.nav.codes}</a><a href="${prefix}#contribute">${T.nav.share}</a><a href="${prefix}api/">${T.nav.data}</a><a href="${REPO}">${T.nav.github}</a>${other.map((o) => `<a class="lang-switch" href="${o.to}" hreflang="${o.l}" lang="${o.l}" title="${esc(`${strings(o.l).switchTo} ${o.name}`)}">${o.l.toUpperCase()}</a>`).join("")}</nav>
+  <nav><a href="${prefix}#stories">${T.nav.stories}</a><a href="${prefix}discover/">${T.nav.discover}</a><a href="${prefix}#learn">${T.nav.learn}</a><a href="${prefix}codes/">${T.nav.codes}</a><a href="${prefix}share/">${T.nav.share}</a><a href="${prefix}api/">${T.nav.data}</a><a href="${REPO}">${T.nav.github}</a>${other.map((o) => `<a class="lang-switch" href="${o.to}" hreflang="${o.l}" lang="${o.l}" title="${esc(`${strings(o.l).switchTo} ${o.name}`)}">${o.l.toUpperCase()}</a>`).join("")}</nav>
 </div></header>`;
 }
 
@@ -552,7 +554,7 @@ ${visualJourney(s, t, v, dir)}
     ${lotTable(s.lots, prefix, s)}` : ""}
     ${s.kind === "origin" ? `<h2 class="journey-title">${T.farmersFrom}</h2>${s.farms.length
       ? `<div class="cards">${s.farms.map((f) => card(f, prefix)).join("")}</div>`
-      : `<div class="empty"><p>${T.noFarmers}</p><a class="btn primary" href="${submitFor(s)}">${T.tellFarm}</a></div>`}` : ""}
+      : `<div class="empty"><p>${T.noFarmers}</p><a class="btn primary" href="${submitFor(s, prefix)}">${T.tellFarm}</a></div>`}` : ""}
     ${s.originStory ? `<p class="part-of">${T.partOfOrigin} <a href="${prefix}${readHref(s.originStory)}">${esc(inLang(s.originStory)?.title || s.originStory.title)}</a></p>` : ""}
     ${sourceList(sources)}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc((t || s).file)}">${T.suggestEdit}</a> · <a href="${REPO}/issues/new?template=translation.yml&amp;title=${encodeURIComponent(`[Translation] ${s.title}`)}">${T.translateStory}</a></p>
@@ -906,6 +908,7 @@ await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 await copyFile(path.join(SITE, "style.css"), path.join(DIST, "style.css"));
 await copyFile(path.join(SITE, "logo.svg"), path.join(DIST, "logo.svg"));
+await copyFile(path.join(SITE, "share.js"), path.join(DIST, "share.js"));
 await cp(path.join(SITE, "brand"), path.join(DIST, "brand"), { recursive: true });
 try { await access(path.join(ROOT, "photos")); await cp(path.join(ROOT, "photos"), path.join(DIST, "photos"), { recursive: true }); } catch {}
 // Shared by every language: crop icons at /icons/<crop>.svg and the map library (BSD-3-Clause, licence kept beside it).
@@ -914,6 +917,15 @@ for (const c of Object.keys(CROPS)) await writeFile(path.join(DIST, "icons", `${
 const MAPLIBRE = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "node_modules", "maplibre-gl", "dist");
 await mkdir(path.join(DIST, "vendor", "maplibre"), { recursive: true });
 for (const f of ["maplibre-gl.js", "maplibre-gl.css", "LICENSE.txt"]) await copyFile(path.join(MAPLIBRE, f), path.join(DIST, "vendor", "maplibre", f));
+
+// The story form. relay/public-config.json says where the no-account relay is, if it is running.
+const shareConfig = JSON.parse(await readFile(path.join(path.dirname(SITE), "relay", "public-config.json"), "utf8"));
+function sharePageHtml() {
+  const prefix = "../";
+  return `${head(`${T.share.title} · Open Origin`, T.share.lede, prefix, "", "share/")}
+${sharePage({ t: T.share, lang: LANG, prefix, root: `${prefix}${UP}`, crops: CROPS, origins, config: shareConfig, esc })}
+${footer()}`;
+}
 
 // The API's own page: what the endpoints are and how to credit the data. The JSON itself is written by api.ts, once,
 // at the site root. pages/api.<lang>.md is used where it exists, otherwise the English text.
@@ -951,6 +963,7 @@ for (const lang of LANGS) {
   for (const p of producers) await page(producerHref(p), producerPage(p));
   await page("codes", await codesPage());
   await page("api", await apiPage());
+  await page("share", sharePageHtml());
   await page("discover", discoverPage());
 }
 setLang(DEFAULT_LANG);
