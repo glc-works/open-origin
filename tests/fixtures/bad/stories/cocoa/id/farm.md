@@ -5,6 +5,10 @@ kind: farm
 crop: cocoa
 country: ID
 region: Somewhere
+photo: photos/id/farm.jpg
+photo_credit: Someone
+photo_license: CC BY-NC 4.0
+photo_source: http://example.org/farm
 area:
   iso3166_2: MY-01
   wikidata: 12345

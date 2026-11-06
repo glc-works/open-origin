@@ -5,9 +5,14 @@ kind: origin
 crop: coffee
 country: ID
 region: Baliem Valley, Jayawijaya, Highland Papua
+photo: photos/id/wamena.jpg
+photo_credit: "Lasthib"
+photo_license: CC BY-SA 4.0
+photo_source: https://commons.wikimedia.org/wiki/File:20170904_Papouasie_Baliem_valley_40.jpg
 area:
   iso3166_2: ID-PE
   admin_codes: ["95.01"]
+  wikidata: [Q27529]
   geonames: [1631789]
 producer: Coffee farmers of the Baliem Valley
 species: arabica

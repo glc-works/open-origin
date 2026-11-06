@@ -8,6 +8,7 @@ region: Jembrana Regency, Bali
 area:
   iso3166_2: ID-BA
   admin_codes: ["51.01"]
+  wikidata: [Q11499]
   geonames: [1642584]
 producer: Cocoa farmers of Jembrana and the KSS cooperative
 process: [fermented]

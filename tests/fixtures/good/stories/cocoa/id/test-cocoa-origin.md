@@ -5,6 +5,10 @@ kind: origin
 crop: cocoa
 country: ID
 region: Polewali Mandar, West Sulawesi
+photo: https://upload.wikimedia.org/wikipedia/commons/test.jpg
+photo_credit: Test Photographer
+photo_license: CC BY-SA 4.0
+photo_source: https://commons.wikimedia.org/wiki/File:Test.jpg
 coords: [-3.41, 119.31]
 area:
   iso3166_2: ID-SR
