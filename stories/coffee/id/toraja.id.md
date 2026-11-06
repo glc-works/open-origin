@@ -10,7 +10,7 @@ tasting_notes:
 - kapulaga
 ---
 
-Di negeri rumah adat tongkonan, kopi tumbuh di dataran tinggi Toraja dan di Enrekang di sebelah selatannya. Kopi dari kawasan ini umumnya dipasarkan lewat kota Kalosi di Enrekang, sehingga dua nama itu sering dipakai bersama [1].
+Di negeri rumah adat tongkonan, kopi tumbuh di dataran tinggi Toraja dan di Enrekang di sebelah selatannya. Kopi dari kawasan ini umumnya dipasarkan lewat kota Kalosi di Enrekang, sehingga dua nama itu sering dipakai bersama [1]. Di Toraja sebagian besar desa kopi berada di atas 1.500 meter; di Enrekang kopi umumnya ditanam di ketinggian 1.000–1.500 meter [4].
 
 Kopi Toraja sempat meredup setelah kebun-kebunnya ditinggalkan pada masa Perang Dunia II. Pada 1973 pemanggang Jepang yang kini bernama Key Coffee mulai meneliti di sana, dan pada 1978 kopi Toraja kembali ke pasar Jepang, dari kebun sendiri di ketinggian sekitar 1.500 meter dan dari petani sampai ketinggian 1.800 meter [2]. Kopi Arabika Toraja dan Kopi Arabika Kalosi Enrekang sama-sama memperoleh Indikasi Geografis pada 2013 [3].
 

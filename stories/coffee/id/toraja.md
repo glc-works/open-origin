@@ -16,7 +16,7 @@ area:
   geonames: [1625123, 1644905]
 producer: Coffee farmers of the Toraja highlands
 species: arabica
-altitude_masl: [1500, 1800]
+altitude_masl: [1000, 1800]
 varieties: [S795, Typica]
 process: [wet-hulled]
 tasting_notes: [nuts, cinnamon, cardamom]
@@ -30,9 +30,10 @@ sources:
   - https://en.wikipedia.org/wiki/Coffee_production_in_Indonesia
   - https://www.keycoffee.co.jp/toarcotoraja/english/history.html
   - https://en.wikipedia.org/wiki/Geographical_indications_in_Indonesia
+  - https://ei-ado.aciar.gov.au/sites/default/files/Marsh-Neilson%282007%29SecuringProfitibilityTorajaCoffeeIndustry_ACIAR_SADI.pdf
 ---
 
-In the land of the tongkonan, the traditional ancestral houses, coffee grows in the Toraja highlands and in Enrekang to the south. Coffee from this area is commonly traded through the town of Kalosi in Enrekang, so the two names are often used together [1].
+In the land of the tongkonan, the traditional ancestral houses, coffee grows in the Toraja highlands and in Enrekang to the south. Coffee from this area is commonly traded through the town of Kalosi in Enrekang, so the two names are often used together [1]. In Toraja most coffee villages lie above 1,500 metres; in Enrekang coffee is generally grown at 1,000–1,500 metres [4].
 
 Toraja coffee faded after its farms were abandoned during the Second World War. In 1973 the Japanese roaster now called Key Coffee began field research there, and in 1978 Toraja coffee came back to market in Japan, grown on its own farm at about 1,500 metres and bought from farmers as high as 1,800 metres [2]. Kopi Arabika Toraja and Kopi Arabika Kalosi Enrekang both received a Geographical Indication in 2013 [3].
 

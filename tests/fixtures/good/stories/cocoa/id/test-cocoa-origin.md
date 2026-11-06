@@ -24,5 +24,14 @@ contributor: t
 consent: true
 sources:
   - https://example.org/cocoa-origin
+journey:
+  - stage: harvest
+    text: Pods are cut by hand.
+    cite: [1]
+  - stage: process
+    text: Beans ferment for five days.
+did_you_know:
+  text: A test fact that comes from the first source.
+  cite: [1]
 ---
 Body text that is long enough to pass the minimum length check for a story. It describes the farm, the people and the process in a few sentences so validation passes and the page renders with real looking text for review [1].

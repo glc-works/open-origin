@@ -32,9 +32,10 @@ sources:
   - https://megapolitan.antaranews.com/berita/247578/menyebarluaskan-kembali-ketenaran-bondowowo-republik-kopi
   - https://www.thejakartapost.com/travel/2017/07/17/international-coffee-enthusiasts-explore-local-arabica-coffee-in-bondowoso.html
   - https://en.wikipedia.org/wiki/Geographical_indications_in_Indonesia
+  - https://www.detik.com/jatim/berita/d-8208384/ptpn-i-tanam-ulang-443-ribu-pohon-kopi-di-ijen-usai-dirusak-otk
 ---
 
-Java's arabica is centred on the Ijen Plateau at the eastern end of the island, above 1,400 metres. The coffee grows mostly on large estates built by the Dutch; the five largest are Blawan, Jampit, Pancoer, Kayumas and Tugosari [1]. Estates such as Jampit, Blawan and Pancur are now run by the state plantation company PTPN XII [2].
+Java's arabica is centred on the Ijen Plateau at the eastern end of the island, above 1,400 metres. The coffee grows mostly on large estates built by the Dutch; the five largest are Blawan, Jampit, Pancoer, Kayumas and Tugosari [1]. Estates such as Jampit, Blawan and Pancur were long run by the state plantation company PTPN XII [2]. Since PTPN XII merged into PTPN I in 2023, they are run by PTPN I Regional 5 under the name Java Coffee Estate [5].
 
 The estates carry ripe cherries quickly to their mills, where the pulp is fermented and washed off (the wet process) [1]. Around them, smallholders on the slopes of Ijen and Raung grow their own coffee. In 2016 Bondowoso began calling itself the "Coffee Republic" to promote them [2][3], and Kopi Arabika Java Ijen-Raung received a Geographical Indication in 2013 [4].
 

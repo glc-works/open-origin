@@ -32,10 +32,11 @@ sources:
   - https://www.thejakartapost.com/news/2015/11/06/north-sumatra-coffee-flavor-goes-global.html
   - https://greencoffeecollective.com/pages/glossary/sigarar-utang
   - https://en.wikipedia.org/wiki/Geographical_indications_in_Indonesia
+  - https://royalcoffee.com/indonesian-coffee-cultivars-and-varieties/
 ---
 
 Mandheling is a trade name for arabica coffee from northern Sumatra. It comes from the Mandailing people of the Tapanuli region, but coffee sold under the name also comes from elsewhere in North Sumatra and from Aceh [1]. Lintong coffee from Humbang Hasundutan, for example, is also sold as Sumatra Lintong Mandheling [2]. In Mandailing Natal itself, arabica grows at about 1,700 metres in Ulu Pungkut, Pakantan and Muara [2]. Kopi Arabika Sumatera Mandailing received a Geographical Indication in 2016 [4].
 
-The Sigarar Utang variety has a story of its own. Its name means roughly "the one that pays off debts", because it bears fruit so quickly that farmers can repay their loans sooner than with other varieties [2][3]. It was developed in Indonesia in the 1990s from Caturra and Hybrid of Timor [3].
+The Sigarar Utang variety has a story of its own. Its name means roughly "the one that pays off debts", because it bears fruit so quickly that farmers can repay their loans sooner than with other varieties [2][3]. Its origin is uncertain. It is usually described as a Catimor-type cross of arabica and Hybrid of Timor, said to have been selected by a farmer in Paranginan, Humbang Hasundutan, in the late 1980s and spread by the coffee research institute in the 1990s [3][5].
 
 Sumatran coffees like these built the image of the "Sumatran taste": heavy body, low acidity, and notes of cocoa, tobacco, earth and cedar wood [1].
