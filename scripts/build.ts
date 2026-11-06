@@ -149,7 +149,7 @@ function headline(s) {
 
 // Cover art for a story without a photo: contour lines like a relief map, drawn from the story id so each
 // story keeps its own pattern. Colour follows the crop.
-const CROP_HUE = { coffee: "var(--cherry)", cocoa: "#7A4A2B", tea: "var(--leaf)", spice: "#A0632A", vanilla: "#6B5A2E", honey: "#B7862A", sugar: "#8A5A3C" };
+const CROP_HUE = { coffee: "#A8261B", cocoa: "#7A4A2B", tea: "var(--leaf)", spice: "#A0632A", vanilla: "#6B5A2E", honey: "#B7862A", sugar: "#8A5A3C" };
 function coverArt(s) {
   let h = 0; for (const c of String(s.id || s.slug)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const rnd = () => ((h = (h * 1664525 + 1013904223) >>> 0) / 2 ** 32);
@@ -159,7 +159,7 @@ function coverArt(s) {
     const d = Array.from({ length: pts }, (_, k) => { const a = (k / pts) * 6.283; const rr = r + Math.sin(a * 3 + ph) * wob + Math.cos(a * 2 + i) * wob * 0.6; return `${(cx + Math.cos(a) * rr * 1.6).toFixed(1)},${(cy + Math.sin(a) * rr).toFixed(1)}`; });
     return `<polygon points="${d.join(" ")}" />`;
   }).join("");
-  return `<svg class="cover-art" viewBox="0 0 300 128" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="${CROP_HUE[s.crop] || "var(--cherry)"}" stroke-width="1.1" opacity=".55">${rings}</g></svg>`;
+  return `<svg class="cover-art" viewBox="0 0 300 128" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="${CROP_HUE[s.crop] || "var(--accent)"}" stroke-width="1.1" opacity=".55">${rings}</g></svg>`;
 }
 
 function card(s) {
