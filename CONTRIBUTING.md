@@ -152,6 +152,14 @@ journey:                                      # optional, same number of steps a
 The translated story.
 ```
 
+### Translating a Learn entry
+
+A Learn entry is translated the same way: add `<entry>.<language>.md` next to it, for example `learn/coffee/arabica.id.md`. It holds only the words (`title`, `summary`, `translator` and the text). The facts and the `sources` stay in the English entry, and `[1]`, `[2]` in the translation point to those same sources.
+
+### Translating the site itself
+
+The site's own words (menus, labels, buttons) live in [`scripts/i18n.ts`](scripts/i18n.ts). English is served at the root of the site and Indonesian under `/id/`, with the same paths below it. To add a language, copy the `id` block in that file, give it the new language code, translate the values and add the code to `LANGS`; anything you leave out shows in English. A translated page such as `pages/codes.id.md` is picked up by its language code. On a page in another language, each story card leads to the story's translation into that language when there is one; otherwise the story is shown as it was told.
+
 ## Story format
 
 ```markdown
