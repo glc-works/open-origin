@@ -53,6 +53,8 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
 .bar nav a { white-space: nowrap; }
 .bar nav a { text-decoration: none; color: var(--muted); }
 .bar nav a:hover { color: var(--fg); }
+.bar nav a.lang-switch { padding: 0 8px; border: 1px solid var(--line); border-radius: 999px; }
+.bar nav a.lang-switch:hover { border-color: var(--fg); }
 
 /* Hero */
 .hero { padding-block: clamp(40px, 8vw, 96px) 28px; }

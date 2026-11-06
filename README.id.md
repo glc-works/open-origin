@@ -5,7 +5,7 @@
 
 Koleksi terbuka cerita asal-usul **kopi, kakao, teh, rempah, vanila, madu dan gula aren/kelapa**, ditulis bersama oleh komunitas: tanahnya, prosesnya, dan orang-orangnya, dengan kata-kata mereka sendiri. Siapa pun boleh membaca, memakai ulang, dan menambahkan ceritanya. Kami mulai dari Nusantara, lalu ke seluruh dunia.
 
-**Situs:** https://glc-works.github.io/open-origin/ · **Visi dan peta jalan:** [BLUEPRINT.md](BLUEPRINT.md) (bahasa Inggris)
+**Situs:** https://glc-works.github.io/open-origin/id/ (bahasa Indonesia) · https://glc-works.github.io/open-origin/ (bahasa Inggris) · **Visi dan peta jalan:** [BLUEPRINT.md](BLUEPRINT.md) (bahasa Inggris)
 
 ## Bagikan cerita
 
@@ -21,7 +21,7 @@ Tidak perlu bisa coding. **[Isi formulir cerita](https://github.com/glc-works/op
 | **Lot** | Satu panen, kiriman, atau produksi, yaitu yang dibeli pembeli, lengkap dengan proses, bentuk, dan mutunya | `L-` |
 | **Learn** | Spesies, varietas, proses, dan cara penilaian mutu (cupping, cut test kakao…) dengan sumber | |
 
-ID tidak pernah berubah, jadi nama dan file boleh diganti tanpa merusak tautan. `/s/<id>/` selalu mengarah ke halamannya. Kode seperti `L-KPBJF525-D` punya karakter cek yang menangkap salah ketik; lihat [Cara membaca kode](https://glc-works.github.io/open-origin/codes/id/).
+ID tidak pernah berubah, jadi nama dan file boleh diganti tanpa merusak tautan. `/s/<id>/` selalu mengarah ke halamannya. Kode seperti `L-KPBJF525-D` punya karakter cek yang menangkap salah ketik; lihat [Cara membaca kode](https://glc-works.github.io/open-origin/id/codes/).
 
 ## Data terbuka
 
