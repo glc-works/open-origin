@@ -75,7 +75,7 @@
   function save() {
     const c = collect();
     // The "Other" box is kept as typed, so a word that also has a ticked box survives unticking it after a reload.
-    store.set({ ...c.fields, process: c.fields.process, tasting_other: $("f-tasting_other").value, coords, consent: undefined, contact: c.contact, step });
+    store.set({ ...c.fields, process: c.fields.process, tasting_ticked: [...form.querySelectorAll('input[name="taste"]:checked')].map((i) => i.value), tasting_other: $("f-tasting_other").value, coords, consent: undefined, contact: c.contact, step });
   }
   function restore() {
     const params = new URLSearchParams(location.search);
@@ -84,15 +84,17 @@
     for (const [k, val] of Object.entries(d)) {
       if (val === undefined || val === null || k === "process" || k === "step" || k === "coords") continue;
       if (k === "tasting_notes") {
+        // Newer drafts keep the ticked boxes and the "Other" text apart; older ones only have the combined list.
+        const split = Array.isArray(d.tasting_ticked) && typeof d.tasting_other === "string";
         const other = [];
-        for (const w of String(val).split(",").map((s) => s.trim()).filter(Boolean)) {
+        for (const w of split ? d.tasting_ticked : String(val).split(",").map((s) => s.trim()).filter(Boolean)) {
           const box = form.querySelector(`input[name="taste"][value="${CSS.escape(w)}"]`);
           if (box) { box.checked = true; box.closest("details").open = true; } else other.push(w);
         }
-        $("f-tasting_other").value = typeof d.tasting_other === "string" ? d.tasting_other : other.join(", ");
+        $("f-tasting_other").value = split ? d.tasting_other : other.join(", ");
         continue;
       }
-      if (k === "tasting_other") continue;
+      if (k === "tasting_other" || k === "tasting_ticked") continue;
       const radio = form.querySelector(`input[type=radio][name="${k}"][value="${CSS.escape(String(val))}"]`);
       if (radio) { radio.checked = true; continue; }
       if (k === "country") {
@@ -108,6 +110,7 @@
     if (d.process) for (const p of String(d.process).split(/,\s*/)) { const i = form.querySelector(`input[name="process"][value="${CSS.escape(p)}"]`); if (i) i.checked = true; }
     if (Array.isArray(d.coords)) showWhere(d.coords);
     for (const el of form.querySelectorAll("textarea, input[maxlength]")) counter(el);
+    syncTastes();
   }
 
   // Each step checks only its own fields; the relay checks everything again.
