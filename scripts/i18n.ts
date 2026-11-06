@@ -17,7 +17,7 @@ const en = {
 
   // Header and footer
   // Header order: Stories · Discover · Learn · Codes · Share · Open data · GitHub · language. `discover` is for the
-  // map page; it shows in the header once that page is built.
+  // Discover page (map and table).
   nav: { stories: "Stories", discover: "Discover", learn: "Learn", codes: "Codes", share: "Share", contribute: "Contribute", data: "Open data", github: "GitHub" },
   switchTo: "Read this site in",
   footTagline: "Open Origin · stories from where it grows.",
@@ -139,6 +139,32 @@ const en = {
   crops: {},
   qfields: {},
   terms: {},
+
+  // Discover page (/discover/): search, crop filters, map and table.
+  discover: {
+    title: "Discover",
+    description: "Search every origin and farm story in Open Origin, filter by crop, and see them on a map or in a table.",
+    eyebrow: (n, m, p) => `Discover · ${n} ${n === 1 ? "story" : "stories"} · ${m} in ${p} ${p === 1 ? "place" : "places"} on the map`,
+    heading: "Discover where it grows",
+    lede: "Every origin profile and farm story, on a map and in a table. Search by name, place, variety, process or code. Points are rounded to about 1 km, so no one's home can be found. A farm story without its own point is shown at its origin.",
+    searchLabel: "Search stories",
+    placeholder: "Search: Gayo, washed, Typica, O-…",
+    view: "View", map: "Map", table: "Table",
+    filterLabel: "Filter by crop", allCrops: "All crops",
+    // The count under the filters; the page's script fills it in as the search changes.
+    story: "story", stories: "stories", onMap: "on the map",
+    mapLabel: "Map of stories. The same stories are in the table view.",
+    basemap: 'Basemap by <a href="https://openfreemap.org">OpenFreeMap</a>, © <a href="https://www.openmaptiles.org/">OpenMapTiles</a>, data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Story points CC BY 4.0.',
+    cols: { story: "Story", crop: "Crop", where: "Where", altitude: "Altitude", varieties: "Varieties · process", code: "Code", map: "Map" },
+    kinds: { origin: "Origin profile", farm: "Farm story", movement: "Movement" },
+    showOnMap: "Show on map",
+    showOnMapLabel: (title) => `Show ${title} on the map`,
+    noLocation: "No location",
+    none: "No story matches. Try another word or crop.",
+    fromHome: "Search them all on a map or in a table",
+    // Shown over the map when someone scrolls or drags it with one finger.
+    gestures: { windows: "Use Ctrl + scroll to zoom the map", mac: "Use ⌘ + scroll to zoom the map", mobile: "Use two fingers to move the map" },
+  },
 };
 
 const id = {
@@ -287,6 +313,29 @@ const id = {
     // Variety traits
     low: "rendah", medium: "sedang", high: "tinggi", "very high": "sangat tinggi", fair: "cukup", good: "baik", "very good": "sangat baik", exceptional: "istimewa",
     dwarf: "pendek (katai)", "semi-dwarf": "semi-pendek", tall: "tinggi", resistant: "tahan", tolerant: "toleran", susceptible: "rentan",
+  },
+
+  discover: {
+    title: "Jelajahi",
+    description: "Cari semua profil origin dan cerita kebun di Open Origin, saring per komoditas, lalu lihat di peta atau dalam tabel.",
+    eyebrow: (n, m, p) => `Jelajahi · ${n} cerita · ${m} di ${p} tempat pada peta`,
+    heading: "Jelajahi tempat asalnya",
+    lede: "Semua profil origin dan cerita kebun, di peta dan dalam tabel. Cari menurut nama, tempat, varietas, proses, atau kode. Titik dibulatkan sekitar 1 km supaya rumah siapa pun tidak bisa ditemukan. Cerita kebun tanpa titik sendiri ditampilkan di titik origin-nya.",
+    searchLabel: "Cari cerita",
+    placeholder: "Cari: Gayo, washed, Typica, O-…",
+    view: "Tampilan", map: "Peta", table: "Tabel",
+    filterLabel: "Saring per komoditas", allCrops: "Semua komoditas",
+    story: "cerita", stories: "cerita", onMap: "di peta",
+    mapLabel: "Peta cerita. Cerita yang sama ada di tampilan tabel.",
+    basemap: 'Peta dasar dari <a href="https://openfreemap.org">OpenFreeMap</a>, © <a href="https://www.openmaptiles.org/">OpenMapTiles</a>, data © kontributor <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>. Titik cerita CC BY 4.0.',
+    cols: { story: "Cerita", crop: "Komoditas", where: "Lokasi", altitude: "Ketinggian", varieties: "Varietas · proses", code: "Kode", map: "Peta" },
+    kinds: { origin: "Profil origin", farm: "Cerita kebun", movement: "Gerakan" },
+    showOnMap: "Lihat di peta",
+    showOnMapLabel: (title) => `Lihat ${title} di peta`,
+    noLocation: "Tanpa lokasi",
+    none: "Tidak ada cerita yang cocok. Coba kata atau komoditas lain.",
+    fromHome: "Cari semuanya di peta atau dalam tabel",
+    gestures: { windows: "Tekan Ctrl sambil scroll untuk memperbesar peta", mac: "Tekan ⌘ sambil scroll untuk memperbesar peta", mobile: "Gunakan dua jari untuk menggeser peta" },
   },
 };
 

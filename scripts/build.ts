@@ -149,7 +149,7 @@ ${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" href="${prefix}">${LOGO}<b><span>open</span> origin</b></a>
-  <nav><a href="${prefix}#stories">${T.nav.stories}</a><a href="${prefix}#learn">${T.nav.learn}</a><a href="${prefix}codes/">${T.nav.codes}</a><a href="${prefix}#contribute">${T.nav.share}</a><a href="${prefix}api/">${T.nav.data}</a><a href="${REPO}">${T.nav.github}</a>${other.map((o) => `<a class="lang-switch" href="${o.to}" hreflang="${o.l}" lang="${o.l}" title="${esc(`${strings(o.l).switchTo} ${o.name}`)}">${o.l.toUpperCase()}</a>`).join("")}</nav>
+  <nav><a href="${prefix}#stories">${T.nav.stories}</a><a href="${prefix}discover/">${T.nav.discover}</a><a href="${prefix}#learn">${T.nav.learn}</a><a href="${prefix}codes/">${T.nav.codes}</a><a href="${prefix}#contribute">${T.nav.share}</a><a href="${prefix}api/">${T.nav.data}</a><a href="${REPO}">${T.nav.github}</a>${other.map((o) => `<a class="lang-switch" href="${o.to}" hreflang="${o.l}" lang="${o.l}" title="${esc(`${strings(o.l).switchTo} ${o.name}`)}">${o.l.toUpperCase()}</a>`).join("")}</nav>
 </div></header>`;
 }
 
@@ -229,7 +229,7 @@ function strip() {
     return `<a class="stop" style="left:${pct(lon).toFixed(2)}%" href="#stories" data-jump="${esc(cc)}"><span>${esc(countryName.of(cc))}</span><span class="count">${T.nStories(c.n)}</span><span class="stem"></span><span class="dot"></span></a>`;
   });
   return `<nav class="route" aria-label="${T.routeLabel}"><div class="route-inner">${ticks.join("")}<div class="route-belt"></div>${stops.join("")}</div></nav>
-<p class="route-note">${T.routeNote}</p>`;
+<p class="route-note">${T.routeNote} <a href="discover/">${T.discover.fromHome}</a>.</p>`;
 }
 
 function indexPage() {
@@ -252,7 +252,7 @@ function indexPage() {
   <div class="filters" role="group" aria-label="${T.filterLabel}">
     ${btn("country", "all", T.all, true)}
     ${countries.map((c) => btn("country", c, `${flag(c)} ${countryName.of(c)}`)).join("")}
-    ${crops.length > 1 ? crops.map((c) => btn("crop", c, cropLabel(c))).join("") : ""}
+    ${crops.length > 1 ? crops.map((c) => btn("crop", c, cropLabel(c)).replace(">", `><span class="crop-ico" style="color:${MAP_HUE[c] || "var(--accent)"}">${cropIcon(c)}</span>`)).join("") : ""}
   </div>
   <h3 class="group-title">${T.originsTitle} <span>${T.originsSub}</span></h3>
   <div class="cards">${origins.map((s) => card(s)).join("\n")}</div>
@@ -656,12 +656,259 @@ ${lookupJs(LOOKUP_TEXT[LANG] ? LANG : DEFAULT_LANG)}
 ${footer()}`;
 }
 
+// One line icon per crop (24 px grid, drawn with currentColor). Used on the crop filters, in the Discover table,
+// as map markers, and published as dist/icons/<crop>.svg for anyone to reuse. A new crop needs one entry here.
+const CROP_ICON: Record<string, string> = {
+  "coffee": "<ellipse cx=\"12\" cy=\"12\" rx=\"6.2\" ry=\"9.2\" transform=\"rotate(35 12 12)\"/><path d=\"M16.6 5.2C13.4 8.4 14.6 11.6 12 13.6S8.6 15.8 7.4 18.8\"/>",
+  "cocoa": "<path d=\"M12 3c3.6 2.4 5.4 5.6 5.4 9.2S15.6 19 12 21.4C8.4 19 6.6 15.8 6.6 12.2S8.4 5.4 12 3Z\"/><path d=\"M12 3.4v17.6M9.2 5.8c-.9 4-.9 8.8 0 12.8M14.8 5.8c.9 4 .9 8.8 0 12.8M12 3V1.6\"/>",
+  "tea": "<path d=\"M12 21.5V12\"/><path d=\"M12 13C6.8 13 4.6 10 4.6 4.6 9.8 4.6 12 7.4 12 13Z\"/><path d=\"M12 15.6c4.6 0 7.4-2.4 7.4-7.4-4.6 0-7.4 2.6-7.4 7.4Z\"/><path d=\"M12 13 7.6 8.4M12 15.6l4.2-4.2\"/>",
+  "spice": "<path d=\"M12.0 3.0L13.4 8.7L18.4 5.6L15.3 10.6L21.0 12.0L15.3 13.4L18.4 18.4L13.4 15.3L12.0 21.0L10.6 15.3L5.6 18.4L8.7 13.4L3.0 12.0L8.7 10.6L5.6 5.6L10.6 8.7Z\"/><circle cx=\"12\" cy=\"12\" r=\"1.6\"/>",
+  "vanilla": "<path d=\"M10.2 21.4 7 2.8M12 21.6V2.4M13.8 21.4 17 2.8\"/><path d=\"M8.4 16.6h7.2\"/>",
+  "honey": "<path d=\"M12 2.6 20 7.2v9.6l-8 4.6-8-4.6V7.2Z\"/><path d=\"M12 8.2c1.8 2.2 2.8 3.7 2.8 5a2.8 2.8 0 0 1-5.6 0c0-1.3 1-2.8 2.8-5Z\"/>",
+  "sugar": "<path d=\"M12.4 10.4c.6 4 .2 7.6-1.4 11.2\"/><path d=\"M12.4 10.4C10.6 7.4 7.2 6.6 3.8 8M12.4 10.4c1.8-3 5.2-3.8 8.6-2.4M12.4 10.4c-3.2-.4-6.2 1.2-7.4 4.4M12.4 10.4c3.2-.4 6 1.2 7 4.4M12.4 10.4c-.4-3-2-5.4-4.6-7\"/>"
+};
+const iconSvg = (crop, extra = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"${extra}>${CROP_ICON[crop] || '<circle cx="12" cy="12" r="6"/>'}</svg>`;
+const cropIcon = (crop) => iconSvg(crop, ' class="crop-icon" aria-hidden="true"');
+// Discover: search and filter every story, shown on a map or in a table. Map: every story that has coordinates (its own, or its origin profile's). Stories at the same point share
+// one marker per crop. MapLibre is copied from node_modules into dist/vendor, so no script comes from a CDN.
+// The basemap is OpenFreeMap (OpenStreetMap data, free, no key), trimmed to land, water, borders and big
+// place names, and recoloured to the site's palette. Coordinates are already rounded to about 1 km.
+const MAP_HUE = { coffee: "#A8261B", cocoa: "#7A4A2B", tea: "#355E40", spice: "#A0632A", vanilla: "#6B5A2E", honey: "#B7862A", sugar: "#8A5A3C" };
+const BASEMAP = "https://tiles.openfreemap.org/styles/positron";
+function discoverPage() {
+  const prefix = "../", root = `${prefix}${UP}`, D = T.discover;
+  const KIND = D.kinds;
+  // Every story is a row in the table; the ones with coordinates (their own, or their origin profile's) are
+  // also on the map. Stories at the same point share one marker per crop.
+  const rows = stories.map((s, i) => {
+    const c = s.coords || s.originStory?.coords;
+    return {
+      i, s, ll: c ? [c[1], c[0]] : null, place: null as number | null,
+      crop: s.crop, kind: s.kind,
+      // What the search box matches: names, places, varieties, processes, the code, the crop.
+      text: [s.title, s.producer, s.region, countryName.of(s.country), s.country, CROPS[s.crop].label, cropLabel(s.crop), s.crop, KIND[s.kind] || s.kind, s.species,
+        ...(s.varieties || []), ...(s.process || []), ...(s.tasting_notes || []), s.id, s.originStory?.title].filter(Boolean).join(" ").toLowerCase(),
+      html: `<a href="${prefix}${href(s)}">${esc(s.title)}</a><span>${esc(KIND[s.kind] || s.kind)} · ${esc(cropLabel(s.crop))}${s.region ? ` · ${esc(s.region)}` : ""}</span>`,
+    };
+  });
+  const places = [];
+  const at = new Map();
+  for (const r of rows) {
+    if (!r.ll) continue;
+    const key = r.ll.join(",");
+    if (!at.has(key)) { at.set(key, places.length); places.push({ ll: r.ll, rows: [] }); }
+    places[at.get(key)].rows.push(r.i);
+    r.place = at.get(key);
+  }
+  // Origin profiles first in each popup, so the place is named before the farms in it.
+  for (const p of places) p.rows.sort((a, b) => (rows[a].kind === "origin" ? 0 : 1) - (rows[b].kind === "origin" ? 0 : 1));
+  const mapped = rows.filter((r) => r.ll).length;
+  const crops = Object.keys(CROPS).filter((c) => rows.some((r) => r.crop === c));
+  const data = JSON.stringify({
+    words: { story: D.story, stories: D.stories, onMap: D.onMap }, gestures: D.gestures,
+    hue: MAP_HUE, icons: Object.fromEntries(crops.map((c) => [c, iconSvg(c)])), places,
+    rows: rows.map((r) => ({ crop: r.crop, kind: r.kind, text: r.text, html: r.html, place: r.place ?? null })),
+  }).replace(/</g, "\\u003c");
+  const swatch = (c) => `<span class="crop-ico" style="color:${MAP_HUE[c] || "var(--accent)"}">${cropIcon(c)}</span>`;
+  const btn = (val, label, on = false) => `<button type="button" data-crop="${esc(val)}" aria-pressed="${on}">${val !== "all" ? swatch(val) : ""}${esc(label)}</button>`;
+  const th = (key, label, type = "text") => `<th scope="col" data-sort="${key}" data-type="${type}"><button type="button">${label}</button></th>`;
+  const tableRows = rows.map((r) => { const s = r.s; return `<tr data-i="${r.i}" data-crop="${esc(r.crop)}">
+    <td data-label="${D.cols.story}" data-v="${esc(s.title)}"><a href="${prefix}${href(s)}"><strong>${esc(s.title)}</strong></a><span class="muted">${esc(KIND[s.kind] || s.kind)}${s.producer ? ` · ${esc(s.producer)}` : ""}</span></td>
+    <td data-label="${D.cols.crop}" data-v="${esc(cropLabel(s.crop))}">${swatch(s.crop)}${esc(cropLabel(s.crop))}</td>
+    <td data-label="${D.cols.where}" data-v="${esc(s.region || "")}">${flag(s.country)} ${esc(s.region || countryName.of(s.country))}</td>
+    <td data-label="${D.cols.altitude}" data-v="${s.altitude_masl ? s.altitude_masl[0] : ""}">${esc(fmtAlt(s.altitude_masl))}</td>
+    <td data-label="${D.cols.varieties}" data-v="${esc([...(s.varieties || []), ...(s.process || [])].join(" "))}">${esc([(s.varieties || []).join(", "), (s.process || []).map(pretty).join(" · ")].filter(Boolean).join(" · "))}</td>
+    <td data-label="${D.cols.code}" data-v="${esc(s.id || "")}">${s.id ? `<code class="code">${esc(s.id)}</code>` : ""}</td>
+    <td data-label="${D.cols.map}">${r.ll ? `<button type="button" class="show-on-map" data-place="${r.place}" aria-label="${esc(D.showOnMapLabel(s.title))}">${D.showOnMap}</button>` : `<span class="muted">${D.noLocation}</span>`}</td>
+  </tr>`; }).join("");
+  return `${head(`${D.title} · Open Origin`, D.description, prefix, `<link rel="stylesheet" href="${root}vendor/maplibre/maplibre-gl.css">\n`, "discover/")}
+<main><div class="wrap">
+  <div class="section-head" style="margin-top:40px"><div class="eyebrow">${D.eyebrow(rows.length, mapped, places.length)}</div><h1>${D.heading}</h1>
+  <p>${D.lede}</p></div>
+  <div class="map-tools">
+    <label class="map-search"><span class="visually-hidden">${D.searchLabel}</span><input type="search" id="q" placeholder="${esc(D.placeholder)}" autocomplete="off"></label>
+    <div class="view-toggle" role="group" aria-label="${D.view}"><button type="button" data-view="map" aria-pressed="true">${D.map}</button><button type="button" data-view="table" aria-pressed="false">${D.table}</button></div>
+  </div>
+  <div class="filters" role="group" aria-label="${D.filterLabel}">
+    ${btn("all", D.allCrops, true)}${crops.map((c) => btn(c, cropLabel(c))).join("")}
+  </div>
+  <p class="map-count" id="count" aria-live="polite">${rows.length} ${rows.length === 1 ? D.story : D.stories}</p>
+  <div id="map-view">
+    <div id="map" class="origin-map" role="region" aria-label="${D.mapLabel}"></div>
+    <p class="route-note">${D.basemap}</p>
+  </div>
+  <div id="table-view" class="table-wrap">
+    <table class="lots story-table"><thead><tr>${th("0", D.cols.story)}${th("1", D.cols.crop)}${th("2", D.cols.where)}${th("3", D.cols.altitude, "num")}${th("4", D.cols.varieties)}${th("5", D.cols.code)}<th scope="col"><span class="visually-hidden">${D.cols.map}</span></th></tr></thead>
+    <tbody>${tableRows}</tbody></table>
+    <p class="empty-result" id="none" hidden>${D.none}</p>
+  </div>
+</div></main>
+<script src="${root}vendor/maplibre/maplibre-gl.js"></script>
+<script>
+(async function () {
+  const DATA = ${data};
+  const $ = (s) => document.querySelector(s), $$ = (s) => document.querySelectorAll(s);
+  const q = $("#q"), mapView = $("#map-view"), tableView = $("#table-view"), box = $("#map");
+  const trs = [...$$(".story-table tbody tr")];
+  const state = { crop: "all", q: "", view: "map" };
+  let map = null, popup = null, visible = DATA.rows.map(() => true);
+
+  // State lives in the URL hash (#crop=honey&q=gayo&view=table) so a search can be shared. "#honey" also works.
+  function readHash() {
+    const h = location.hash.slice(1);
+    const p = new URLSearchParams(h.includes("=") ? h : h ? "crop=" + h : "");
+    const crop = p.get("crop");
+    state.crop = crop && $('.filters button[data-crop="' + CSS.escape(crop) + '"]') ? crop : "all";
+    state.q = p.get("q") || "";
+    state.view = p.get("view") === "table" ? "table" : "map";
+    q.value = state.q;
+  }
+  function writeHash() {
+    const p = new URLSearchParams();
+    if (state.crop !== "all") p.set("crop", state.crop);
+    if (state.q) p.set("q", state.q);
+    if (state.view === "table") p.set("view", "table");
+    const s = p.toString();
+    history.replaceState(null, "", s ? "#" + s : location.pathname);
+  }
+  const features = () => {
+    const out = [];
+    DATA.places.forEach((p, i) => {
+      const by = {};
+      for (const r of p.rows) if (visible[r]) by[DATA.rows[r].crop] = (by[DATA.rows[r].crop] || 0) + 1;
+      for (const c in by) out.push({ type: "Feature", geometry: { type: "Point", coordinates: p.ll }, properties: { place: i, crop: c, n: by[c] } });
+    });
+    return out;
+  };
+  const bounds = (list) => list.reduce((b, f) => b.extend(f.geometry.coordinates), new maplibregl.LngLatBounds(list[0].geometry.coordinates, list[0].geometry.coordinates));
+  function render(fit) {
+    const words = state.q.toLowerCase().split(/\\s+/).filter(Boolean);
+    visible = DATA.rows.map((r) => (state.crop === "all" || r.crop === state.crop) && words.every((w) => r.text.includes(w)));
+    $$(".filters button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.crop === state.crop)));
+    $$(".view-toggle button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === state.view)));
+    mapView.hidden = state.view !== "map";
+    tableView.hidden = state.view !== "table";
+    trs.forEach((tr) => { tr.hidden = !visible[tr.dataset.i]; });
+    const n = visible.filter(Boolean).length, onMap = DATA.rows.filter((r, i) => visible[i] && r.place !== null).length;
+    const W = DATA.words;
+    $("#count").textContent = n + " " + (n === 1 ? W.story : W.stories) + (n !== onMap ? " · " + onMap + " " + W.onMap : "");
+    $("#none").hidden = n > 0;
+    writeHash();
+    if (!map || !map.getSource("points")) return;
+    if (popup) popup.remove();
+    const f = features();
+    map.getSource("points").setData({ type: "FeatureCollection", features: f });
+    if (fit && f.length) map.fitBounds(bounds(f), { padding: 40, maxZoom: 6, duration: 600 });
+  }
+  function openPlace(i) {
+    const p = DATA.places[i];
+    const items = p.rows.filter((r) => visible[r]);
+    if (popup) popup.remove();
+    popup = new maplibregl.Popup({ maxWidth: "300px" }).setLngLat(p.ll)
+      .setHTML('<ul class="map-pop">' + (items.length ? items : p.rows).map((r) => "<li>" + DATA.rows[r].html + "</li>").join("") + "</ul>").addTo(map);
+  }
+
+  $$(".filters button").forEach((b) => b.addEventListener("click", () => { state.crop = b.dataset.crop; render(true); }));
+  $$(".view-toggle button").forEach((b) => b.addEventListener("click", () => { state.view = b.dataset.view; render(false); if (map) map.resize(); }));
+  let t; q.addEventListener("input", () => { clearTimeout(t); t = setTimeout(() => { state.q = q.value.trim(); render(true); }, 150); });
+  $$(".show-on-map").forEach((b) => b.addEventListener("click", () => {
+    state.view = "map"; render(false);
+    if (!map) return;
+    map.resize();
+    const p = DATA.places[b.dataset.place];
+    map.flyTo({ center: p.ll, zoom: 7, duration: 700 });
+    map.once("moveend", () => openPlace(b.dataset.place));
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+  }));
+  // Sort the table by a column; a second click reverses it.
+  $$(".story-table th[data-sort] button").forEach((btn) => btn.addEventListener("click", () => {
+    const th = btn.parentElement, col = +th.dataset.sort, num = th.dataset.type === "num";
+    const dir = th.getAttribute("aria-sort") === "ascending" ? -1 : 1;
+    $$(".story-table th").forEach((x) => x.removeAttribute("aria-sort"));
+    th.setAttribute("aria-sort", dir === 1 ? "ascending" : "descending");
+    const val = (tr) => tr.children[col].dataset.v || "";
+    trs.sort((a, b) => {
+      const x = val(a), y = val(b);
+      if (!x !== !y) return x ? -1 : 1; // empty cells last
+      return dir * (num ? x - y : x.localeCompare(y));
+    }).forEach((tr) => tr.parentElement.appendChild(tr));
+  }));
+  window.addEventListener("hashchange", () => { readHash(); render(true); });
+
+  readHash();
+  render(false);
+  if (!window.maplibregl || !DATA.places.length) { box.hidden = true; return; }
+
+  // Keep only what tells you where you are: land, water, parks, borders and the larger place names.
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const C = dark
+    ? { land: "#1C1E18", water: "#11191B", park: "#20261D", line: "#4A4E42", text: "#A1A496", halo: "#131410", ring: "#131410" }
+    : { land: "#F4F5EF", water: "#C9D4D2", park: "#E4E8DD", line: "#A9AC9E", text: "#5B5E52", halo: "#F4F5EF", ring: "#FFFFFF" };
+  const KEEP = /^(background|water|park|landcover_|boundary_2|boundary_disputed|water_name_point_label|label_state|label_city|label_city_capital|label_country_)/;
+  let style;
+  try { style = await (await fetch("${BASEMAP}")).json(); } catch { box.hidden = true; return; }
+  style.layers = style.layers.filter((l) => KEEP.test(l.id)).map((l) => {
+    const p = { ...l.paint };
+    if (l.id === "background") p["background-color"] = C.land;
+    else if (l.id === "water") p["fill-color"] = C.water;
+    else if (l.type === "fill") p["fill-color"] = C.park;
+    else if (l.type === "line") p["line-color"] = C.line;
+    else if (l.type === "symbol") Object.assign(p, { "text-color": C.text, "text-halo-color": C.halo, "text-halo-width": 1.2, "text-halo-blur": 0 });
+    return { ...l, paint: p };
+  });
+  const start = features();
+  map = new maplibregl.Map({
+    container: box, style, bounds: bounds(start.length ? start : DATA.places.map((p) => ({ geometry: { coordinates: p.ll } }))),
+    fitBoundsOptions: { padding: 40, maxZoom: 6 }, maxZoom: 11, attributionControl: { compact: true },
+    // Two fingers (or Ctrl + scroll) move the map, so the page still scrolls past it.
+    cooperativeGestures: true,
+    locale: { "CooperativeGesturesHandler.WindowsHelpText": DATA.gestures.windows, "CooperativeGesturesHandler.MacHelpText": DATA.gestures.mac, "CooperativeGesturesHandler.MobileHelpText": DATA.gestures.mobile },
+  });
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
+  map.on("load", async () => {
+    map.addSource("points", { type: "geojson", data: { type: "FeatureCollection", features: start } });
+    // Each crop's marker is its icon in white on a disc of the crop's colour, drawn once as an image.
+    await Promise.all(Object.entries(DATA.icons).map(async ([c, icon]) => {
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14.6" fill="' + (DATA.hue[c] || "#A8261B") + '" stroke="' + C.ring + '" stroke-width="2"/>'
+        + icon.replace("<svg ", '<svg x="6.5" y="6.5" width="19" height="19" color="#fff" ') + "</svg>";
+      const img = new Image(64, 64);
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      await img.decode();
+      map.addImage("crop-" + c, img, { pixelRatio: 2 });
+    }));
+    map.addLayer({ id: "points", type: "symbol", source: "points", layout: {
+      "icon-image": ["concat", "crop-", ["get", "crop"]],
+      "icon-size": ["case", [">", ["get", "n"], 1], 1.1, 0.95],
+      "icon-allow-overlap": true, "icon-ignore-placement": true,
+      "symbol-sort-key": ["get", "n"],
+    } });
+    // A place with more than one story gets a small count badge.
+    map.addLayer({ id: "counts", type: "symbol", source: "points", filter: [">", ["get", "n"], 1], layout: {
+      "text-field": ["to-string", ["get", "n"]], "text-font": ["Noto Sans Bold"], "text-size": 11,
+      "text-offset": [1.25, -1.15], "text-allow-overlap": true, "text-ignore-placement": true,
+    }, paint: { "text-color": dark ? "#131410" : "#FFFFFF", "text-halo-color": dark ? "#E6E6DC" : "#1C1D18", "text-halo-width": 4 } });
+    map.on("mouseenter", "points", () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", "points", () => { map.getCanvas().style.cursor = ""; });
+    map.on("click", "points", (e) => openPlace(e.features[0].properties.place));
+  });
+})();
+</script>
+${footer()}`;
+}
+
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 await copyFile(path.join(SITE, "style.css"), path.join(DIST, "style.css"));
 await copyFile(path.join(SITE, "logo.svg"), path.join(DIST, "logo.svg"));
 await cp(path.join(SITE, "brand"), path.join(DIST, "brand"), { recursive: true });
 try { await access(path.join(ROOT, "photos")); await cp(path.join(ROOT, "photos"), path.join(DIST, "photos"), { recursive: true }); } catch {}
+// Shared by every language: crop icons at /icons/<crop>.svg and the map library (BSD-3-Clause, licence kept beside it).
+await mkdir(path.join(DIST, "icons"), { recursive: true });
+for (const c of Object.keys(CROPS)) await writeFile(path.join(DIST, "icons", `${c}.svg`), iconSvg(c, ' xmlns="http://www.w3.org/2000/svg" width="24" height="24"') + "\n");
+const MAPLIBRE = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "node_modules", "maplibre-gl", "dist");
+await mkdir(path.join(DIST, "vendor", "maplibre"), { recursive: true });
+for (const f of ["maplibre-gl.js", "maplibre-gl.css", "LICENSE.txt"]) await copyFile(path.join(MAPLIBRE, f), path.join(DIST, "vendor", "maplibre", f));
+
 // The API's own page: what the endpoints are and how to credit the data. The JSON itself is written by api.ts, once,
 // at the site root. pages/api.<lang>.md is used where it exists, otherwise the English text.
 async function apiPage() {
@@ -698,6 +945,7 @@ for (const lang of LANGS) {
   for (const p of producers) await page(producerHref(p), producerPage(p));
   await page("codes", await codesPage());
   await page("api", await apiPage());
+  await page("discover", discoverPage());
 }
 setLang(DEFAULT_LANG);
 // The Indonesian code guide used to live at /codes/id/; keep that address working.
