@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 import { latLngToCell } from "h3-js";
-import { STORY, PRODUCER, missingErrors, type Story, type Producer, type Lot } from "./schema.ts";
+import { STORY, PRODUCER, LOT, LEARN, STORY_TRANSLATION, LEARN_TRANSLATION, requiredKeys, missingErrors, unknownErrors, type Story, type Producer, type Lot } from "./schema.ts";
 import { SCENES } from "./scenes.ts";
 
 // OPEN_ORIGIN_ROOT points the scripts at another content folder, e.g. the test fixtures.
@@ -107,7 +107,7 @@ export async function loadStories() {
     const { data, content } = readFront(raw, file);
     const rel = path.relative(STORIES_DIR, file);
     const [crop, country, name] = rel.split(path.sep);
-    const base = { body: content.trim(), file: path.relative(ROOT, file), pathCrop: crop, pathCountry: country };
+    const base = { body: content.trim(), file: path.relative(ROOT, file), pathCrop: crop, pathCountry: country, frontKeys: Object.keys(data) };
     const t = name && name.match(TRANSLATION_RE);
     if (t) translations.push({ ...data, ...base, parentSlug: t[1], fileLang: t[2] });
     else stories.push({ kind: "farm", ...data, ...base, slug: name ? name.replace(/\.md$/, "") : "", translations: [] });
@@ -133,7 +133,7 @@ export async function loadKnowledge() {
   for (const file of files) {
     const { data, content } = readFront(await readFile(file, "utf8"), file);
     const [crop, name] = path.relative(LEARN_DIR, file).split(path.sep);
-    const base = { body: content.trim(), file: path.relative(ROOT, file), pathCrop: crop };
+    const base = { body: content.trim(), file: path.relative(ROOT, file), pathCrop: crop, frontKeys: Object.keys(data) };
     const t = name && name.match(TRANSLATION_RE);
     if (t) out.translations.push({ ...data, ...base, parentSlug: t[1], language: t[2] });
     else out.push({ ...data, ...base, slug: name ? name.replace(/\.md$/, "") : "", translations: [] });
@@ -150,10 +150,11 @@ export async function loadKnowledge() {
 export function validateKnowledgeTranslation(t) {
   const errors = [];
   if (!t.parent) errors.push(`no entry named ${t.parentSlug}.md next to this translation`);
-  for (const key of ["title", "summary"]) if (!t[key]) errors.push(`missing required field "${key}"`);
+  for (const key of requiredKeys(LEARN_TRANSLATION)) if (!t[key]) errors.push(`missing required field "${key}"`);
   if (t.summary && String(t.summary).length > 200) errors.push(`summary is ${String(t.summary).length} characters; keep it to 200`);
   if (!t.body || t.body.length < 200) errors.push(`the translated explanation is too short`);
   if (t.parent) errors.push(...citationErrors(t.body, t.parent.sources));
+  errors.push(...unknownErrors(LEARN_TRANSLATION, t.frontKeys));
   return errors;
 }
 
@@ -177,6 +178,7 @@ export function validateKnowledge(k) {
   if (k.sources !== undefined && (!Array.isArray(k.sources) || !k.sources.every(isHttpUrl))) errors.push(`sources must be a list of http(s) links`);
   if (!k.body || k.body.length < 200) errors.push(`the explanation is too short`);
   errors.push(...citationErrors(k.body, k.sources));
+  errors.push(...unknownErrors(LEARN, k.frontKeys));
   return errors;
 }
 
@@ -286,7 +288,7 @@ export async function loadProducers() {
   for (const file of files) {
     const { data, content } = readFront(await readFile(file, "utf8"), file);
     const parts = path.relative(PRODUCERS_DIR, file).split(path.sep);
-    out.push({ ...data, body: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCountry: parts[0], slug: (parts[1] || "").replace(/\.md$/, "") });
+    out.push({ ...data, frontKeys: Object.keys(data), body: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCountry: parts[0], slug: (parts[1] || "").replace(/\.md$/, "") });
   }
   return out;
 }
@@ -333,6 +335,7 @@ export function validateProducer(p: Producer): string[] {
   errors.push(...photoErrors(p));
   if (p.logo !== undefined && !((isHttpUrl(p.logo) && String(p.logo).startsWith("https:")) || /^photos\/[a-z0-9/_-]+\.(svg|png|webp|jpe?g)$/i.test(String(p.logo)))) errors.push(`logo must be an https link or a file in photos/, e.g. photos/logos/koperasi-gayo.svg`);
   if (p.crops !== undefined && !(isStrList(p.crops) && p.crops.every((c) => CROPS[c]))) errors.push(`crops must be a list from: ${Object.keys(CROPS).join(", ")}`);
+  errors.push(...unknownErrors(PRODUCER, p.frontKeys));
   return errors;
 }
 
@@ -382,7 +385,7 @@ export async function loadLots() {
     // YAML reads an unquoted 2025-06-01 as a Date; keep it as the written YYYY-MM-DD text.
     if (data.date instanceof Date) data.date = data.date.toISOString().slice(0, 10);
     if (typeof data.process === "string") data.process = [data.process];
-    out.push({ ...data, notes: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCrop: crop, pathCountry: country, storySlug, slug: name ? name.replace(/\.md$/, "") : "" });
+    out.push({ ...data, frontKeys: Object.keys(data), notes: content.trim(), file: path.relative(ROOT, file), depth: parts.length, pathCrop: crop, pathCountry: country, storySlug, slug: name ? name.replace(/\.md$/, "") : "" });
   }
   return out;
 }
@@ -467,6 +470,7 @@ export function validateLot(l: Lot, stories: Story[], producers: Producer[] = []
   if (q?.cupping_score !== undefined && !(typeof l.tested_by === "string" && l.tested_by.trim())) errors.push(`a cupping score needs tested_by (e.g. "Licensed Q Grader, Name")`);
   if (l.sources !== undefined && !(Array.isArray(l.sources) && l.sources.every(isHttpUrl))) errors.push(`sources must be a list of http(s) links`);
   if (l.certificate !== undefined && !(isHttpUrl(l.certificate) && String(l.certificate).startsWith("https:"))) errors.push(`certificate must be an https link`);
+  errors.push(...unknownErrors(LOT, l.frontKeys));
   return errors;
 }
 
@@ -500,6 +504,7 @@ export function validateTranslation(t) {
   }
   if (t.did_you_know !== undefined && (typeof t.did_you_know !== "string" || !t.did_you_know.trim())) errors.push(`did_you_know in a translation is the translated text`);
   if (!t.body || t.body.length < 200) errors.push(`the translated story is too short`);
+  errors.push(...unknownErrors(STORY_TRANSLATION, t.frontKeys));
   return errors;
 }
 
@@ -603,5 +608,7 @@ export function validateStory(s: Story): string[] {
   errors.push(...citationErrors(s.body, s.sources));
   errors.push(...photoErrors(s));
   if (!s.body || s.body.length < 200) errors.push(`the story itself is too short (at least a few sentences)`);
+  // lot and cupping_score have their own message above.
+  errors.push(...unknownErrors(STORY, (s.frontKeys || []).filter((k) => k !== "lot" && k !== "cupping_score")));
   return errors;
 }
