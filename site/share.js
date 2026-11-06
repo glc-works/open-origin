@@ -91,7 +91,7 @@
           const box = form.querySelector(`input[name="taste"][value="${CSS.escape(w)}"]`);
           if (box) { box.checked = true; box.closest("details").open = true; } else other.push(w);
         }
-        $("f-tasting_other").value = split ? d.tasting_other : other.join(", ");
+        $("f-tasting_other").value = typeof d.tasting_other === "string" ? d.tasting_other : other.join(", ");
         continue;
       }
       if (k === "tasting_other" || k === "tasting_ticked") continue;
