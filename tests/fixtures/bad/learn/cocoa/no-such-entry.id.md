@@ -1,5 +1,6 @@
 ---
 title: Tidak ada
+translater: Test
 summary: Terjemahan tanpa entri bahasa Inggris di sebelahnya.
 ---
 
