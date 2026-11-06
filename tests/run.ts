@@ -28,6 +28,7 @@ if (built.status === 0) {
   check(read("s/L-TESTRQQW-E/index.html").includes("producers/P-TESTPQQW-T/#L-TESTRQQW-E"), "lot permalink leads to the producer page");
   const page = read("stories/cocoa/id/test-cocoa-origin/index.html");
   check(page.includes("ID-SR") && page.includes("76.04") && page.includes("wikidata.org/wiki/Q12345") && /plus\.codes\/[0-9A-Z]{6}00%2B/.test(page) && page.includes("H3 87"), "an origin shows its area codes, Plus Code and H3 cell");
+  check(page.includes('<a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA 4.0</a>') && page.includes('>Wikimedia Commons</a>') && page.includes("Photo: Test Photographer"), "a photo from Commons shows its author, licence and source");
   const codes = JSON.parse(read("codes.json"));
   check(codes["L-TESTCQQ3-3"]?.crops[0] === "cocoa" && codes["O-TESTCQQW-P"]?.place_codes.iso3166_2[0] === "ID-SR", "codes.json lists each code with its crop and place codes");
   check(farm.includes('class="crop-tag">Cocoa'), "codes are shown with their crop");
@@ -59,6 +60,8 @@ for (const expected of [
   `area.wikidata "12345" must be a Wikidata id`,
   `area.plus is not known`,
   `area.admin_codes 11.1 must be in quotes`,
+  `photo_license must be written like CC BY 4.0`,
+  `photo_source must be an https link`,
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.
