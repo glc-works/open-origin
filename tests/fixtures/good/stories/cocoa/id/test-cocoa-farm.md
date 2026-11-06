@@ -2,7 +2,7 @@
 id: S-TESTCQQ2-H
 title: Test cocoa farm
 kind: farm
-origin: test-cocoa-origin
+origin: O-TESTCQQW-P
 crop: cocoa
 country: ID
 region: Polewali Mandar

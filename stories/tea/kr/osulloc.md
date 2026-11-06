@@ -3,7 +3,7 @@ id: S-R3RFHFCC-F
 title: O'Sulloc, tea fields on the slopes of Hallasan
 kind: farm
 traceability: farm
-origin: jeju
+origin: O-H6DF4PNN-3
 crop: tea
 country: KR
 region: Dosun, Seogwang and Hannam, Jeju Island

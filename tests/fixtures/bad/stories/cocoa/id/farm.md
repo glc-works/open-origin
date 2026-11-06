@@ -5,6 +5,7 @@ kind: farm
 crop: cocoa
 country: ID
 region: Somewhere
+origin: O-TESTQQQQ-F
 tasting_note: [cocoa]
 constructor: x
 photo: photos/id/farm.jpg

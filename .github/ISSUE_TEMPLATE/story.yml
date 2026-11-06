@@ -50,7 +50,7 @@ body:
     id: origin
     attributes:
       label: Which origin is this part of? (optional)
-      description: The short name of an origin already on the site, e.g. gayo, toraja, kintamani. Leave empty if it is new.
+      description: The code of an origin already on the site, shown on its page (e.g. O-V9VR4CHS-Q for Gayo), or its name. Leave empty if it is new.
   - type: input
     id: producer
     attributes:

@@ -37,7 +37,7 @@
     const og = $("f-origin");
     const keepO = og.value;
     const list = D.origins.filter((o) => o.crop === crop && o.country === country());
-    og.innerHTML = `<option value="">${T.originNone}</option>` + list.map((o) => `<option value="${o.slug}">${escapeHtml(o.title)}</option>`).join("");
+    og.innerHTML = `<option value="">${T.originNone}</option>` + list.map((o) => `<option value="${o.id}">${escapeHtml(o.title)}</option>`).join("");
     og.value = keepO;
     og.closest(".f").hidden = list.length === 0;
   }

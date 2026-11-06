@@ -25,7 +25,7 @@ export const STORY = {
   told_by: { type: "text", required: true, doc: "farmer, producer-group, roaster, researcher, editor or other" },
   contributor: { type: "text", required: true, doc: "who wrote it down" },
   consent: { type: "consent", required: true, doc: "true (everyone named agreed) or public (an organisation, published facts only)" },
-  origin: { type: "id", doc: "the O- origin profile a farm or movement story belongs to" },
+  origin: { type: "id", doc: "O- id of the origin profile a farm or movement story belongs to (older files may use its file name)" },
   profile: { type: "id", doc: "the P- producer profile of the farm or group" },
   species: { type: "text", doc: "required for a farm story" },
   varieties: { type: "list", doc: "" },

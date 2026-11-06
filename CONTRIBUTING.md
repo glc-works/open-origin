@@ -31,7 +31,7 @@ Thank you for helping tell the stories behind what we drink and eat. English is 
 | `farm` | One farmer, farm or cooperative in their own words. Two farms in Gayo can taste completely different | Many per origin |
 | `movement` | A community, cooperative or initiative and what it changes. e.g. Subak Abian in Kintamani | Many per origin |
 
-Farm and movement stories (never origin profiles) link to their region with `origin: <file name of the origin>`, e.g. `origin: gayo`. The origin page then lists it under "Farmers from this origin".
+Farm and movement stories (never origin profiles) link to their region with the origin's permanent id, e.g. `origin: O-V9VR4CHS-Q` for Gayo (the id is at the top of the origin's file and on its page). Older files that use the origin's file name (`origin: gayo`) still work, but the id never breaks when a file is renamed. The origin page then lists it under "Farmers from this origin".
 
 ## From farm to cup
 

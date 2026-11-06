@@ -4,7 +4,7 @@
 import { mkdir, writeFile, appendFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
-import { ROOT, CROPS, STORIES_DIR, newId, ID_PREFIX } from "./lib.ts";
+import { ROOT, CROPS, STORIES_DIR, newId, ID_PREFIX, parseId, loadStories } from "./lib.ts";
 import { LABELS, ORDER } from "./story-form.ts";
 
 
@@ -37,7 +37,19 @@ const list = (v) => (v ? v.split(/[,\n]/).map((s) => s.trim()).filter(Boolean) :
 export const slugify = (s) =>
   s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "story";
 
-export function toStory(f, { number, author }) {
+// What a contributor typed for "Which origin": an O- code in any spelling, or the origin's name or file name.
+// Returns the origin's id when it matches one profile of the same crop, otherwise the text as a file name, which
+// the validator then flags for the maintainer.
+const norm = (x) => slugify(String(x ?? ""));
+export function resolveOrigin(text, crop, origins = []) {
+  const id = parseId(text);
+  if (id) return id;
+  const want = norm(text);
+  const hits = origins.filter((o) => o.crop === crop && [o.slug, o.title, String(o.title || "").split(",")[0]].some((n) => norm(n) === want));
+  return hits.length === 1 ? hits[0].id : want;
+}
+
+export function toStory(f, { number, author, origins = [] }) {
   // The web form posts through a bot account; the person's own name comes in the "Name to credit" field.
   const by = f.contributor || author;
   const coords = f.coords?.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
@@ -51,7 +63,7 @@ export function toStory(f, { number, author }) {
     id: newId(f.kind === "origin" ? ID_PREFIX.origin : ID_PREFIX.story),
     title: f.title,
     kind: f.kind || "farm",
-    ...(f.origin && { origin: slugify(f.origin) }),
+    ...(f.origin && { origin: resolveOrigin(f.origin, f.crop, origins) }),
     crop: f.crop,
     country: f.country?.trim().toUpperCase(),
     ...(f.traceability && { traceability: f.traceability }),
@@ -86,7 +98,8 @@ if (process.argv[1] === new URL(import.meta.url).pathname) {
   const fields = parseIssueForm(ISSUE_BODY);
   // Only the web form relay may name someone else to credit; it is the only one that can add the web-form label.
   if (!String(ISSUE_LABELS || "").split(",").map((l) => l.trim()).includes("web-form")) { delete fields.contributor; delete fields.coords; }
-  const { file, text, town } = toStory(fields, { number: ISSUE_NUMBER, author: ISSUE_AUTHOR });
+  const origins = (await loadStories()).stories.filter((x) => x.kind === "origin");
+  const { file, text, town } = toStory(fields, { number: ISSUE_NUMBER, author: ISSUE_AUTHOR, origins });
   const dest = path.resolve(ROOT, file);
   if (!dest.startsWith(STORIES_DIR + path.sep)) throw new Error(`Refusing to write outside stories/: ${file}`);
   await mkdir(path.dirname(dest), { recursive: true });

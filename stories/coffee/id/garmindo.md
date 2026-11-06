@@ -3,7 +3,7 @@ id: S-RTKF66UH-A
 title: GARMINDO, wet-hulled Grade 1 from Bener Meriah
 kind: farm
 traceability: group
-origin: gayo
+origin: O-V9VR4CHS-Q
 crop: coffee
 country: ID
 region: Bener Meriah, Aceh
