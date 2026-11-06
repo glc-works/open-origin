@@ -6,8 +6,14 @@ crop: tea
 country: ID
 region: Pangalengan, Bandung, West Java
 coords: [-7.18, 107.57]
+photo: photos/id/malabar.jpg
+photo_credit: "Raflinoer32"
+photo_license: CC BY 4.0
+photo_source: https://commons.wikimedia.org/wiki/File:Kebun_teh_Pangalengan,_Bandung.jpg
 area:
   iso3166_2: ID-JB
+  admin_codes: ["32.04"]
+  wikidata: [Q10332]
   geonames: [1650352]
 producer: Malabar tea estate (PTPN)
 altitude_masl: [1400, 1600]

@@ -5,9 +5,14 @@ kind: origin
 crop: coffee
 country: ID
 region: Central Aceh & Bener Meriah, Aceh
+photo: photos/id/gayo.jpg
+photo_credit: "Mukhtar Juned"
+photo_license: CC BY-SA 4.0
+photo_source: https://commons.wikimedia.org/wiki/File:Danau_Laut_Tawar_Takengon.jpg
 area:
   iso3166_2: ID-AC
   admin_codes: ["11.04", "11.17"]
+  wikidata: [Q5675, Q5719]
   geonames: [1215633, 6712486]
 producer: Gayo highland coffee farmers
 species: arabica

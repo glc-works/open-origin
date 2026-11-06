@@ -5,9 +5,14 @@ kind: origin
 crop: spice
 country: ID
 region: Banda Islands, Central Maluku
+photo: photos/id/banda.jpg
+photo_credit: "Hike Indonesia"
+photo_license: CC BY 2.0
+photo_source: https://commons.wikimedia.org/wiki/File:Gunung_Api_Banda1.jpg
 area:
   iso3166_2: ID-MA
   admin_codes: ["81.01"]
+  wikidata: [Q4201768]
   geonames: [9165982]
 producer: Nutmeg growers of the Banda Islands
 species: nutmeg

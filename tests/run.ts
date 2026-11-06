@@ -29,6 +29,7 @@ if (built.status === 0) {
   check(read("s/L-TESTRQQW-E/index.html").includes("producers/P-TESTPQQW-T/#L-TESTRQQW-E"), "lot permalink leads to the producer page");
   const page = read("stories/cocoa/id/test-cocoa-origin/index.html");
   check(page.includes("ID-SR") && page.includes("76.04") && page.includes("wikidata.org/wiki/Q12345") && /plus\.codes\/[0-9A-Z]{6}00%2B/.test(page) && page.includes("H3 87"), "an origin shows its area codes, Plus Code and H3 cell");
+  check(page.includes('<a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA 4.0</a>') && page.includes('>Wikimedia Commons</a>') && page.includes("Photo: Test Photographer"), "a photo from Commons shows its author, licence and source");
   const codes = JSON.parse(read("codes.json"));
   check(codes["L-TESTCQQ3-3"]?.crops[0] === "cocoa" && codes["O-TESTCQQW-P"]?.place_codes.iso3166_2[0] === "ID-SR", "codes.json lists each code with its crop and place codes");
   check(farm.includes('class="crop-tag">Cocoa'), "codes are shown with their crop");
@@ -36,6 +37,21 @@ if (built.status === 0) {
   check(farm.includes('Tested by <a href="../../../../producers/P-TESTKABQ-3/">Test cocoa lab</a>') && read("producers/P-TESTKABQ-3/index.html").includes('id="L-TESTCQQ3-3"'), "tested_by can link to a lab profile, which lists the lots it tested");
   const share = read("share/id/index.html");
   check(share.includes('<html lang="id">') && share.includes('id="share"') && share.includes("Kirim") && read("share/index.html").includes("share.js"), "the story form is built in English and Bahasa Indonesia");
+  // Public API: one file per code, in the collection its prefix names, with the licence in every response.
+  const api = (p) => JSON.parse(read(`api/v1/${p}`));
+  const idx = api("index.json");
+  check(idx.meta.license.name === "CC-BY-4.0" && idx.meta.attribution.includes("CC BY 4.0") && idx.data.endpoints.lot_by_id.endsWith("/api/v1/lots/{id}.json"), "API index lists endpoints and the licence");
+  const lot = api("lots/L-TESTCQQ3-3.json");
+  check(lot.data.id === "L-TESTCQQ3-3" && lot.data.crop === "cocoa" && lot.meta.links.permalink.endsWith("/s/L-TESTCQQ3-3/") && lot.meta.license.url.includes("by/4.0"), "a lot is served by its code, with crop and licence");
+  const origin = api("origins/O-TESTCQQW-P.json");
+  check(origin.data.place_codes.iso3166_2[0] === "ID-SR" && Array.isArray(origin.data.farms), "an origin is served with its place codes and farms");
+  check(api("producers/P-TESTKABQ-3.json").data.lots.includes("L-TESTCQQ3-3"), "a lab's API record lists the lots it tested");
+  const rows = api("origins.json");
+  check(rows.meta.count === rows.data.length && rows.data.every((r) => r.id.startsWith("O-") && r.api.endsWith(`/origins/${r.id}.json`)), "the origins list has one row per origin, each pointing at its file");
+  check(api("crops/cocoa.json").data.lots.some((r) => r.id === "L-TESTCQQ3-3"), "a crop file lists that crop's lots");
+  const feed = JSON.parse(read("feed.json"));
+  check(feed.version.includes("jsonfeed.org") && feed.items.length > 0 && feed.items.every((i) => i.date_published), "JSON Feed lists new records with dates");
+  check(read("feed.xml").includes("<feed xmlns=\"http://www.w3.org/2005/Atom\">") && read("api/index.html").includes("api/v1/index.json"), "Atom feed and the API page are built");
   rmSync(path.join(here, "fixtures", "good", "dist"), { recursive: true, force: true });
 }
 
@@ -62,6 +78,8 @@ for (const expected of [
   `area.wikidata "12345" must be a Wikidata id`,
   `area.plus is not known`,
   `area.admin_codes 11.1 must be in quotes`,
+  `photo_license must be written like CC BY 4.0`,
+  `photo_source must be an https link`,
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.

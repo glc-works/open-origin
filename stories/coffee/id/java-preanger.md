@@ -5,8 +5,13 @@ kind: origin
 crop: coffee
 country: ID
 region: Priangan highlands, West Java
+photo: photos/id/java-preanger.jpg
+photo_credit: "Woodbury & Page, Batavia (KITLV collection)"
+photo_license: CC BY 4.0
+photo_source: https://commons.wikimedia.org/wiki/File:Koffieonderneming_in_de_Preanger,_KITLV_3339.tiff
 area:
   iso3166_2: ID-JB
+  wikidata: [Q2383259]
 producer: Coffee farmers of Priangan
 species: arabica
 altitude_masl: [1200, 1600]
