@@ -137,7 +137,7 @@ function distance(a: string, b: string): number {
 /** A field that is not in the schema would be dropped without a word, so it is an error, with the closest known field as a hint. */
 export function unknownErrors(schema: Record<string, Field>, keys: string[] = []): string[] {
   const known = Object.keys(schema);
-  return keys.filter((k) => !(k in schema)).map((k) => {
+  return keys.filter((k) => !Object.hasOwn(schema, k)).map((k) => {
     const low = k.toLowerCase();
     // The closest field by spelling, or one that starts the same way (quantity -> quantity_kg).
     const near = known.map((f) => [f, f.startsWith(low) || low.startsWith(f) ? 0 : distance(low, f)] as const).sort((a, b) => a[1] - b[1])[0];

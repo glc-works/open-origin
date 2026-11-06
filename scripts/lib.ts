@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
 import { latLngToCell } from "h3-js";
-import { STORY, PRODUCER, LOT, LEARN, STORY_TRANSLATION, LEARN_TRANSLATION, missingErrors, unknownErrors, type Story, type Producer, type Lot } from "./schema.ts";
+import { STORY, PRODUCER, LOT, LEARN, STORY_TRANSLATION, LEARN_TRANSLATION, requiredKeys, missingErrors, unknownErrors, type Story, type Producer, type Lot } from "./schema.ts";
 import { SCENES } from "./scenes.ts";
 
 // OPEN_ORIGIN_ROOT points the scripts at another content folder, e.g. the test fixtures.
@@ -150,7 +150,7 @@ export async function loadKnowledge() {
 export function validateKnowledgeTranslation(t) {
   const errors = [];
   if (!t.parent) errors.push(`no entry named ${t.parentSlug}.md next to this translation`);
-  for (const key of ["title", "summary"]) if (!t[key]) errors.push(`missing required field "${key}"`);
+  for (const key of requiredKeys(LEARN_TRANSLATION)) if (!t[key]) errors.push(`missing required field "${key}"`);
   if (t.summary && String(t.summary).length > 200) errors.push(`summary is ${String(t.summary).length} characters; keep it to 200`);
   if (!t.body || t.body.length < 200) errors.push(`the translated explanation is too short`);
   if (t.parent) errors.push(...citationErrors(t.body, t.parent.sources));

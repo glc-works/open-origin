@@ -90,6 +90,7 @@ for (const expected of [
   `unknown field "quantity"; did you mean "quantity_kg"?`,
   `unknown field "websit"; did you mean "website"?`,
   `unknown field "translater"; did you mean "translator"?`,
+  `unknown field "constructor"`,
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.
