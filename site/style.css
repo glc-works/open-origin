@@ -49,9 +49,11 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
 .brand b { font-weight: inherit; }
 .brand { display: inline-flex; align-items: center; gap: 8px; }
 .brand .mark { width: 1.6em; height: 1.6em; flex: none; }
-.bar nav { display: flex; gap: 20px; font-family: var(--mono); font-size: .8rem; }
+.bar nav { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono); font-size: .8rem; }
 .bar nav a { text-decoration: none; color: var(--muted); }
 .bar nav a:hover { color: var(--fg); }
+.bar nav a.lang-switch { padding: 0 8px; border: 1px solid var(--line); border-radius: 999px; }
+.bar nav a.lang-switch:hover { border-color: var(--fg); }
 
 /* Hero */
 .hero { padding-block: clamp(40px, 8vw, 96px) 28px; }

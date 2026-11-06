@@ -123,16 +123,38 @@ export async function loadStories() {
 export const LEARN_DIR = path.join(ROOT, "learn");
 export const TERM_TYPES = ["species", "process", "variety", "term"];
 
+// A translation sits next to its entry as <slug>.<lang>.md (arabica.id.md) and lands in the entry's `translations`.
+// The returned list also carries every translation file as `.translations`, so the validator can check orphans.
 export async function loadKnowledge() {
   let files = [];
-  try { files = (await walk(LEARN_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return []; throw e; }
   const out = [];
+  out.translations = [];
+  try { files = (await walk(LEARN_DIR)).sort(); } catch (e) { if (e.code === "ENOENT") return out; throw e; }
   for (const file of files) {
     const { data, content } = readFront(await readFile(file, "utf8"), file);
     const [crop, name] = path.relative(LEARN_DIR, file).split(path.sep);
-    out.push({ ...data, body: content.trim(), file: path.relative(ROOT, file), pathCrop: crop, slug: name ? name.replace(/\.md$/, "") : "" });
+    const base = { body: content.trim(), file: path.relative(ROOT, file), pathCrop: crop };
+    const t = name && name.match(TRANSLATION_RE);
+    if (t) out.translations.push({ ...data, ...base, parentSlug: t[1], language: t[2] });
+    else out.push({ ...data, ...base, slug: name ? name.replace(/\.md$/, "") : "", translations: [] });
+  }
+  for (const t of out.translations) {
+    t.parent = out.find((k) => k.slug === t.parentSlug && k.pathCrop === t.pathCrop);
+    if (t.parent) t.parent.translations.push(t);
   }
   return out;
+}
+
+// A Learn translation carries only the words: title, summary and body. Facts and sources stay in the entry, and
+// [n] citations in the body point to the entry's sources.
+export function validateKnowledgeTranslation(t) {
+  const errors = [];
+  if (!t.parent) errors.push(`no entry named ${t.parentSlug}.md next to this translation`);
+  for (const key of ["title", "summary"]) if (!t[key]) errors.push(`missing required field "${key}"`);
+  if (t.summary && String(t.summary).length > 200) errors.push(`summary is ${String(t.summary).length} characters; keep it to 200`);
+  if (!t.body || t.body.length < 200) errors.push(`the translated explanation is too short`);
+  if (t.parent) errors.push(...citationErrors(t.body, t.parent.sources));
+  return errors;
 }
 
 export function validateKnowledge(k) {
