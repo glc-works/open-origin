@@ -492,7 +492,7 @@ function visualJourney(s, t, v, dir) {
       <figure class="vj-panel${art ? "" : " plain"}">${art}${count}
         <figcaption class="vj-cap ${SCENES[j.scene]?.caption ?? "bl"}">
           <span class="eyebrow">${n} · ${esc(label(j))}</span>
-          <h3 id="step-${n}-h">${esc(j.text)}</h3>
+          <h3 id="step-${n}-h">${esc(j.text)}${j.more || j.why ? "" : citeLinks(j.cite)}</h3>
           ${j.more ? `<p>${esc(j.more)}${citeLinks(j.cite)}</p>` : ""}
           ${j.why ? `<details><summary>${T.why}</summary><p>${esc(j.why)}${j.more ? "" : citeLinks(j.cite)}</p></details>` : ""}
         </figcaption>
@@ -604,12 +604,13 @@ function storyPage(s, t = null) {
     ${glance(s, v, prefix)}
     ${illustrated ? `<p class="vj-teaser"><a href="#journey">${T.followJourney(s.journey.length)}</a></p>` : ""}
     <div class="text" lang="${esc(v.language)}" dir="${dir}">${cite(marked.parse(v.body), sources.length)}</div>
+    ${s.did_you_know?.text ? `<aside class="dyk" lang="${esc(v.language)}" dir="${dir}"><b>${T.didYouKnow}</b> ${esc(t?.did_you_know || s.did_you_know.text)}${citeLinks(s.did_you_know.cite)}</aside>` : ""}
     ${illustrated ? `</div>
 </article>
 ${visualJourney(s, t, v, dir)}
 <div class="story story-after"><div></div>
   <div class="prose">` : ""}
-    ${s.journey?.length && !illustrated ? `<h2 class="journey-title">${esc(cropWord(s.crop, "journey"))}</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage" lang="${LANG}" dir="ltr">${esc(j.stage === "brew" ? cropWord(s.crop, "use") : T.stage[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
+    ${s.journey?.length && !illustrated ? `<h2 class="journey-title">${esc(cropWord(s.crop, "journey"))}</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage" lang="${LANG}" dir="ltr">${esc(j.stage === "brew" ? cropWord(s.crop, "use") : T.stage[j.stage])}</span><p>${esc(journeyText(j, i))}${citeLinks(j.cite)}</p></li>`).join("")}</ol>` : ""}
     ${s.lots.length ? `<h2 class="journey-title">${T.lots}</h2>
     <p class="part-of">${T.lotsIntro} ${(([slug] = CROPS[s.crop].grading || []) => (slug && learnHref(s.crop, slug) ? termLink(s.crop, slug, prefix, cropWord(s.crop, "grading") ?? CROPS[s.crop].grading[1]) : ""))()}</p>
     ${lotTable(s.lots, prefix, s)}` : ""}

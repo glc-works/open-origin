@@ -68,6 +68,10 @@ journey:
 
 Pictures: `coffee-slopes`, `coffee-picking`, `coffee-pulping`, `coffee-wet-hulling`, `coffee-sorting`, `cocoa-grove`, `cocoa-open`, `cocoa-ferment`, `cocoa-drying`, `chocolate`, `honey-forest`, `honey-climb`, `honey-leave`, `honey-drip`, `honey-jar`, `ship`. They are original Open Origin drawings (CC BY 4.0); new ones are welcome. Keep the sentences plain enough for a child and true enough for an expert: no invented people, and a source for every fact. A translation gives each step as `{ text, title, more, why, then, unit }`.
 
+### Sources for origin profiles and editorial stories
+
+An origin profile, and any story with `told_by: editor`, is put together from other people's work, so it must list `sources` and cite them where the facts are: `[1]`, `[2]` in the text, or `cite: [n]` on a journey step or `did_you_know`. The check fails without them. A translation uses the same numbers as its story.
+
 ## Learn entries
 
 Explanations of species, processes and terms live in `learn/<crop>/<slug>.md`, with `title`, `crop`, `type` (species, process, variety or term), `summary` and an optional `latin` name. Story pages link to them automatically, for example when a story's species is `arabica` and `learn/coffee/arabica.md` exists.

@@ -32,6 +32,7 @@ sources:
   - https://assets.publishing.service.gov.uk/media/665851b97b792ffff71a853c/Kopi_Arabika_Gayo.pdf
   - https://doi.org/10.1515/opag-2022-0249
   - https://iopscience.iop.org/article/10.1088/1755-1315/1133/1/012002/pdf
+  - https://en.wikipedia.org/wiki/Geographical_indications_in_Indonesia
 journey:
   - stage: farm
     title: On the slopes
@@ -80,8 +81,8 @@ journey:
     cite: [1]
 ---
 
-Around Lake Laut Tawar, coffee is the lifeblood of the Gayo people. Almost every family has a small plot, usually under two hectares, shaded by lamtoro and other leguminous trees. Coffee came to these highlands under Dutch colonial rule in the early twentieth century and has never left.
+Around Lake Laut Tawar, coffee is the lifeblood of the Gayo people. Arabica grows here between 900 and 1,700 metres, in family gardens shaded mostly by lamtoro trees, sometimes with Gayo oranges and avocados [1]. Coffee plantations in these highlands date from the 1920s, under Dutch colonial rule, and coffee has been the main livelihood ever since [1].
 
-Years of conflict left many farms abandoned. After the 2005 peace agreement, farmers returned and formed cooperatives. Many now hold organic and fair trade certification, and Gayo Arabica received Geographical Indication protection in 2010. Women play a large role in the cooperatives, from sorting beans to running them.
+Years of conflict left many farms abandoned. After the 2005 peace agreement, farmers returned and formed cooperatives. Many now hold organic and fair trade certification, and Gayo Arabica received Geographical Indication protection in Indonesia in 2010 [4] and in the European Union in 2017 [1][4]. Women play a large role in the cooperatives, from sorting beans to running them.
 
 A cup of Gayo is heavy and deep, with bitter chocolate and a touch of spice. Natural-process lots from a younger generation of farmers now bring out a surprising tropical-fruit side.

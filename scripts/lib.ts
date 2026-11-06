@@ -643,6 +643,14 @@ export function validateStory(s: Story): string[] {
     else for (const u of s.sources) if (!isHttpUrl(u)) errors.push(`source "${u}" must be an http(s) link`);
   }
   errors.push(...citationErrors(s.body, s.sources));
+  // Region profiles and anything the editors write are put together from other people's work, so they must say where
+  // each fact comes from: at least one source, cited in the text, the journey or did_you_know.
+  if (s.kind === "origin" || s.told_by === "editor") {
+    const who = s.kind === "origin" ? "an origin profile" : "a story told by the editors";
+    const cited = /\[\d+\](?!\()/.test(String(s.body || "")) || (Array.isArray(s.journey) && s.journey.some((j) => j?.cite?.length)) || !!s.did_you_know?.cite?.length;
+    if (!Array.isArray(s.sources) || !s.sources.length) errors.push(`${who} needs sources: links to where its facts come from, cited in the text as [1], [2]`);
+    else if (!cited) errors.push(`${who} lists sources but never cites them: put [1], [2] after the facts they support`);
+  }
   errors.push(...photoErrors(s));
   if (!s.body || s.body.length < 200) errors.push(`the story itself is too short (at least a few sentences)`);
   // lot and cupping_score have their own message above.

@@ -30,6 +30,8 @@ if (built.status === 0) {
   const page = read("stories/cocoa/id/test-cocoa-origin/index.html");
   check(page.includes("ID-SR") && page.includes("76.04") && page.includes("wikidata.org/wiki/Q12345") && /plus\.codes\/[0-9A-Z]{6}00%2B/.test(page) && page.includes("H3 87"), "an origin shows its area codes, Plus Code and H3 cell");
   check(page.includes('<a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA 4.0</a>') && page.includes('>Wikimedia Commons</a>') && page.includes("Photo: Test Photographer"), "a photo from Commons shows its author, licence and source");
+  check(page.includes('Pods are cut by hand.<sup class="cite"><a href="#src-1">[1]</a></sup>'), "a journey step's citation shows on the page");
+  check(page.includes('class="dyk"') && page.includes('A test fact that comes from the first source.<sup class="cite"><a href="#src-1">[1]</a></sup>'), "did_you_know shows with its citation");
   const codes = JSON.parse(read("codes.json"));
   check(codes["L-TESTCQQ3-3"]?.crops[0] === "cocoa" && codes["O-TESTCQQW-P"]?.place_codes.iso3166_2[0] === "ID-SR", "codes.json lists each code with its crop and place codes");
   check(farm.includes('class="crop-tag">Cocoa'), "codes are shown with their crop");
@@ -113,6 +115,7 @@ for (const expected of [
   `tasting note "heavy body" is a basic taste: use the mouthfeel field instead`,
   `acidity must be one of: low, soft, bright, sharp`,
   `defects "smelly" is not one of:`,
+  `an origin profile needs sources`,
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // The tasting list: every word in a known group, Indonesian names unique, form input read back to the list's words.

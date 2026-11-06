@@ -12,22 +12,25 @@ area:
   geonames: [9166059, 9845482]
 producer: Robusta farmers on the slopes of the Barisan Mountains
 species: robusta
-altitude_masl: [400, 900]
+altitude_masl: [300, 900]
 varieties: [Robusta lokal, klon BP]
 process: [natural]
-harvest: Apr–Sep
-tasting_notes: [chocolate, nuts, caramel]
-summary: Robusta long dismissed as second class is rising, thanks to farmers who pick only ripe cherries and dry them with care.
+summary: "Indonesia's largest robusta supplier, on farms in West Lampung, Tanggamus and North Lampung, with a Geographical Indication since 2014."
 coords: [-5.05, 104.2]
 language: en
 told_by: editor
 contributor: open-origin
 consent: true
-sources: []
+sources:
+  - https://en.wikipedia.org/wiki/Coffee_production_in_Indonesia
+  - https://www.museumnasional.or.id/wp-content/uploads/2022/11/4-Timeline-of-Milestone_ENG.docx.pdf
+  - https://news.detik.com/kolom/d-4803281/pasang-surut-kopi-lampung
+  - https://en.wikipedia.org/wiki/Geographical_indications_in_Indonesia
+  - https://www.kompas.id/baca/english/2017/09/30/it-all-starts-with-a-cup-of-coffee
 ---
 
-If you drink instant coffee in Indonesia, some of it very likely comes from Lampung. The province is one of the country's largest robusta producers, with farms spread along the slopes of the Barisan Mountains.
+Most of Indonesia's robusta goes into instant coffee and other manufactured products [1], and Lampung is the country's largest robusta supplier [3]. Together with South Sumatra and Bengkulu, it grows up to three quarters of Indonesia's robusta [1]. The farms lie mainly in West Lampung, Tanggamus and North Lampung, at about 300 to 900 metres [3].
 
-Robusta reached the archipelago around the early 1900s, after leaf rust wiped out the lowland arabica plantations. It resists disease and grows at low altitude, so it spread quickly.
+Robusta came to Java in 1900, after leaf rust had destroyed much of the arabica, and reached southern Sumatra between 1915 and 1920 [1][2]. It resists disease and grows at lower altitudes, so it spread quickly [1]. Most farmers dry the whole cherries in the sun for up to three weeks before hulling [1].
 
-Long labelled a second-class coffee, Lampung robusta is moving up. Farmers who pick only ripe red cherries and dry them carefully now produce "fine robusta" with sweet notes of chocolate and nuts.
+Long labelled a second-class coffee, Lampung robusta is gaining recognition. Kopi Robusta Lampung received a Geographical Indication in 2014 [4], and buyers from abroad now come to Lampung to taste it [5].

@@ -145,6 +145,7 @@ const en = {
   journeyCue: "Scroll to follow it, stop by stop. Tap Why? for more; the numbers link to the sources.",
   followJourney: (n) => `Follow the journey in pictures: ${n} stops ↓`,
   why: "Why?",
+  didYouKnow: "Did you know?",
   stage: { farm: "On the farm", harvest: "Harvest", process: "Processing", dry: "Drying", sort: "Sorting", roast: "Roasting", brew: "In the cup", market: "To market", other: "Along the way" },
   crops: {},
   qfields: {},
@@ -338,6 +339,7 @@ const id = {
   journeyCue: "Scroll untuk mengikutinya, langkah demi langkah. Ketuk Kenapa? untuk detail; angka di belakang kalimat menuju sumbernya.",
   followJourney: (n) => `Ikuti perjalanannya dalam gambar: ${n} langkah ↓`,
   why: "Kenapa?",
+  didYouKnow: "Tahukah kamu?",
   stage: { farm: "Di kebun", harvest: "Panen", process: "Pengolahan", dry: "Penjemuran", sort: "Sortasi", roast: "Penyangraian", brew: "Di cangkir", market: "Ke pasar", other: "Di perjalanan" },
   crops: {
     coffee: { label: "Kopi", journey: "Dari kebun ke cangkir", use: "Di cangkir", grading: "Cara kopi dinilai" },
