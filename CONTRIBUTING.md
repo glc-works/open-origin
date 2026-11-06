@@ -45,6 +45,29 @@ journey:
     text: Pulped the same day and fermented overnight in buckets.
 ```
 
+### The illustrated journey
+
+A step can also name a picture, and then the story page shows the journey as illustrated panels along one route, with a step bar, gentle motion (off when the reader's device asks for reduced motion) and an "At a glance" box made from the story's altitude, harvest and process. Each panel has one plain sentence for every reader, a fact with its source, and an optional "Why?" for those who want more.
+
+```yaml
+journey:
+  - stage: harvest
+    title: Picked when red              # optional; the stage name is used otherwise
+    scene: coffee-picking               # a picture from scripts/scenes.ts
+    text: A hand picks it only once it has turned red.
+    more: At least 85 of every 100 cherries sent on must be ripe.
+    why: The 85% rule is written into the Geographical Indication rules.
+    then: down the path to the farmer's house, the same day   # the line to the next step
+    cite: [1]                           # required when a step has more, why or count
+  - stage: dry
+    scene: coffee-wet-hulling
+    text: It dries briefly, then loses its husk while still damp.
+    count: { from: 40, to: 12, unit: "% water" }   # an animated number on the panel
+    cite: [1]
+```
+
+Pictures: `coffee-slopes`, `coffee-picking`, `coffee-pulping`, `coffee-wet-hulling`, `coffee-sorting`, `cocoa-grove`, `cocoa-open`, `cocoa-ferment`, `cocoa-drying`, `chocolate`, `honey-forest`, `honey-climb`, `honey-leave`, `honey-drip`, `honey-jar`, `ship`. They are original Open Origin drawings (CC BY 4.0); new ones are welcome. Keep the sentences plain enough for a child and true enough for an expert: no invented people, and a source for every fact. A translation gives each step as `{ text, title, more, why, then, unit }`.
+
 ## Learn entries
 
 Explanations of species, processes and terms live in `learn/<crop>/<slug>.md`, with `title`, `crop`, `type` (species, process, variety or term), `summary` and an optional `latin` name. Story pages link to them automatically, for example when a story's species is `arabica` and `learn/coffee/arabica.md` exists.
