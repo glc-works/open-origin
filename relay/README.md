@@ -1,6 +1,6 @@
 # Story relay (no GitHub account needed)
 
-The story form at [/share/](https://glc-works.github.io/open-origin/share/) ([Bahasa Indonesia](https://glc-works.github.io/open-origin/share/id/)) is made for phones. Until this relay is running, its last button opens the GitHub issue form already filled in, so senders still need a GitHub account. With the relay running, anyone can send a story without an account.
+The story form at [/share/](https://glc-works.github.io/open-origin/share/) ([Bahasa Indonesia](https://glc-works.github.io/open-origin/id/share/)) is made for phones. Until this relay is running, its last button opens the GitHub issue form already filled in, so senders still need a GitHub account. With the relay running, anyone can send a story without an account.
 
 The relay is a small [Cloudflare Worker](https://developers.cloudflare.com/workers/) (free plan is enough). It checks the fields with `scripts/story-form.ts` and opens the same "Share a story" issue the GitHub form makes, labelled `story` and `web-form`. Review does not change: a maintainer reads it, talks with the storyteller, and adds `approved`, which opens a pull request.
 

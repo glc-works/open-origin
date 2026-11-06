@@ -49,9 +49,11 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
 .brand b { font-weight: inherit; }
 .brand { display: inline-flex; align-items: center; gap: 8px; }
 .brand .mark { width: 1.6em; height: 1.6em; flex: none; }
-.bar nav { display: flex; gap: 20px; font-family: var(--mono); font-size: .8rem; }
+.bar nav { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono); font-size: .8rem; }
 .bar nav a { text-decoration: none; color: var(--muted); }
 .bar nav a:hover { color: var(--fg); }
+.bar nav a.lang-switch { padding: 0 8px; border: 1px solid var(--line); border-radius: 999px; }
+.bar nav a.lang-switch:hover { border-color: var(--fg); }
 
 /* Hero */
 .hero { padding-block: clamp(40px, 8vw, 96px) 28px; }
@@ -278,7 +280,7 @@ table.lots td .muted { font-size: inherit; }
 .share .progress li { flex: 1; color: var(--muted); border-top: 3px solid var(--line); padding-top: 6px; counter-increment: s; }
 .share .progress li::before { content: counter(s) ". "; }
 .share .progress li.done { border-color: var(--leaf); }
-.share .progress li.now { border-color: var(--cherry); color: var(--fg); }
+.share .progress li.now { border-color: var(--accent); color: var(--fg); }
 .share form { margin: 0; }
 .share fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .share .step-title { font-family: var(--display); font-weight: 700; font-size: 1.5rem; margin: 18px 0 6px; padding: 0; }
@@ -306,19 +308,19 @@ table.lots td .muted { font-size: inherit; }
 .share details.more summary::-webkit-details-marker { display: none; }
 .share details.more summary::before { content: "+"; font-family: var(--mono); width: 1.2em; }
 .share details.more[open] summary::before { content: "−"; }
-.share .err { color: var(--cherry); font-size: .92rem; margin: 6px 0 0; min-height: 0; }
+.share .err { color: var(--accent); font-size: .92rem; margin: 6px 0 0; min-height: 0; }
 .share .err:empty { display: none; }
-.share .bad input, .share .bad textarea, .share .bad select, .share .bad .choice { border-color: var(--cherry); }
+.share .bad input, .share .bad textarea, .share .bad select, .share .bad .choice { border-color: var(--accent); }
 .share .btn { font-size: 1rem; min-height: 48px; cursor: pointer; background: transparent; color: var(--fg); }
 .share .btn.primary { background: var(--fg); color: var(--bg); }
 .share .btn.small { min-height: 44px; padding: 8px 16px; font-size: .95rem; }
 .share .btn:disabled { opacity: .6; cursor: progress; }
 .share .nav { display: flex; gap: 12px; justify-content: space-between; margin-top: 28px; position: sticky; bottom: 0; padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border-top: 1px solid var(--line); }
 .share .nav .primary { flex: 1; max-width: 320px; margin-left: auto; }
-.share #form-msg { color: var(--cherry); margin: 16px 0 0; }
+.share #form-msg { color: var(--accent); margin: 16px 0 0; }
 .share #form-msg:empty { display: none; }
 .share #where { margin: 8px 0 0; font-size: .95rem; }
-.share .linkish { background: none; border: 0; padding: 0 4px; font: inherit; color: var(--cherry); text-decoration: underline; cursor: pointer; }
+.share .linkish { background: none; border: 0; padding: 0 4px; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
 .share #photo-preview { margin-top: 10px; max-height: 240px; border-radius: 8px; }
 .share .draft { margin-top: 12px; font-size: .85rem; }
 .share #turnstile { margin-top: 16px; }

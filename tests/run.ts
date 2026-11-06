@@ -35,8 +35,17 @@ if (built.status === 0) {
   check(farm.includes('class="crop-tag">Cocoa'), "codes are shown with their crop");
   check(codes["P-TESTPQQW-T"]?.crops.includes("cocoa"), "a producer's crops include the lots filed under it");
   check(farm.includes('Tested by <a href="../../../../producers/P-TESTKABQ-3/">Test cocoa lab</a>') && read("producers/P-TESTKABQ-3/index.html").includes('id="L-TESTCQQ3-3"'), "tested_by can link to a lab profile, which lists the lots it tested");
-  const share = read("share/id/index.html");
-  check(share.includes('<html lang="id">') && share.includes('id="share"') && share.includes("Kirim") && read("share/index.html").includes("share.js"), "the story form is built in English and Bahasa Indonesia");
+  const share = read("id/share/index.html");
+  check(share.includes('<html lang="id">') && share.includes('id="share"') && share.includes("Kirim") && share.includes('src="../../share.js"') && read("share/index.html").includes('src="../share.js"'), "the story form is built in English at /share/ and Indonesian at /id/share/");
+  check(read("index.html").includes('href="share/"') && read("id/index.html").includes('href="share/"'), "the header and buttons lead to the story form in the page's language");
+  // Indonesian: the same pages under /id/, in Indonesian words, with shared files still at the root.
+  const farmId = read("id/stories/cocoa/id/test-cocoa-farm/index.html");
+  check(farmId.includes('<html lang="id">') && farmId.includes("Dari pohon ke cokelat") && farmId.includes('href="../../../../../style.css"'), "the Indonesian page uses Indonesian words and the shared stylesheet");
+  check(farmId.includes('Diuji oleh <a href="../../../../producers/P-TESTKABQ-3/">'), "links on an Indonesian page stay on the Indonesian site");
+  check(farm.includes('href="../../../../id/stories/cocoa/id/test-cocoa-farm/"') && farmId.includes('href="../../../../../stories/cocoa/id/test-cocoa-farm/"'), "each page links to the same page in the other language");
+  const learnId = read("id/learn/cocoa/test-term/index.html");
+  check(learnId.includes("Istilah uji") && learnId.includes('href="#src-1"') && read("learn/cocoa/test-term/index.html").includes("Test term"), "a Learn translation is shown on the Indonesian site, with the entry's sources");
+  check(read("codes/id/index.html").includes("../../id/codes/") && read("id/codes/index.html").includes("Cari kode"), "the Indonesian code guide is at /id/codes/ and the old address redirects there");
   // Public API: one file per code, in the collection its prefix names, with the licence in every response.
   const api = (p) => JSON.parse(read(`api/v1/${p}`));
   const idx = api("index.json");
@@ -77,6 +86,7 @@ for (const expected of [
   `area.iso3166_2 "MY-01" is not in country ID`,
   `area.wikidata "12345" must be a Wikidata id`,
   `area.plus is not known`,
+  `no entry named no-such-entry.md next to this translation`,
   `area.admin_codes 11.1 must be in quotes`,
   `photo_license must be written like CC BY 4.0`,
   `photo_source must be an https link`,
