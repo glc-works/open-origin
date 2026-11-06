@@ -104,6 +104,7 @@ for (const expected of [
   `refs.gln 614141000005 must be in quotes`,
   `refs.barcode is not known`,
   `refs.skus must list each trader's code`,
+  `an origin profile needs sources`,
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.

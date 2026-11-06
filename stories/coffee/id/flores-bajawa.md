@@ -14,24 +14,27 @@ area:
   admin_codes: ["53.09"]
   wikidata: [Q14145]
   geonames: [1634193]
-producer: Ngada farmers' processing units (UPH)
+producer: Arabica farmers of the Ngada highlands
 species: arabica
-altitude_masl: [1200, 1600]
-varieties: [Typica, Catimor, Juria]
-process: [washed]
-harvest: May–Sep
+altitude_masl: [1200, 1800]
+varieties: [S795, Timor, Juria]
+process: [washed, wet-hulled]
 tasting_notes: [chocolate, vanilla, floral]
-summary: Ngada farmers process coffee together on fertile volcanic soil, with a Geographical Indication since 2012.
+summary: "Arabica on the fertile volcanic slopes of Mount Inerie, with a Geographical Indication since 2012."
 coords: [-8.78, 120.97]
 language: en
 told_by: editor
 contributor: open-origin
 consent: true
-sources: []
+sources:
+  - https://ei-ado.aciar.gov.au/sites/default/files/MawardiEtAl%282010%29IdentificationVarietySuitableCherriesProcessingMethodImprovingSpecialtyArabicaCoffeesFlores.pdf
+  - https://en.wikipedia.org/wiki/Coffee_production_in_Indonesia
+  - https://en.wikipedia.org/wiki/Geographical_indications_in_Indonesia
+  - https://mongabay.co.id/2025/08/20/kopi-bajawa-wajah-kopi-flores-yang-mendunia-dan-tantangan-perubahan-iklim/
 ---
 
-Bajawa sits on a plateau ringed by volcanoes, with Mount Inerie rising to the south. Volcanic ash makes the soil fertile and loose.
+The Ngada Bajawa highland lies on the slope of the Inerie volcano. Its soil is fertile and volcanic and its climate is dry [1]. Across Flores, arabica grows at 1,200 to 1,800 metres, mostly under shade trees [2].
 
-Ngada farmers work together in processing units (Unit Pengolahan Hasil, UPH) that wash their coffee as a group. This shared work raised quality, and in 2012 Flores Bajawa Arabica received a Geographical Indication.
+A survey of Bajawa farms in 2009 found three main varieties: S795 (about 43 percent of trees), Hybrid of Timor (34 percent) and the local Juria (13 percent) [1]. Most coffee is wet-processed at the farm [2]. Since the mid-2000s, farmers' groups have been trained in planting, picking and processing, and the price of red cherries rose [4]. In 2012 Kopi Arabika Flores Bajawa received a Geographical Indication [3].
 
-Bajawa is often thought of as a hidden gem. Its cup is soft and sweet, with chocolate and a hint of flowers, and suits both filter brewing and espresso.
+Flores coffee is known for sweet chocolate, floral and woody notes [2]. Farmers now face a changing climate: harvests have been smaller since 2018 [4].

@@ -39,8 +39,8 @@ journey:
     more: Indikasi Geografis diberikan pada 28 April 2010. Koperasi mengirim biji hijau ke penyangrai di Indonesia dan luar negeri.
 ---
 
-Di sekitar Danau Laut Tawar, kopi adalah urat nadi hidup orang Gayo. Hampir setiap keluarga punya kebun kecil, biasanya kurang dari dua hektare, dinaungi pohon lamtoro dan petai cina. Kopi masuk ke dataran tinggi ini pada masa kolonial Belanda di awal abad ke-20, dan sejak itu tak pernah pergi.
+Di sekitar Danau Laut Tawar, kopi adalah urat nadi hidup orang Gayo. Arabika tumbuh di sini pada ketinggian 900 sampai 1.700 meter, di kebun keluarga yang kebanyakan dinaungi lamtoro, kadang bersama jeruk keprok Gayo dan alpukat [1]. Kebun kopi di dataran tinggi ini ada sejak 1920-an, pada masa kolonial Belanda, dan sejak itu kopi menjadi sumber penghidupan utama [1].
 
-Masa konflik membuat banyak kebun terbengkalai. Setelah perdamaian 2005, para petani kembali dan membentuk koperasi. Banyak di antaranya kini mengantongi sertifikat organik dan perdagangan adil, dan Kopi Arabika Gayo memperoleh perlindungan Indikasi Geografis pada 2010. Para perempuan di koperasi memegang peran besar, dari sortir biji sampai pengelolaan.
+Masa konflik membuat banyak kebun terbengkalai. Setelah perdamaian 2005, para petani kembali dan membentuk koperasi. Banyak di antaranya kini mengantongi sertifikat organik dan perdagangan adil, dan Kopi Arabika Gayo memperoleh perlindungan Indikasi Geografis di Indonesia pada 2010 [4] dan di Uni Eropa pada 2017 [1][4]. Para perempuan di koperasi memegang peran besar, dari sortir biji sampai pengelolaan.
 
 Secangkir Gayo terasa berat dan dalam, dengan rasa cokelat pahit dan sedikit rempah. Proses natural dari generasi petani muda kini membawa sisi buah tropis yang mengejutkan.

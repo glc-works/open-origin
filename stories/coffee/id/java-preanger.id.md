@@ -1,6 +1,6 @@
 ---
 title: Java Preanger, tempat semuanya dimulai
-summary: Bibit dari Malabar tiba pada 1699 dan menjadikan "java" sebutan untuk kopi, dengan sejarah tanam paksa di baliknya.
+summary: "Bibit dari Malabar tiba pada 1699 dan menjadikan \"java\" sebutan untuk kopi, dengan tanam paksa di balik ketenarannya."
 region: Pegunungan Priangan, Jawa Barat
 language: id
 translator: Open Origin editors
@@ -10,8 +10,8 @@ tasting_notes:
 - teh hitam
 ---
 
-Di sinilah kisah kopi Indonesia dimulai. VOC membawa bibit kopi dari Malabar, India, ke Batavia pada 1696. Banjir menghanyutkan kiriman pertama, tetapi kiriman kedua pada 1699 bertahan dan menyebar ke dataran tinggi Priangan.
+Di sinilah kisah kopi Indonesia dimulai. Pada 1696 gubernur Belanda di Malabar, India, mengirim bibit arabika ke Batavia. Banjir merusak kiriman pertama, tetapi kiriman kedua pada 1699 bertahan [1]. Kopi Jawa segera merajai lelang di Amsterdam, dan "java" menjadi sebutan lain untuk kopi [2].
 
-Kopi Jawa kemudian begitu terkenal di Eropa sampai kata "java" dipakai sebagai sebutan untuk kopi itu sendiri. Di balik ketenaran itu ada kisah pahit: lewat Preangerstelsel dan kemudian tanam paksa, rakyat Priangan diwajibkan menanam dan menyerahkan kopi kepada penguasa kolonial.
+Di balik ketenaran itu ada sejarah pahit. Dari 1830 sampai sekitar 1870, lewat Tanam Paksa (Cultuurstelsel), petani di Priangan dan daerah lain diwajibkan menanam kopi dan menyerahkannya ke gudang pemerintah sebagai ganti pajak [1][2].
 
-Setelah lama tertidur, Priangan bangkit kembali pada 2010-an. Kebun-kebun di Gunung Puntang, Malabar, dan Manglayang kini memenangkan kompetisi dengan kopi yang bersih, cerah, dan manis seperti gula merah.
+Kopi Priangan kini bangkit lagi. Kopi Arabika Java Preanger memperoleh Indikasi Geografis pada 2013 [4], dan pada 2016 kopi dari Gunung Puntang di Kabupaten Bandung dinobatkan sebagai yang terbaik di pameran Specialty Coffee Association of America di Atlanta [3].

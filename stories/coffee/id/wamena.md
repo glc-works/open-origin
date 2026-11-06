@@ -17,21 +17,24 @@ area:
 producer: Coffee farmers of the Baliem Valley
 species: arabica
 altitude_masl: [1400, 2000]
-varieties: [Typica]
-process: [washed]
-harvest: Apr–Jul
+process: [wet-hulled]
 tasting_notes: [chocolate, cinnamon, caramel]
-summary: Small farms without chemical inputs in the Papuan highlands; the beans are flown out because no road reaches the coast.
+summary: "Small forest gardens without chemical inputs in the Papuan highlands, many reached only on foot."
 coords: [-4.1, 138.95]
 language: en
 told_by: editor
 contributor: open-origin
 consent: true
-sources: []
+sources:
+  - https://en.wikipedia.org/wiki/Coffee_production_in_Indonesia
+  - https://econusa.id/?p=4268
+  - https://www.kompas.id/baca/english/2022/02/21/bittersweet-coffee-from-papuas-central-highlands
+  - https://en.wikipedia.org/wiki/Wamena
+  - https://en.wikipedia.org/wiki/Geographical_indications_in_Indonesia
 ---
 
-At the eastern end of the journey, the Baliem Valley lies between the high mountains of Papua. Coffee was introduced here by missionaries and the Dutch administration in the mid-twentieth century.
+At the eastern end of the journey, the Baliem Valley lies between the high mountains of Papua, at 1,400 to 2,000 metres [1]. Coffee farming in the Papuan highlands grew from the 1950s, when the Dutch administration and missionaries encouraged it [2].
 
-The farms are small and scattered. Dani and Lani farmers grow coffee without chemical fertiliser or pesticides, so nearly all of it is organic by nature. Beans are often carried on foot for hours and then flown out of the valley, because no road yet connects it to the coast.
+The gardens are small and scattered, shaded by trees, and many can only be reached on foot [1]. Farmers grow coffee without chemical fertiliser, pesticides or herbicides [1][3], and most use the wet-hulled process [1]. A stretch of the Trans-Papua Highway now links Wamena by road to Jayapura [4]. Kopi Arabika Baliem Wamena received a Geographical Indication in 2019 [5].
 
-Altitude and cool air give Wamena a sweet, clean cup. Because there is so little of it, a cup of Wamena feels like a gift from the far end of the country.
+Farmers have learned to pick only ripe red cherries and to sort their beans, but many of them are growing old, and buyers worry the coffee could become harder to find [3].
