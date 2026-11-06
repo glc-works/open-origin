@@ -109,7 +109,7 @@ ${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" href="${prefix}">${LOGO}<b><span>open</span> origin</b></a>
-  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#learn">Learn</a><a href="${prefix}codes/">Codes</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}datapackage.json">Open data</a><a href="${REPO}">GitHub</a></nav>
+  <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}map/">Map</a><a href="${prefix}#learn">Learn</a><a href="${prefix}codes/">Codes</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}datapackage.json">Open data</a><a href="${REPO}">GitHub</a></nav>
 </div></header>`;
 }
 
@@ -185,7 +185,7 @@ function strip() {
     return `<a class="stop" style="left:${pct(lon).toFixed(2)}%" href="#stories" data-jump="${esc(cc)}"><span>${esc(countryName.of(cc))}</span><span class="count">${c.n} ${c.n === 1 ? "story" : "stories"}</span><span class="stem"></span><span class="dot"></span></a>`;
   });
   return `<nav class="route" aria-label="Stories by longitude"><div class="route-inner">${ticks.join("")}<div class="route-belt"></div>${stops.join("")}</div></nav>
-<p class="route-note">Each dot is a country, placed west to east by longitude.</p>`;
+<p class="route-note">Each dot is a country, placed west to east by longitude. <a href="map/">See every story on the map</a>.</p>`;
 }
 
 function indexPage() {
@@ -458,6 +458,122 @@ function producerPage(p) {
 ${foot}`;
 }
 
+// Map of every story that has coordinates (its own, or its origin profile's). Stories at the same point share
+// one marker per crop. MapLibre is copied from node_modules into dist/vendor, so no script comes from a CDN.
+// The basemap is OpenFreeMap (OpenStreetMap data, free, no key), trimmed to land, water, borders and big
+// place names, and recoloured to the site's palette. Coordinates are already rounded to about 1 km.
+const MAP_HUE = { coffee: "#A8261B", cocoa: "#7A4A2B", tea: "#355E40", spice: "#A0632A", vanilla: "#6B5A2E", honey: "#B7862A", sugar: "#8A5A3C" };
+const BASEMAP = "https://tiles.openfreemap.org/styles/positron";
+function mapPage() {
+  const prefix = "../";
+  const places = [];
+  const at = new Map();
+  for (const s of stories) {
+    const c = s.coords || s.originStory?.coords;
+    if (!c) continue;
+    const key = `${c[0]},${c[1]}`;
+    if (!at.has(key)) { at.set(key, places.length); places.push({ ll: [c[1], c[0]], items: [] }); }
+    places[at.get(key)].items.push({
+      crop: s.crop, kind: s.kind,
+      html: `<a href="${prefix}${href(s)}">${esc(s.title)}</a><span>${esc(s.kind === "origin" ? "Origin profile" : s.kind === "movement" ? "Movement" : "Farm story")} · ${esc(CROPS[s.crop].label)}${s.region ? ` · ${esc(s.region)}` : ""}</span>`,
+    });
+  }
+  // Origin profiles first in each popup, so the place is named before the farms in it.
+  for (const p of places) p.items.sort((a, b) => (a.kind === "origin" ? 0 : 1) - (b.kind === "origin" ? 0 : 1));
+  const mapped = places.reduce((n, p) => n + p.items.length, 0);
+  const crops = Object.keys(CROPS).filter((c) => places.some((p) => p.items.some((i) => i.crop === c)));
+  const data = JSON.stringify({ hue: MAP_HUE, places }).replace(/</g, "\\u003c");
+  const btn = (val, label, on = false) => `<button type="button" data-crop="${esc(val)}" aria-pressed="${on}">${val !== "all" ? `<i class="swatch" style="background:${MAP_HUE[val] || "var(--cherry)"}"></i>` : ""}${esc(label)}</button>`;
+  return `${head("Map · Open Origin", "Every origin and farm story in Open Origin on one map, filtered by crop.", prefix, `<link rel="stylesheet" href="${prefix}vendor/maplibre/maplibre-gl.css">\n`)}
+<main><div class="wrap">
+  <div class="section-head" style="margin-top:40px"><div class="eyebrow">Map · ${mapped} ${mapped === 1 ? "story" : "stories"} in ${places.length} ${places.length === 1 ? "place" : "places"}</div><h1>Where it grows</h1>
+  <p>Every origin profile and farm story, placed on the map. Points are rounded to about 1 km, so no one's home can be found. A farm story without its own point is shown at its origin.</p></div>
+  <div class="filters" role="group" aria-label="Filter by crop">
+    ${btn("all", "All crops", true)}${crops.map((c) => btn(c, CROPS[c].label)).join("")}
+  </div>
+  <div id="map" class="origin-map" role="region" aria-label="Map of stories. Every place is also listed below."></div>
+  <p class="route-note">Basemap by <a href="https://openfreemap.org">OpenFreeMap</a>, © <a href="https://www.openmaptiles.org/">OpenMapTiles</a>, data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Story points CC BY 4.0.</p>
+  <h2 class="group-title" style="margin-top:40px">All places on the map</h2>
+  <ul class="map-list">${places.map((p) => p.items.map((i) => `<li data-crop="${esc(i.crop)}"><i class="swatch" style="background:${MAP_HUE[i.crop] || "var(--cherry)"}"></i>${i.html}</li>`).join("")).join("")}</ul>
+</div></main>
+<script src="${prefix}vendor/maplibre/maplibre-gl.js"></script>
+<script>
+(async function () {
+  const DATA = ${data};
+  const buttons = document.querySelectorAll(".filters button");
+  const listItems = document.querySelectorAll(".map-list li");
+  const box = document.getElementById("map");
+  let crop = "all";
+  // One feature per place and crop, so a filter only has to compare one property.
+  const features = [];
+  DATA.places.forEach((p, i) => [...new Set(p.items.map((x) => x.crop))].forEach((c) => features.push({
+    type: "Feature", geometry: { type: "Point", coordinates: p.ll },
+    properties: { place: i, crop: c, n: p.items.filter((x) => x.crop === c).length },
+  })));
+  const bounds = (list) => list.reduce((b, f) => b.extend(f.geometry.coordinates), new maplibregl.LngLatBounds(list[0].geometry.coordinates, list[0].geometry.coordinates));
+  function apply(next) {
+    crop = next;
+    buttons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.crop === crop)));
+    listItems.forEach((li) => { li.hidden = crop !== "all" && li.dataset.crop !== crop; });
+    history.replaceState(null, "", crop === "all" ? location.pathname : "#" + crop);
+    if (!map || !map.getLayer("points")) return;
+    map.setFilter("points", crop === "all" ? null : ["==", ["get", "crop"], crop]);
+    const shown = features.filter((f) => crop === "all" || f.properties.crop === crop);
+    if (shown.length) map.fitBounds(bounds(shown), { padding: 40, maxZoom: 6, duration: 600 });
+  }
+  buttons.forEach((b) => b.addEventListener("click", () => apply(b.dataset.crop)));
+  const start = location.hash.slice(1);
+  let map = null;
+  apply([...buttons].some((b) => b.dataset.crop === start) ? start : "all");
+  if (!window.maplibregl || !features.length) { box.hidden = true; return; }
+
+  // Keep only what tells you where you are: land, water, parks, borders and the larger place names.
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const C = dark
+    ? { land: "#1C1E18", water: "#11191B", park: "#20261D", line: "#4A4E42", text: "#A1A496", halo: "#131410", ring: "#131410" }
+    : { land: "#F4F5EF", water: "#C9D4D2", park: "#E4E8DD", line: "#A9AC9E", text: "#5B5E52", halo: "#F4F5EF", ring: "#FFFFFF" };
+  const KEEP = /^(background|water|park|landcover_|boundary_2|boundary_disputed|water_name_point_label|label_state|label_city|label_city_capital|label_country_)/;
+  let style;
+  try { style = await (await fetch("${BASEMAP}")).json(); } catch { box.hidden = true; return; }
+  style.layers = style.layers.filter((l) => KEEP.test(l.id)).map((l) => {
+    const p = { ...l.paint };
+    if (l.id === "background") p["background-color"] = C.land;
+    else if (l.id === "water") p["fill-color"] = C.water;
+    else if (l.type === "fill") p["fill-color"] = C.park;
+    else if (l.type === "line") p["line-color"] = C.line;
+    else if (l.type === "symbol") Object.assign(p, { "text-color": C.text, "text-halo-color": C.halo, "text-halo-width": 1.2, "text-halo-blur": 0 });
+    return { ...l, paint: p };
+  });
+  const all = bounds(features);
+  map = new maplibregl.Map({
+    container: box, style, bounds: all, fitBoundsOptions: { padding: 40, maxZoom: 6 },
+    maxZoom: 11, attributionControl: { compact: true },
+    // Two fingers (or Ctrl + scroll) move the map, so the page still scrolls past it.
+    cooperativeGestures: true,
+  });
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
+  map.on("load", () => {
+    map.addSource("points", { type: "geojson", data: { type: "FeatureCollection", features } });
+    map.addLayer({ id: "points", type: "circle", source: "points", paint: {
+      "circle-color": ["match", ["get", "crop"], ...Object.entries(DATA.hue).flat(), "#A8261B"],
+      "circle-radius": ["case", [">", ["get", "n"], 1], 9, 7],
+      "circle-stroke-color": C.ring, "circle-stroke-width": 2,
+    } });
+    apply(crop);
+    map.on("mouseenter", "points", () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", "points", () => { map.getCanvas().style.cursor = ""; });
+    map.on("click", "points", (e) => {
+      const f = e.features[0], p = DATA.places[f.properties.place];
+      const items = p.items.filter((x) => crop === "all" || x.crop === crop);
+      new maplibregl.Popup({ maxWidth: "300px" }).setLngLat(p.ll)
+        .setHTML('<ul class="map-pop">' + items.map((x) => "<li>" + x.html + "</li>").join("") + "</ul>").addTo(map);
+    });
+  });
+})();
+</script>
+${foot}`;
+}
+
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 await copyFile(path.join(SITE, "style.css"), path.join(DIST, "style.css"));
@@ -465,6 +581,12 @@ await copyFile(path.join(SITE, "logo.svg"), path.join(DIST, "logo.svg"));
 await cp(path.join(SITE, "brand"), path.join(DIST, "brand"), { recursive: true });
 try { await access(path.join(ROOT, "photos")); await cp(path.join(ROOT, "photos"), path.join(DIST, "photos"), { recursive: true }); } catch {}
 await writeFile(path.join(DIST, "index.html"), indexPage());
+await mkdir(path.join(DIST, "map"), { recursive: true });
+await writeFile(path.join(DIST, "map", "index.html"), mapPage());
+// The map library ships with the site (BSD-3-Clause, licence file kept beside it).
+const MAPLIBRE = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "node_modules", "maplibre-gl", "dist");
+await mkdir(path.join(DIST, "vendor", "maplibre"), { recursive: true });
+for (const f of ["maplibre-gl.js", "maplibre-gl.css", "LICENSE.txt"]) await copyFile(path.join(MAPLIBRE, f), path.join(DIST, "vendor", "maplibre", f));
 for (const s of stories) {
   const dir = path.join(DIST, href(s));
   await mkdir(dir, { recursive: true });

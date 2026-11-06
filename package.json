@@ -17,6 +17,7 @@
   "dependencies": {
     "gray-matter": "4.0.3",
     "h3-js": "^4.5.0",
+    "maplibre-gl": "4.7.1",
     "marked": "12.0.2"
   }
 }

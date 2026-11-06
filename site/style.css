@@ -49,7 +49,8 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
 .brand b { font-weight: inherit; }
 .brand { display: inline-flex; align-items: center; gap: 8px; }
 .brand .mark { width: 1.6em; height: 1.6em; flex: none; }
-.bar nav { display: flex; gap: 20px; font-family: var(--mono); font-size: .8rem; }
+.bar nav { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono); font-size: .8rem; }
+.bar nav a { white-space: nowrap; }
 .bar nav a { text-decoration: none; color: var(--muted); }
 .bar nav a:hover { color: var(--fg); }
 
@@ -269,3 +270,27 @@ table.lots td .muted { font-size: inherit; }
   table.lots td[data-label]:not(.lot-name)::before { content: attr(data-label); display: block; font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
   table.lots tr.lot-notes td { padding: 4px 0 0; }
 }
+
+/* Map */
+.origin-map { height: min(70vh, 560px); border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; }
+.origin-map .maplibregl-popup-content { font-family: var(--body); padding: 12px 28px 12px 14px; background: var(--card); color: var(--fg); border-radius: 10px; box-shadow: 0 4px 18px rgb(0 0 0 / .18); }
+.origin-map .maplibregl-popup-tip { border-top-color: var(--card); border-bottom-color: var(--card); }
+.origin-map .maplibregl-popup-close-button { color: var(--muted); font-size: 18px; }
+.origin-map .maplibregl-ctrl-attrib { font-family: var(--mono); font-size: .65rem; }
+.origin-map .maplibregl-cooperative-gesture-screen { font-family: var(--mono); font-size: .9rem; }
+.map-pop { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow: auto; }
+.map-pop li + li { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.map-pop a, .map-list a { font-family: var(--display); font-weight: 600; display: block; }
+.map-pop span, .map-list span { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+.map-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 14px 24px; }
+.map-list li { display: grid; grid-template-columns: 18px 1fr; align-items: start; }
+.map-list li .swatch { margin-top: 6px; grid-row: span 2; }
+@media (prefers-color-scheme: dark) {
+  .origin-map .maplibregl-ctrl-group { background: var(--surface); }
+  .origin-map .maplibregl-ctrl-group button + button { border-top-color: var(--line); }
+  .origin-map .maplibregl-ctrl-icon { filter: invert(1); }
+  .origin-map .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button { background-color: transparent; filter: invert(.85); }
+}
+.origin-map .maplibregl-ctrl.maplibregl-ctrl-attrib, .origin-map .maplibregl-ctrl-attrib.maplibregl-compact-show, .origin-map .maplibregl-ctrl-attrib-button { background-color: var(--card); color: var(--muted); }
+.origin-map .maplibregl-ctrl-attrib a { color: var(--muted); }
