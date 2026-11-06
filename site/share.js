@@ -51,7 +51,8 @@
   function syncTastes(e) {
     const ticked = [...form.querySelectorAll('input[name="taste"]:checked')];
     if (e && e.target.name === "taste" && e.target.checked && ticked.length + typedTastes().length > D.maxTastes) e.target.checked = false;
-    const all = [...form.querySelectorAll('input[name="taste"]:checked')].map((i) => i.value).concat(typedTastes());
+    // A typed word that repeats a ticked one counts once, so the count matches what a restored draft shows.
+    const all = [...new Set([...form.querySelectorAll('input[name="taste"]:checked')].map((i) => i.value).concat(typedTastes()))];
     $("f-tasting_notes").value = all.join(", ");
     return all.length;
   }
