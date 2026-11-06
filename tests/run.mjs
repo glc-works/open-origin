@@ -23,9 +23,16 @@ if (built.status === 0) {
   const read = (p) => readFileSync(path.join(here, "fixtures", "good", "dist", p), "utf8");
   const farm = read("stories/cocoa/id/test-cocoa-farm/index.html");
   check(farm.includes("From tree to bar") && !farm.includes("How coffee is scored"), "cocoa story uses cocoa wording");
-  check(farm.includes('id="L-TESTBKQW-A"') && farm.includes("Blend of"), "blend lot shows on each of its stories");
+  check(farm.includes('id="L-TESTBKQW-A"') && farm.includes("Blended with cocoa from"), "blend lot shows on each of its stories");
   check(read("producers/P-TESTPQQW-T/index.html").includes('id="L-TESTRQQW-E"'), "a lot filed under a producer shows on its profile");
   check(read("s/L-TESTRQQW-E/index.html").includes("producers/P-TESTPQQW-T/#L-TESTRQQW-E"), "lot permalink leads to the producer page");
+  const page = read("stories/cocoa/id/test-cocoa-origin/index.html");
+  check(page.includes("ID-SR") && page.includes("76.04") && page.includes("wikidata.org/wiki/Q12345") && /plus\.codes\/[0-9A-Z]{6}00%2B/.test(page) && page.includes("H3 87"), "an origin shows its area codes, Plus Code and H3 cell");
+  const codes = JSON.parse(read("codes.json"));
+  check(codes["L-TESTCQQ3-3"]?.crops[0] === "cocoa" && codes["O-TESTCQQW-P"]?.place_codes.iso3166_2[0] === "ID-SR", "codes.json lists each code with its crop and place codes");
+  check(farm.includes('class="crop-tag">Cocoa'), "codes are shown with their crop");
+  check(codes["P-TESTPQQW-T"]?.crops.includes("cocoa"), "a producer's crops include the lots filed under it");
+  check(farm.includes('Tested by <a href="../../../../producers/P-TESTKABQ-3/">Test cocoa lab</a>') && read("producers/P-TESTKABQ-3/index.html").includes('id="L-TESTCQQ3-3"'), "tested_by can link to a lab profile, which lists the lots it tested");
   rmSync(path.join(here, "fixtures", "good", "dist"), { recursive: true, force: true });
 }
 
@@ -48,6 +55,10 @@ for (const expected of [
   `story "S-TESTBQQW-R" not found (its check character does not match`,
   `roasted_by "p-testbqq2j" not found (write it as P-TESTBQQ2-J)`,
   `id must look like L-`,
+  `area.iso3166_2 "MY-01" is not in country ID`,
+  `area.wikidata "12345" must be a Wikidata id`,
+  `area.plus is not known`,
+  `area.admin_codes 11.1 must be in quotes`,
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.

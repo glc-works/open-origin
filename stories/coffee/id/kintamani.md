@@ -5,6 +5,10 @@ kind: origin
 crop: coffee
 country: ID
 region: Bangli Regency, Bali
+area:
+  iso3166_2: ID-BA
+  admin_codes: ["51.06"]
+  geonames: [1650263]
 producer: Subak Abian farmers of Kintamani
 species: arabica
 altitude_masl: [1000, 1600]

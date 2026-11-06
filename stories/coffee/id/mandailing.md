@@ -5,6 +5,9 @@ kind: origin
 crop: coffee
 country: ID
 region: Mandailing Natal & Tapanuli, North Sumatra
+area:
+  iso3166_2: ID-SU
+  geonames: [9161518]
 producer: Coffee farmers of the North Sumatran highlands
 species: arabica
 altitude_masl: [1000, 1500]

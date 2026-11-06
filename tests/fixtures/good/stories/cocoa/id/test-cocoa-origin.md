@@ -5,6 +5,11 @@ kind: origin
 crop: cocoa
 country: ID
 region: Polewali Mandar, West Sulawesi
+coords: [-3.41, 119.31]
+area:
+  iso3166_2: ID-SR
+  admin_codes: ["76.04"]
+  wikidata: Q12345
 producer: Cocoa farmers
 species: trinitario
 process: [fermented, sun-dried]

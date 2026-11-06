@@ -20,6 +20,9 @@ harvest: Okt–Mar
 tasting_notes: [nangka, cokelat, gula aren]
 summary: Kebun keluarga dua hektare yang beralih dari giling basah ke proses natural agar rasa buahnya lebih keluar.
 coords: [4.77, 96.81]              # 2 desimal saja / 2 decimals only
+# area:                            # opsional: kode wilayah umum / optional public area codes
+#   iso3166_2: ID-AC               # provinsi / province (ISO 3166-2)
+#   admin_codes: ["11.17"]         # kode wilayah Kemendagri / national area code
 language: id
 told_by: farmer
 contributor: username-github

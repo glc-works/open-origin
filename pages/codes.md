@@ -48,6 +48,25 @@ The check character can be a letter, just as the last character of an ISBN can b
 
 You can type a code in small letters, without the dashes, or with spaces: `lkpbjf525d`, `L KPBJF525 D` and `L-KPBJF525-D` all find the same lot. Files and pages always show it in the standard form, with capitals and dashes.
 
+## The crop is shown next to the code
+
+The code itself does not say which crop it is, so it never has to change if a lot turns out to be a blend or was filed under the wrong crop. Pages, labels and the lookup box always show the crop beside it: `L-KPBJF525-D` · COFFEE.
+
+## Origins and public place codes
+
+An origin keeps its own `O-` code, and is matched to public codes for the same area so other datasets can be joined to it:
+
+| Code | Example | What it is |
+|---|---|---|
+| ISO 3166-2 | `ID-AC` | The international code of the province or state. |
+| National area code | `11.17` | The government's own code for the regency; in Indonesia the Kemendagri *kode wilayah*. |
+| Wikidata | `Q…` | The open knowledge base id for the place, linked to Wikipedia in every language. |
+| GeoNames | `1234567` | The id in the GeoNames gazetteer, used by many maps and datasets. |
+| Plus Code | `6MPRJV00+` | The open grid code also used by Google Maps. It is worked out from the coordinates and covers about 5 km, because coordinates are rounded for privacy. |
+| H3 cell | `876556163ffffff` | A hexagon in the H3 grid (resolution 7, about 5 km²), used to join supply-chain and deforestation data. Also worked out from the coordinates. |
+
+All of them are in the open data (`stories.csv`, `stories.json` and `codes.json`).
+
 ## Looking a code up
 
 Every code has a short link: `/s/<code>/`. For example, [/s/L-KPBJF525-D/](../s/L-KPBJF525-D/) opens that lot on the page of the story it belongs to.

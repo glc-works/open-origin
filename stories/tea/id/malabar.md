@@ -5,6 +5,10 @@ kind: origin
 crop: tea
 country: ID
 region: Pangalengan, Bandung, West Java
+coords: [-7.18, 107.57]
+area:
+  iso3166_2: ID-JB
+  geonames: [1650352]
 producer: Malabar tea estate (PTPN)
 altitude_masl: [1400, 1600]
 process: [black]
