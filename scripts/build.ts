@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import { LANGS, DEFAULT_LANG, strings } from "./i18n.ts";
 import { buildApi } from "./api.ts";
+import { SCENES, sceneSvg } from "./scenes.ts";
 import { ID_CHARS, ID_SALT, areaOf, plusCode, h3Cell, H3_RES, isHttpUrl, licenseUrl, QUALITY, TRACEABILITY, loadLots, validateLot, resolveLot, loadProducers, validateProducer, linkProducers, duplicateIds, ROOT, CROPS, RTL, loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge } from "./lib.ts";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
@@ -373,6 +374,89 @@ const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table 
       ${l.notes ? `<tr class="lot-notes"><td colspan="4">${esc(l.notes)}</td></tr>` : ""}`; }).join("")}
     </tbody></table></div>`;
 
+// ---- Illustrated journey and "at a glance" (story pages) ----
+// A step's words in the page's language: the translation's text (a plain string, or { text, title, more, why, then, unit }).
+const TR_KEYS = ["text", "title", "more", "why", "then", "unit"];
+const stepWords = (j, tj) => {
+  if (tj == null) return j;
+  if (typeof tj === "string") return { ...j, text: tj };
+  return { ...j, ...Object.fromEntries(Object.entries(tj).filter(([k, v]) => v && TR_KEYS.includes(k))) };
+};
+const citeLinks = (cite) => (cite || []).map((n) => `<sup class="cite"><a href="#src-${n}">[${n}]</a></sup>`).join("");
+const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+// "Oct–Jun" -> the twelve months, true where harvested. null when the text is not a simple month range.
+function harvestMonths(h) {
+  const m = String(h || "").toLowerCase().match(/^([a-z]{3})[a-z]*\s*[–-]\s*([a-z]{3})[a-z]*$/);
+  if (!m) return null;
+  const a = MONTHS.indexOf(m[1]), b = MONTHS.indexOf(m[2]);
+  if (a < 0 || b < 0) return null;
+  return MONTHS.map((_, i) => (a <= b ? i >= a && i <= b : i >= a || i <= b));
+}
+// Altitude, harvest calendar and process, drawn from the story's own fields. Shown only when there are at least two.
+function glance(s, v, prefix) {
+  const panels = [];
+  if (Array.isArray(s.altitude_masl)) {
+    const [lo, hi] = s.altitude_masl, top = Math.max(2500, hi + 300), y = (m) => 100 - (m / top) * 100;
+    panels.push(`<figure class="g-panel"><svg viewBox="0 0 200 100" aria-hidden="true" preserveAspectRatio="none"><rect x="0" y="${y(hi)}" width="200" height="${y(lo) - y(hi)}" class="g-band"></rect><path d="M0 100 L60 ${y(hi * 0.7)} L90 ${y(hi * 0.55)} L130 ${y(hi * 1.05)} L200 100Z" class="g-hill"></path></svg>
+      <figcaption><b>${esc(fmtAlt(s.altitude_masl))}</b><span>${T.aboveSea}</span></figcaption></figure>`);
+  }
+  const months = harvestMonths(s.harvest);
+  if (months) {
+    const fmt = new Intl.DateTimeFormat(T.locale, { month: "narrow" });
+    panels.push(`<figure class="g-panel"><div class="g-cal" role="img" aria-label="${esc(`${T.fields.harvest}: ${s.harvest}`)}">${months.map((on, i) => `<span${on ? ' class="on"' : ""}>${esc(fmt.format(new Date(2026, i, 1)))}</span>`).join("")}</div>
+      <figcaption><b>${esc(s.harvest)}</b><span>${T.fields.harvest}</span></figcaption></figure>`);
+  }
+  if (s.process?.length || s.species) {
+    panels.push(`<figure class="g-panel g-words"><div>${[s.species ? termLink(s.crop, s.species, prefix, term(s.crop, s.species)) : "", ...(s.process || []).map((p) => termLink(s.crop, p, prefix, term(s.crop, p, p)))].filter(Boolean).join("<br>")}</div>
+      <figcaption><b>${esc(cropLabel(s.crop))}</b><span>${s.varieties?.length ? esc(s.varieties.join(" · ")) : T.fields.process}</span></figcaption></figure>`);
+  }
+  return panels.length >= 2 ? `<section class="glance" aria-label="${T.glance}"><h2 class="eyebrow">${T.glance}</h2><div class="g-grid">${panels.join("")}</div></section>` : "";
+}
+// The journey as illustrated panels along one route, with a step bar. Only for stories whose steps name a scene.
+function visualJourney(s, t, v, dir) {
+  const steps = s.journey.map((j, i) => stepWords(j, t?.journey?.[i]));
+  const label = (j) => j.title || (j.stage === "brew" ? cropWord(s.crop, "use") : T.stage[j.stage]);
+  const bar = `<nav class="vj-steps" aria-label="${T.journeySteps}"><ol>${steps.map((j, i) => `<li><a href="#step-${i + 1}" data-dot="${i + 1}"><b>${i + 1}</b><span>${esc(label(j))}</span></a></li>`).join("")}</ol></nav>`;
+  const stops = steps.map((j, i) => {
+    const n = i + 1, art = j.scene ? sceneSvg(j.scene) : "";
+    const count = j.count ? `<div class="vj-count" role="img" aria-label="${esc(`${j.count.from} → ${j.count.to} ${j.unit || j.count.unit}`)}"><span class="vj-num" data-from="${esc(j.count.from)}" data-to="${esc(j.count.to)}">${esc(num(j.count.to))}</span><span class="vj-unit">${esc(j.unit || j.count.unit)}</span><span class="vj-bar"><i style="width:${Math.round((j.count.to / Math.max(j.count.from, j.count.to)) * 100)}%"></i></span></div>` : "";
+    return `<section class="vj-stop" id="step-${n}" aria-labelledby="step-${n}-h">
+      <figure class="vj-panel${art ? "" : " plain"}">${art}${count}
+        <figcaption class="vj-cap ${SCENES[j.scene]?.caption ?? "bl"}">
+          <span class="eyebrow">${n} · ${esc(label(j))}</span>
+          <h3 id="step-${n}-h">${esc(j.text)}</h3>
+          ${j.more ? `<p>${esc(j.more)}${citeLinks(j.cite)}</p>` : ""}
+          ${j.why ? `<details><summary>${T.why}</summary><p>${esc(j.why)}${j.more ? "" : citeLinks(j.cite)}</p></details>` : ""}
+        </figcaption>
+      </figure>
+      ${j.then && n < steps.length ? `<div class="vj-link" aria-hidden="true"><svg viewBox="0 0 4 120" preserveAspectRatio="none"><path class="vj-route" d="M2 0 V120"></path><path class="vj-fill" pathLength="1" d="M2 0 V120"></path></svg><span>${esc(j.then)}</span></div>` : ""}
+    </section>`;
+  }).join("\n");
+  return `<section class="vj" id="journey" aria-labelledby="journey-h" lang="${esc(v.language)}" dir="${dir}">
+  ${bar}
+  <header class="vj-head"><h2 id="journey-h">${esc(cropWord(s.crop, "journey"))}</h2><p>${T.journeyCue}</p></header>
+  ${stops}
+</section>
+<script>${JOURNEY_JS}</script>`;
+}
+// Panels come alive as they scroll into view; the dashed route between them draws itself; the step bar follows.
+// With reduced motion the page shows the finished pictures and moves nothing.
+const JOURNEY_JS = `(() => {
+  const stops = [...document.querySelectorAll(".vj-stop")], dots = [...document.querySelectorAll("[data-dot]")], fills = [...document.querySelectorAll(".vj-fill")];
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.documentElement.classList.add("vj-js");
+  const count = (el) => { const a = +el.dataset.from, b = +el.dataset.to, t0 = performance.now(); if (still) return;
+    const f = (t) => { const k = Math.min(1, (t - t0) / 1600); el.textContent = Math.round(a + (b - a) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); };
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; e.target.classList.add("in"); io.unobserve(e.target);
+    const n = e.target.querySelector(".vj-num"); if (n) count(n); }), { threshold: 0.35 });
+  stops.forEach((s) => io.observe(s));
+  const onScroll = () => { const vh = innerHeight; let cur = -1;
+    fills.forEach((r) => { const b = r.getBoundingClientRect(); const k = Math.max(0, Math.min(1, (vh * 0.85 - b.top) / (b.height + vh * 0.3))); r.style.strokeDashoffset = still ? 0 : 1 - k; });
+    stops.forEach((s, i) => { if (s.getBoundingClientRect().top < vh * 0.5) cur = i; });
+    dots.forEach((d, i) => { d.classList.toggle("done", i <= cur); if (i === cur) d.setAttribute("aria-current", "step"); else d.removeAttribute("aria-current"); }); };
+  addEventListener("scroll", onScroll, { passive: true }); addEventListener("resize", onScroll); onScroll();
+})();`;
+
 function storyPage(s, t = null) {
   const prefix = t ? "../../../../../" : "../../../../";
   const v = t ? { ...s, ...Object.fromEntries(["title", "summary", "region", "tasting_notes"].filter((k) => t[k]).map((k) => [k, t[k]])), body: t.body, language: t.language } : s;
@@ -416,6 +500,7 @@ function storyPage(s, t = null) {
   };
   const ldTag = `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>\n`;
   const F = T.fields;
+  const illustrated = s.journey?.some((j) => j.scene);
   return `${head(`${v.title} · Open Origin`, v.summary, prefix, ldTag, `${href(s)}${t ? `${t.language}/` : ""}`)}
 <main><div class="wrap">
 <article class="story">
@@ -447,8 +532,15 @@ function storyPage(s, t = null) {
   </div>
   <div class="prose">
     ${s.photo ? photoFigure(s, prefix) : ""}
+    ${glance(s, v, prefix)}
+    ${illustrated ? `<p class="vj-teaser"><a href="#journey">${T.followJourney(s.journey.length)}</a></p>` : ""}
     <div class="text" lang="${esc(v.language)}" dir="${dir}">${cite(marked.parse(v.body), sources.length)}</div>
-    ${s.journey?.length ? `<h2 class="journey-title">${esc(cropWord(s.crop, "journey"))}</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage" lang="${LANG}" dir="ltr">${esc(j.stage === "brew" ? cropWord(s.crop, "use") : T.stage[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
+    ${illustrated ? `</div>
+</article>
+${visualJourney(s, t, v, dir)}
+<div class="story story-after"><div></div>
+  <div class="prose">` : ""}
+    ${s.journey?.length && !illustrated ? `<h2 class="journey-title">${esc(cropWord(s.crop, "journey"))}</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage" lang="${LANG}" dir="ltr">${esc(j.stage === "brew" ? cropWord(s.crop, "use") : T.stage[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
     ${s.lots.length ? `<h2 class="journey-title">${T.lots}</h2>
     <p class="part-of">${T.lotsIntro} ${(([slug] = CROPS[s.crop].grading || []) => (slug && learnHref(s.crop, slug) ? termLink(s.crop, slug, prefix, cropWord(s.crop, "grading") ?? CROPS[s.crop].grading[1]) : ""))()}</p>
     ${lotTable(s.lots, prefix, s)}` : ""}
@@ -459,7 +551,7 @@ function storyPage(s, t = null) {
     ${sourceList(sources)}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc((t || s).file)}">${T.suggestEdit}</a> · <a href="${REPO}/issues/new?template=translation.yml&amp;title=${encodeURIComponent(`[Translation] ${s.title}`)}">${T.translateStory}</a></p>
   </div>
-</article>
+${illustrated ? "</div>" : "</article>"}
 </div></main>
 ${footer()}`;
 }
