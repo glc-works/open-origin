@@ -21,7 +21,7 @@ quality:                           # opsional; field mutu sesuai komoditas / opt
   screen_size: "16-18"
   defects_primary: 0
   defects_secondary: 3
-tested_by: Licensed Q Grader, nama lab   # wajib untuk cupping_score / required for a cupping score
+tested_by: Licensed Q Grader, nama lab   # wajib untuk cupping_score; boleh kode P- profil lab / required for a cupping score; may be a lab P- id
 certificate: https://example.org/sertifikat.pdf   # opsional / optional
 ---
 

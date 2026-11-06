@@ -196,7 +196,7 @@ function strip() {
     return `<a class="stop" style="left:${pct(lon).toFixed(2)}%" href="#stories" data-jump="${esc(cc)}"><span>${esc(countryName.of(cc))}</span><span class="count">${c.n} ${c.n === 1 ? "story" : "stories"}</span><span class="stem"></span><span class="dot"></span></a>`;
   });
   return `<nav class="route" aria-label="Stories by longitude"><div class="route-inner">${ticks.join("")}<div class="route-belt"></div>${stops.join("")}</div></nav>
-<p class="route-note">Each dot is a country, placed by longitude. The empty stretches are waiting for your stories.</p>`;
+<p class="route-note">Each dot is a country, placed west to east by longitude.</p>`;
 }
 
 function indexPage() {
@@ -223,7 +223,7 @@ function indexPage() {
   </div>
   <h3 class="group-title">Origins <span>Profiles of growing regions</span></h3>
   <div class="cards">${origins.map(card).join("\n")}</div>
-  <h3 class="group-title" id="voices">Farmers &amp; movements <span>Each farm tells its origin differently</span></h3>
+  <h3 class="group-title" id="voices">Farmers &amp; movements <span>Stories from single farms, groups and movements</span></h3>
   ${voices.length
     ? `<div class="cards">${voices.map(card).join("\n")}</div>`
     : `<div class="empty"><p><strong>The first farmer stories are still to come.</strong> Two farms on the same hill can grow something completely different: another slope, another process, another family. That difference is what Open Origin is for. Grow coffee, cocoa, tea or spices, keep bees or tap palms, or work with people who do? Tell their story.</p><a class="btn primary" href="${SUBMIT}">Share a farmer story</a></div>`}
@@ -322,14 +322,17 @@ const producerCrops = (p) => [...new Set([...(p.crops || []), ...p.stories.map((
 // A code is always shown with its crop beside it (L-KPBJF525-D · COFFEE): the code itself carries no meaning,
 // so it never has to change, but a reader still sees at once what it is.
 const codeTag = (id, crops) => `<code class="code">${esc(id)}</code>${[].concat(crops || []).map((c) => `<span class="crop-tag">${esc(CROPS[c]?.label || c)}</span>`).join("")}`;
-const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table class="lots"><thead><tr><th>Lot</th><th>Specification</th><th>Quality</th><th>Tested by</th></tr></thead><tbody>
+const andList = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}` : xs[0] || "");
+const lotTable = (list, prefix, here = null) => `<div class="table-wrap"><table class="lots"><thead><tr><th>Lot</th><th>Specification</th><th>Quality</th><th>Sources</th></tr></thead><tbody>
     ${list.map((l) => { const crop = l.pathCrop; const from = l.linked.filter((x) => x !== here); return `<tr id="${esc(l.id)}"><td class="lot-name" data-label="Lot"><strong>${esc(l.name || l.date)}</strong><span class="muted">${l.name ? `${esc(l.date)} · ` : ""}${codeTag(l.id, crop)}${l.quantity_kg ? ` · ${esc(l.quantity_kg)} kg` : ""}${l.traceability ? ` · ${esc(TRACE_LABEL[l.traceability])}` : ""}</span></td>
       <td data-label="Specification">${[l.form ? pretty(l.form) : "", (l.process || []).map(pretty).join(" · "), (l.varieties || []).map((v) => { const k = varietyFor(crop, v); return k ? `<a class="term" href="${prefix}learn/${k.crop}/${k.slug}/">${esc(v)}</a>` : esc(v); }).join(", ")].filter(Boolean).map((x) => (x.startsWith("<") ? x : esc(x))).join(" · ")}
-        ${from.length ? `<div class="muted">${l.linked.length > 1 ? "Blend of" : "From"} ${from.map((x) => `<a href="${prefix}${href(x)}">${esc(x.producer)}</a>`).join(", ")}${here && l.linked.length > 1 ? " and this one" : ""}</div>` : ""}
+        ${from.length ? `<div class="muted">${here ? `Blended with ${esc(CROPS[crop]?.label.toLowerCase() || crop)} from` : l.linked.length > 1 ? "Blend from" : "From"} ${andList(from.map((x) => `<a href="${prefix}${href(x)}">${esc(x.producer)}</a>`))}</div>` : ""}
         ${here && l.owner ? `<div class="muted">Filed by ${party(l.owner.id, prefix)}</div>` : ""}
         ${l.processed_by ? `<div class="muted">Processed by ${party(l.processed_by, prefix)}</div>` : ""}${l.roasted_by ? `<div class="muted">Roasted by ${party(l.roasted_by, prefix)}</div>` : ""}${l.sold_by ? `<div class="muted">Sold by ${party(l.sold_by, prefix)}</div>` : ""}</td>
-      <td data-label="Quality">${Object.entries(l.quality || {}).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("") || `<span class="muted">Not measured</span>`}</td>
-      <td data-label="Tested by">${[l.quality && Object.keys(l.quality).length ? esc(l.tested_by || "Self-reported") : "", l.certificate ? `<a href="${esc(l.certificate)}">Certificate</a>` : "",
+      <td data-label="Quality">${l.quality && Object.keys(l.quality).length
+        ? `<div>${Object.entries(l.quality).map(([k, v]) => `<span class="q">${esc(qText(crop, k, v))}</span>`).join("")}</div><div class="muted">${l.tested_by ? `Tested by ${party(l.tested_by, prefix)}` : "Self-reported"}</div>`
+        : `<span class="muted">Not measured</span>`}</td>
+      <td data-label="Sources">${[l.certificate ? `<a href="${esc(l.certificate)}">Certificate</a>` : "",
         ...(l.sources || []).map((u, i) => `<a href="${esc(u)}">Source${l.sources.length > 1 ? ` ${i + 1}` : ""}</a>`)].filter(Boolean).map((x) => `<div>${x}</div>`).join("")}</td></tr>
       ${l.notes ? `<tr class="lot-notes"><td colspan="4">${esc(l.notes)}</td></tr>` : ""}`; }).join("")}
     </tbody></table></div>`;
@@ -407,11 +410,11 @@ function storyPage(s, t = null) {
     <div class="text" lang="${esc(v.language)}" dir="${dir}">${cite(marked.parse(v.body), sources.length)}</div>
     ${s.journey?.length ? `<h2 class="journey-title">${esc(CROPS[s.crop].journey)}</h2><ol class="journey" lang="${esc(v.language)}" dir="${dir}">${s.journey.map((j, i) => `<li><span class="stage">${esc(j.stage === "brew" ? CROPS[s.crop].use : STAGE_LABEL[j.stage])}</span><p>${esc(journeyText(j, i))}</p></li>`).join("")}</ol>` : ""}
     ${s.lots.length ? `<h2 class="journey-title">Lots</h2>
-    <p class="part-of">A lot is one harvest, shipment or production run, the thing a buyer actually buys. Process, variety and quality belong to the lot, so each one is listed on its own. ${(([slug, label] = CROPS[s.crop].grading || []) => (slug && learnHref(s.crop, slug) ? termLink(s.crop, slug, prefix, label) : ""))()}</p>
+    <p class="part-of">A lot is one harvest, shipment or production run: what a buyer buys. Process, variety and quality can change from lot to lot, so each lot is listed on its own. ${(([slug, label] = CROPS[s.crop].grading || []) => (slug && learnHref(s.crop, slug) ? termLink(s.crop, slug, prefix, label) : ""))()}</p>
     ${lotTable(s.lots, prefix, s)}` : ""}
     ${s.kind === "origin" ? `<h2 class="journey-title">Farmers from this origin</h2>${s.farms.length
       ? `<div class="cards">${s.farms.map((f) => card(f).replace(`href="${href(f)}"`, `href="${prefix}${href(f)}"`)).join("")}</div>`
-      : `<div class="empty"><p>No farmer has told their own story from here yet. Every farm in this region grows it a little differently.</p><a class="btn primary" href="${submitFor(s)}">Tell a farm's story</a></div>`}` : ""}
+      : `<div class="empty"><p>No farmer from here has told their story yet.</p><a class="btn primary" href="${submitFor(s)}">Tell a farm's story</a></div>`}` : ""}
     ${s.originStory ? `<p class="part-of">Part of the origin <a href="${prefix}${href(s.originStory)}">${esc(s.originStory.title)}</a></p>` : ""}
     ${sourceList(sources)}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc((t || s).file)}">Suggest an edit</a> · <a href="${REPO}/issues/new?template=translation.yml&amp;title=${encodeURIComponent(`[Translation] ${s.title}`)}">Translate this story</a></p>
@@ -421,7 +424,7 @@ function storyPage(s, t = null) {
 ${foot}`;
 }
 
-const PTYPE = { farmer: "Farmer", group: "Producer group", estate: "Estate", processor: "Processing facility", roaster: "Roaster" };
+const PTYPE = { farmer: "Farmer", group: "Producer group", estate: "Estate", processor: "Processing facility", roaster: "Roaster", lab: "Testing lab or grader" };
 function producerPage(p) {
   const prefix = "../../";
   const row = (k, val) => (val ? `<div><dt>${k}</dt><dd>${esc(val)}</dd></div>` : "");
@@ -430,7 +433,7 @@ function producerPage(p) {
   const grown = [...new Map(p.stories.flatMap((s) => (s.varieties || []).map((v) => [`${s.crop}:${v.toLowerCase()}`, { crop: s.crop, name: v }]))).values()];
   const lotsOf = p.stories.filter((s) => s.lots.length);
   // Lots this producer processed or sold for someone else's story.
-  const handled = lots.filter((l) => !l.linked.some((x) => p.stories.includes(x)) && (l.owner === p || [l.processed_by, l.roasted_by, l.sold_by].some((v) => String(v) === String(p.id))));
+  const handled = lots.filter((l) => !l.linked.some((x) => p.stories.includes(x)) && (l.owner === p || [l.processed_by, l.roasted_by, l.sold_by, l.tested_by].some((v) => String(v) === String(p.id))));
   return `${head(`${p.name} · Open Origin`, p.body ? p.body.slice(0, 160) : `${p.name}, ${countryName.of(p.pathCountry.toUpperCase())}`, prefix)}
 <main><div class="wrap">
 <article class="story">
@@ -457,7 +460,7 @@ function producerPage(p) {
     ${p.stories.length ? `<div class="cards">${p.stories.map((r) => card(r).replace(`href="${href(r)}"`, `href="${prefix}${href(r)}"`)).join("")}</div>`
       : `<div class="empty"><p>No stories linked to this profile yet.</p></div>`}
     ${lotsOf.map((s) => `<h2 class="journey-title">Lots · ${esc(s.title)}</h2>${lotTable(s.lots, prefix, s)}`).join("")}
-    ${handled.length ? `<h2 class="journey-title">${p.stories.length ? "Other lots" : "Lots"}</h2><p class="part-of">Lots ${esc(p.name)} grew, processed, roasted or sold.</p>${lotTable(handled, prefix)}` : ""}
+    ${handled.length ? `<h2 class="journey-title">${p.stories.length ? "Other lots" : "Lots"}</h2><p class="part-of">Lots ${esc(p.name)} ${p.type === "lab" ? "tested" : "grew, processed, roasted or sold"}.</p>${lotTable(handled, prefix)}` : ""}
     ${p.consent === "public" ? `<p class="part-of">This profile was put together only from what has already been published about ${esc(p.name)}; see the sources below. If this is you, you can correct, complete or remove it.</p>` : ""}
     ${sourceList(p.sources || [])}
     <p class="eyebrow" style="margin-top:2em"><a href="${REPO}/blob/main/${esc(p.file)}">Improve this profile</a></p>
@@ -636,8 +639,8 @@ async function exportData() {
   // Lots: one row per lot, plus quality in long format (one row per measured value) so every crop fits one table.
   const LFIELDS = [["id", "string", "permanent lot id, e.g. L-K7M2XQ9P-P"], ["story_ids", "string", "stories the lot comes from, separated by ; (several for a blend)"], ["producer", "string", "producer profile the lot is filed under"], ["crop", "string", ""], ["name", "string", ""],
     ["date", "string", "YYYY, YYYY-MM or YYYY-MM-DD"], ["form", "string", "state the lot is sold in; the options depend on the crop"], ["process", "string", "separated by ; "], ["varieties", "string", "separated by ; "],
-    ["quantity_kg", "number", ""], ["traceability", "string", ""], ["processed_by", "string", "name or producer id"], ["roasted_by", "string", "name or producer id"], ["sold_by", "string", "name or producer id"],
-    ["tested_by", "string", ""], ["certificate", "string", ""]];
+    ["quantity_kg", "number", ""], ["traceability", "string", ""], ["processed_by", "string", "name or producer id"], ["roasted_by", "string", "name or producer id"], ["sold_by", "string", "name or producer id"], ["tested_by", "string", "name or producer id of the lab or grader"],
+    ["certificate", "string", ""]];
   const lrows = lots.map((l) => ({ id: l.id, story_ids: l.linked.map(id).join("; "), producer: l.owner?.id || "", crop: l.pathCrop, name: l.name || "", date: String(l.date), form: l.form || "",
     process: (l.process || []).join("; "), varieties: (l.varieties || []).join("; "), quantity_kg: l.quantity_kg ?? "", traceability: l.traceability || "",
     processed_by: l.processed_by || "", roasted_by: l.roasted_by || "", sold_by: l.sold_by || "", tested_by: l.tested_by || "", certificate: l.certificate || "" }));

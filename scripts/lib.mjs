@@ -247,7 +247,7 @@ const re0 = (v) => AREA_KEYS.iso3166_2[0].test(v);
 export const ID_KIND = { O: "origin", S: "story", P: "producer", L: "lot" };
 export const PRODUCERS_DIR = path.join(ROOT, "producers");
 // Everyone who shapes a lot gets a profile: growers, processing facilities (mills, washing stations) and roasters.
-export const PRODUCER_TYPES = ["farmer", "group", "estate", "processor", "roaster"];
+export const PRODUCER_TYPES = ["farmer", "group", "estate", "processor", "roaster", "lab"];
 // consent: true means the people named agreed. consent: public is only for a business or group (never a single
 // farmer) and means every fact was already published (by the organisation or its buyers), with the links in sources.
 const consentErrors = (consent, sources, what) => {
@@ -425,7 +425,7 @@ export function validateLot(l, stories, producers = []) {
   }
   if (l.varieties !== undefined && !isStrList(l.varieties)) errors.push(`varieties must be a list of names`);
   if (l.form !== undefined && !formsFor(l.pathCrop).includes(l.form)) errors.push(`form must be one of: ${formsFor(l.pathCrop).join(", ")}`);
-  errors.push(...["processed_by", "roasted_by", "sold_by"].flatMap((k) => partyErrors(k, l[k], producers)));
+  errors.push(...["processed_by", "roasted_by", "sold_by", "tested_by"].flatMap((k) => partyErrors(k, l[k], producers)));
   if (l.traceability !== undefined && !TRACEABILITY.includes(l.traceability)) errors.push(`traceability must be one of: ${TRACEABILITY.join(", ")}`);
   if (l.quantity_kg !== undefined && !(isNum(l.quantity_kg) && l.quantity_kg > 0)) errors.push(`quantity_kg must be a positive number`);
   const spec = QUALITY[l.pathCrop] || [];
