@@ -5,7 +5,7 @@
   const T = D.t;
   const form = document.getElementById("share");
   const steps = [...form.querySelectorAll("fieldset.step")];
-  const marks = [...document.querySelectorAll(".steps li")];
+  const marks = [...document.querySelectorAll(".progress li")];
   const back = document.getElementById("back");
   const next = document.getElementById("next");
   const msg = document.getElementById("form-msg");
@@ -165,7 +165,7 @@
   function done(out) {
     store.clear();
     form.hidden = true;
-    document.querySelector(".steps").hidden = true;
+    document.querySelector(".progress").hidden = true;
     const box = $("done");
     box.hidden = false;
     box.innerHTML = `<h2>${escapeHtml(T.thanks)}</h2><p>${escapeHtml(T.thanksBody.replace("{n}", out.number))}</p>`

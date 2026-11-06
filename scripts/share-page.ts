@@ -112,7 +112,7 @@ export function sharePage({ lang, prefix, crops, origins, config, esc }) {
   <h1>${esc(t.title)}</h1>
   <p class="lede">${esc(t.lede)}</p>
   <p class="eyebrow"><a href="${t.otherHref}" hreflang="${lang === "en" ? "id" : "en"}">${esc(t.other)}</a></p>
-  <ol class="steps" aria-hidden="true">${t.steps.map((s, i) => `<li data-step="${i}">${esc(s)}</li>`).join("")}</ol>
+  <ol class="progress" aria-hidden="true">${t.steps.map((s, i) => `<li data-step="${i}">${esc(s)}</li>`).join("")}</ol>
   <form id="share" novalidate>
     <fieldset class="step" data-step="0"><legend class="step-title">${esc(t.you)}</legend>
       ${field("contributor", t.name, text("contributor", 'autocomplete="name" required'), t.nameHint)}

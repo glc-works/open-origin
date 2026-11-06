@@ -2,11 +2,11 @@
 
 Thank you for helping tell the stories behind what we drink and eat. English is the project's main language, but stories can be written in any language: tell it in the language you are most comfortable with, and an English translation can be added later by you or a volunteer.
 
-> **Ringkas (Bahasa Indonesia):** Cara termudah adalah mengisi [formulir cerita](https://github.com/glc-works/open-origin/issues/new?template=story.yml). Maintainer akan mengecek bersama Anda lalu menerbitkannya. Pastikan semua orang yang disebut atau difoto sudah setuju.
+> **Ringkas (Bahasa Indonesia):** Cara termudah adalah mengisi [formulir cerita](https://glc-works.github.io/open-origin/share/id/), bisa dari HP. Maintainer akan mengecek bersama Anda lalu menerbitkannya. Pastikan semua orang yang disebut atau difoto sudah setuju.
 
 ## Two ways to contribute
 
-1. **The story form (recommended).** [Open the form](https://github.com/glc-works/open-origin/issues/new?template=story.yml), fill it in, and submit. A maintainer reviews it with you, then adds the `approved` label, which opens a pull request automatically.
+1. **The story form (recommended).** [Open the form](https://glc-works.github.io/open-origin/share/) ([Bahasa Indonesia](https://glc-works.github.io/open-origin/share/id/)), made for phones, fill it in, and send. Once the [relay](relay/README.md) is running it needs no GitHub account; until then it fills in the [GitHub issue form](https://github.com/glc-works/open-origin/issues/new?template=story.yml) for you. Either way it becomes an issue. A maintainer reviews it with you, then adds the `approved` label, which opens a pull request automatically.
 2. **A pull request.** Add a Markdown file at `stories/<crop>/<country>/<slug>.md`, run `npm run check`, and open a PR.
 
 ## Ground rules
