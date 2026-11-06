@@ -6,7 +6,7 @@ crop: coffee
 country: ID
 region: Ijen highlands, Bondowoso, East Java
 photo: photos/id/java-ijen.jpg
-photo_credit: "Georg Friedrich Johannes Bley (Tropenmuseum collection)"
+photo_credit: "G.F.J. Bley, Collectie Wereldmuseum (v/h Tropenmuseum), part of the National Museum of World Cultures"
 photo_license: CC BY-SA 3.0
 photo_source: https://commons.wikimedia.org/wiki/File:COLLECTIE_TROPENMUSEUM_Gezicht_over_de_koffieplantage_Blawan_bij_de_kloof_van_de_rivier_Banyuputih_Ijen-plateau_TMnr_60016957.jpg
 area:

@@ -88,7 +88,7 @@ const href = (s) => `stories/${s.crop}/${s.pathCountry}/${s.slug}/`;
 const producerHref = (p) => `producers/${p.id}/`;
 const photoSrc = (s, prefix) => (/^https?:\/\//.test(s.photo) ? s.photo : prefix + String(s.photo).replace(/^\/+/, ""));
 // Credit line for a photo: who took it, and for a photo from elsewhere its licence and the page it came from.
-const photoSourceName = (u) => { try { const h = new URL(u).hostname; return h.endsWith("wikimedia.org") ? "Wikimedia Commons" : h.replace(/^www\./, ""); } catch { return "source"; } };
+const photoSourceName = (u) => { try { const h = new URL(u).hostname; return h === "wikimedia.org" || h.endsWith(".wikimedia.org") ? "Wikimedia Commons" : h.replace(/^www\./, ""); } catch { return "source"; } };
 const photoCreditText = (x) => [`Photo: ${x.photo_credit}`, x.photo_license, x.photo_source && photoSourceName(x.photo_source)].filter(Boolean).join(" · ");
 function photoCreditHtml(x) {
   const lic = x.photo_license && (licenseUrl(x.photo_license) ? `<a href="${esc(licenseUrl(x.photo_license))}" rel="license">${esc(x.photo_license)}</a>` : esc(x.photo_license));
