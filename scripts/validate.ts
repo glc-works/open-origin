@@ -1,5 +1,5 @@
 // Checks every story file and exits non-zero with readable messages if any are invalid.
-import { loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge, loadLots, validateLot, loadProducers, validateProducer, linkProducers, duplicateIds } from "./lib.ts";
+import { loadStories, validateStory, validateTranslation, linkOrigins, loadKnowledge, validateKnowledge, validateKnowledgeTranslation, loadLots, validateLot, loadProducers, validateProducer, linkProducers, duplicateIds } from "./lib.ts";
 // A broken file (e.g. bad YAML) stops the run with one readable line, not a stack trace.
 for (const ev of ["unhandledRejection", "uncaughtException"]) process.on(ev, (e) => { console.error(`\n✗ ${e.message}`); process.exit(1); });
 
@@ -39,6 +39,14 @@ for (const k of knowledge) {
     for (const e of errors) console.error(`  - ${e}`);
   }
 }
+for (const t of knowledge.translations) {
+  const errors = validateKnowledgeTranslation(t);
+  if (errors.length) {
+    failed++;
+    console.error(`\n✗ ${t.file}`);
+    for (const e of errors) console.error(`  - ${e}`);
+  }
+}
 for (const b of lots) {
   const errors = [...validateLot(b, stories, producers), ...(dupIds.get(b.file) || [])];
   if (errors.length) {
@@ -56,7 +64,7 @@ for (const p of producers) {
   }
 }
 if (failed) {
-  console.error(`\n${failed} of ${stories.length + translations.length + knowledge.length + lots.length + producers.length} files need fixes.`);
+  console.error(`\n${failed} of ${stories.length + translations.length + knowledge.length + knowledge.translations.length + lots.length + producers.length} files need fixes.`);
   process.exit(1);
 }
-console.log(`✓ ${stories.length} stories, ${translations.length} translations, ${knowledge.length} Learn entries, ${lots.length} lots and ${producers.length} producers valid.`);
+console.log(`✓ ${stories.length} stories, ${translations.length} translations, ${knowledge.length} Learn entries (${knowledge.translations.length} translated), ${lots.length} lots and ${producers.length} producers valid.`);
