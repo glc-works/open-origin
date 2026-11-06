@@ -32,7 +32,7 @@ Ids never change, so names and files can be renamed without breaking links. `/s/
 | `producers/<country>/<name>.md` | Producer, processor and roaster profiles |
 | `learn/<crop>/<slug>.md` | Learn entries |
 | `pages/` | Site pages such as How to read a code (`/codes/`) |
-| `scripts/` | `validate.mjs`, `build.mjs`, `issue-to-story.mjs`, `new-id.mjs` |
+| `scripts/` | `validate.ts`, `build.ts`, `issue-to-story.ts`, `new-id.ts`, `schema.ts` (TypeScript, run directly by Node 22.18+) |
 | `tests/` | Example content for every crop; `npm test` checks it |
 
 ## Open data

@@ -1,6 +1,6 @@
 # Cloudflare Worker that turns the /share/ web form into a "Share a story" issue. See README.md here.
 name = "open-origin-relay"
-main = "worker.mjs"
+main = "worker.ts"
 compatibility_date = "2026-10-01"
 
 [vars]

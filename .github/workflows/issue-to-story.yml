@@ -20,7 +20,7 @@ jobs:
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - id: story
-        run: node scripts/issue-to-story.mjs
+        run: node scripts/issue-to-story.ts
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}

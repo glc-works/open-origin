@@ -9,7 +9,7 @@ import path from "node:path";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const run = (script, dir) => spawnSync(process.execPath, [path.join(here, "..", "scripts", script)], {
   env: { ...process.env, OPEN_ORIGIN_ROOT: path.join(here, "fixtures", dir) }, encoding: "utf8" });
-const validate = (dir) => run("validate.mjs", dir);
+const validate = (dir) => run("validate.ts", dir);
 
 let failed = 0;
 const check = (ok, msg) => { if (!ok) failed++; console.log(`${ok ? "✓" : "✗"} ${msg}`); };
@@ -18,7 +18,7 @@ const good = validate("good");
 check(good.status === 0, `good fixtures (cocoa, honey, sugar, tea; blend and roaster-only lots) pass${good.status ? `\n${good.stderr}` : ""}`);
 
 // The good set must also build, and its pages must show the crop-specific parts.
-const built = run("build.mjs", "good");
+const built = run("build.ts", "good");
 check(built.status === 0, `good fixtures build${built.status ? `\n${built.stderr}` : ""}`);
 if (built.status === 0) {
   const read = (p) => readFileSync(path.join(here, "fixtures", "good", "dist", p), "utf8");
@@ -65,7 +65,7 @@ for (const expected of [
 ]) check(bad.stderr.includes(expected), `reports: ${expected}`);
 
 // Ids can be typed any way (small letters, no "-", spaces) and still read back the same; a typo never passes.
-const { parseId, newId } = await import("../scripts/lib.mjs");
+const { parseId, newId } = await import("../scripts/lib.ts");
 const sample = newId("L");
 check(parseId(sample.replace(/-/g, "").toLowerCase()) === sample && parseId(` ${sample.slice(0, 5)} ${sample.slice(5)}`) === sample, "an id typed without \"-\" or in small letters reads back the same");
 let caught = 0, tries = 0;
@@ -78,13 +78,13 @@ check(caught === tries, `every one-character typo of an id is caught (${caught}/
 // The web form: the relay checks a submission and writes the same issue the GitHub form makes,
 // and issue-to-story reads it back with the storyteller's name and the rounded location.
 {
-  const form = await import("../scripts/story-form.mjs");
-  const { CROPS, TOLD_BY } = await import("../scripts/lib.mjs");
-  const { parseIssueForm, toStory } = await import("../scripts/issue-to-story.mjs");
+  const form = await import("../scripts/story-form.ts");
+  const { CROPS, TOLD_BY } = await import("../scripts/lib.ts");
+  const { parseIssueForm, toStory } = await import("../scripts/issue-to-story.ts");
   check(form.CROP_KEYS.join() === Object.keys(CROPS).join() && form.TOLD_BY.every((t) => TOLD_BY.includes(t)), "web form crops and storytellers match the story format");
   const yml = readFileSync(path.join(here, "..", ".github", "ISSUE_TEMPLATE", "story.yml"), "utf8");
   const labels = [...yml.matchAll(/^\s+label: (.+)$/gm)].map((m) => m[1].replace(/^"|"$/g, "")).filter((l) => !l.startsWith("Everyone") && !l.startsWith("I agree"));
-  check(labels.every((l) => form.LABELS[l]) && labels.length === form.FIELDS.length - 2, "every GitHub form field has its heading in story-form.mjs");
+  check(labels.every((l) => form.LABELS[l]) && labels.length === form.FIELDS.length - 2, "every GitHub form field has its heading in story-form.ts");
   const sample = { contributor: "Ibu Sari", told_by: "farmer", language: "id", crop: "coffee", kind: "farm", producer: "Kebun Sari", country: "id",
     traceability: "farm", region: "Bener Meriah, Aceh", species: "arabica", title: "Kopi dari tepi danau", summary: "Kebun kecil di tepi Danau Laut Tawar.",
     story: "Paragraf satu. ".repeat(20) + "\n\n### Short summary\nini bagian dari cerita, bukan judul kolom.", process: "washed, natural" };
@@ -99,13 +99,13 @@ check(caught === tries, `every one-character typo of an id is caught (${caught}/
   cpSync(path.join(here, "fixtures", "good"), tmp, { recursive: true });
   mkdirSync(path.join(tmp, path.dirname(story.file)), { recursive: true });
   writeFileSync(path.join(tmp, story.file), story.text);
-  const v = spawnSync(process.execPath, [path.join(here, "..", "scripts", "validate.mjs")], { env: { ...process.env, OPEN_ORIGIN_ROOT: tmp }, encoding: "utf8" });
+  const v = spawnSync(process.execPath, [path.join(here, "..", "scripts", "validate.ts")], { env: { ...process.env, OPEN_ORIGIN_ROOT: tmp }, encoding: "utf8" });
   rmSync(tmp, { recursive: true, force: true });
   check(v.status === 0, `a story sent through the web form passes the story check${v.status ? `\n${v.stderr}` : ""}`);
   check(story.text.includes("contributor: Ibu Sari") && story.text.includes("- 4.71") && story.text.includes("bukan judul kolom") && story.text.includes("summary: Kebun kecil"), "a web form issue becomes a story credited to the storyteller");
 
   // The relay itself, with GitHub replaced by a stub.
-  const worker = (await import("../relay/worker.mjs")).default;
+  const worker = (await import("../relay/worker.ts")).default;
   const sent = [];
   const realFetch = globalThis.fetch;
   globalThis.fetch = async (url, init) => { sent.push({ url, init }); return new Response(JSON.stringify({ number: 42, html_url: "https://github.com/glc-works/open-origin/issues/42" }), { status: 201 }); };

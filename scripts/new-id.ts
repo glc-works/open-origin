@@ -1,6 +1,6 @@
 // npm run new-id            prints fresh permanent ids, one of each kind
 // npm run new-id -- <id>    checks an id someone typed or read off a label
-import { newId, parseId, ID_PREFIX, ID_KIND } from "./lib.mjs";
+import { newId, parseId, ID_PREFIX, ID_KIND } from "./lib.ts";
 
 const typed = process.argv[2];
 if (typed) {

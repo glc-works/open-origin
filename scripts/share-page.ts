@@ -1,7 +1,7 @@
 // The /share/ page: a story form made for a phone, in English (/share/) and Bahasa Indonesia (/share/id/).
 // It needs no GitHub account when the relay in relay/ is running (relay/public-config.json says where it is);
 // until then it fills in the GitHub issue form instead. The form logic is in site/share.js.
-import { CROP_KEYS, KINDS, TRACEABILITY, TOLD_BY, MAX, MIN_STORY } from "./story-form.mjs";
+import { CROP_KEYS, KINDS, TRACEABILITY, TOLD_BY, MAX, MIN_STORY } from "./story-form.ts";
 
 // Countries listed first; any other two-letter code can be typed under "Other".
 const COUNTRIES = ["ID", "TL", "PG", "MY", "PH", "VN", "LA", "TH", "MM", "IN", "LK", "CN", "TW", "JP", "YE", "ET", "KE", "UG", "RW", "BI", "TZ", "CD", "CM", "CI", "GH", "NG", "MG", "BR", "CO", "PE", "EC", "BO", "HN", "GT", "SV", "NI", "CR", "PA", "MX", "US"];

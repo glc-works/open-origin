@@ -6,17 +6,17 @@
 // Secrets (wrangler secret put): GITHUB_TOKEN (fine-grained, this repo only, Issues: read and write),
 // TURNSTILE_SECRET (optional, Cloudflare Turnstile). Bindings, all optional: PHOTOS (R2 bucket), CONTACTS (KV),
 // LIMITER (rate limit). Setup steps: relay/README.md.
-import { checkSubmission, issueBody } from "../scripts/story-form.mjs";
+import { checkSubmission, issueBody } from "../scripts/story-form.ts";
 
 const MAX_BODY = 3_000_000; // bytes of JSON, photo included
 const MAX_PHOTO = 1_500_000; // bytes after the browser has shrunk it
 
 export default {
-  async fetch(request, env) {
+  async fetch(request: Request, env: Record<string, any>): Promise<Response> {
     const origin = request.headers.get("Origin") || "";
     const allowed = String(env.ALLOWED_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean);
     const cors = allowed.includes(origin) ? { "Access-Control-Allow-Origin": origin, Vary: "Origin" } : {};
-    const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json; charset=utf-8", ...cors } });
+    const reply = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json; charset=utf-8", ...cors } });
     const url = new URL(request.url);
 
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...cors, "Access-Control-Allow-Methods": "POST", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Max-Age": "86400" } });
@@ -30,7 +30,7 @@ export default {
       if (!success) return reply(429, { ok: false, error: "rate-limit" });
     }
     if (Number(request.headers.get("Content-Length") || 0) > MAX_BODY) return reply(413, { ok: false, error: "too-large" });
-    let body;
+    let body: Record<string, any>;
     try {
       const text = await request.text();
       if (text.length > MAX_BODY) return reply(413, { ok: false, error: "too-large" });
@@ -56,7 +56,7 @@ export default {
     const data = checked.data;
 
     if (body.photo_jpeg && env.PHOTOS && env.PHOTO_BASE_URL) {
-      let bytes;
+      let bytes: Uint8Array;
       try { bytes = Uint8Array.from(atob(String(body.photo_jpeg)), (c) => c.charCodeAt(0)); }
       catch { return reply(400, { ok: false, error: "photo" }); }
       // The browser redraws the photo as a JPEG, which also drops its GPS and camera data. Accept nothing else.

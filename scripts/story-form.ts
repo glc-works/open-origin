@@ -1,6 +1,6 @@
 // The "Share a story" fields in one place, with no dependencies, so three readers agree on them:
-// the GitHub issue form (.github/ISSUE_TEMPLATE/story.yml), scripts/issue-to-story.mjs, which reads an issue back,
-// and the web form relay (relay/worker.mjs), which writes an issue for people without a GitHub account.
+// the GitHub issue form (.github/ISSUE_TEMPLATE/story.yml), scripts/issue-to-story.ts, which reads an issue back,
+// and the web form relay (relay/worker.ts), which writes an issue for people without a GitHub account.
 
 // [key, heading in the issue body]. The order is the order of the form; issue-to-story relies on it.
 // The last two are only written by the web form.
@@ -18,7 +18,7 @@ export const FIELDS = [
 export const LABELS = Object.fromEntries(FIELDS.map(([k, h]) => [h, k]));
 export const ORDER = FIELDS.map(([k]) => k);
 
-// Keep in step with CROPS and TOLD_BY in scripts/lib.mjs; npm test checks this.
+// Keep in step with CROPS and TOLD_BY in scripts/lib.ts; npm test checks this.
 export const CROP_KEYS = ["coffee", "cocoa", "tea", "spice", "vanilla", "honey", "sugar"];
 export const KINDS = ["farm", "movement", "origin"];
 export const TRACEABILITY = ["farm", "group", "region", "country", "blend"];
@@ -34,16 +34,20 @@ export const MAX = {
   altitude: 40, varieties: 200, process: 120, harvest: 60, tasting_notes: 160, town: 120, summary: 200, story: 20000,
   journey: 4000, photo: 300, photo_credit: 120, told_by: 20, language: 12, sources: 2000, contributor: 80,
 };
-// The story format wants at least a few sentences (scripts/lib.mjs checks the same).
+// The story format wants at least a few sentences (scripts/lib.ts checks the same).
 export const MIN_STORY = 200;
 export const REQUIRED = ["kind", "crop", "title", "country", "traceability", "producer", "summary", "story", "told_by", "language", "contributor"];
 
+// A checked submission: the text fields by key, plus the rounded location.
+export type Submission = { [field: string]: string | undefined } & { coords?: [number, number] };
+export type SubmissionError = { field: string; code: "required" | "too-short" | "too-long" | "invalid" };
+
 // Cleans one submission from the web form. Returns { data } or { errors: [{ field, code }] }.
 // Codes are short words (required, too-short, too-long, invalid) so the form can say them in the reader's language.
-export function checkSubmission(input) {
-  const errors = [];
-  const data = {};
-  const src = input && typeof input === "object" ? input : {};
+export function checkSubmission(input: unknown): { data?: Submission; errors?: SubmissionError[] } {
+  const errors: SubmissionError[] = [];
+  const data: Submission = {};
+  const src: Record<string, any> = input && typeof input === "object" ? input : {};
   for (const key of Object.keys(MAX)) {
     if (src[key] === undefined || src[key] === null) continue;
     if (typeof src[key] !== "string") { errors.push({ field: key, code: "invalid" }); continue; }
@@ -58,7 +62,7 @@ export function checkSubmission(input) {
   if (data.story && data.story.length < MIN_STORY) errors.push({ field: "story", code: "too-short" });
   if (data.kind === "farm" && !data.species) errors.push({ field: "species", code: "required" });
   if (!data.region && !["country", "blend"].includes(data.traceability)) errors.push({ field: "region", code: "required" });
-  const oneOf = (key, list) => { if (data[key] && !list.includes(data[key])) errors.push({ field: key, code: "invalid" }); };
+  const oneOf = (key: string, list: string[]) => { if (data[key] && !list.includes(data[key])) errors.push({ field: key, code: "invalid" }); };
   oneOf("kind", KINDS); oneOf("crop", CROP_KEYS); oneOf("traceability", TRACEABILITY); oneOf("told_by", TOLD_BY);
   if (data.country) { data.country = data.country.toUpperCase(); if (!/^[A-Z]{2}$/.test(data.country)) errors.push({ field: "country", code: "invalid" }); }
   if (data.language) { data.language = data.language.toLowerCase(); if (!/^[a-z]{2,3}(-[a-z0-9]{2,8})?$/.test(data.language)) errors.push({ field: "language", code: "invalid" }); }
@@ -75,10 +79,10 @@ export function checkSubmission(input) {
 }
 
 // Writes a checked submission as the same issue body the GitHub form makes, so issue-to-story reads both alike.
-export function issueBody(data) {
+export function issueBody(data: Submission): string {
   // A line in someone's text that looks like one of our headings would split the story; escape it.
-  const guard = (v) => String(v).split("\n").map((l) => (/^#{1,6} /.test(l) ? `\\${l}` : l)).join("\n");
-  const value = (key) => {
+  const guard = (v: string) => String(v).split("\n").map((l) => (/^#{1,6} /.test(l) ? `\\${l}` : l)).join("\n");
+  const value = (key: string) => {
     if (key === "consent") return CONSENT.map((c) => `- [X] ${c}`).join("\n");
     if (key === "coords") return data.coords ? data.coords.join(", ") : "_No response_";
     if (key === "photo") return data.photo ? `![photo](${data.photo})` : "_No response_";

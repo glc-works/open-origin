@@ -1,18 +1,19 @@
 // Turns an approved "Share a story" issue into a story file.
 // Used by .github/workflows/issue-to-story.yml. Inputs come from env: ISSUE_BODY, ISSUE_NUMBER, ISSUE_AUTHOR, ISSUE_LABELS.
-// Issues come from the GitHub form or from the web form relay (relay/worker.mjs); both use the fields in story-form.mjs.
+// Issues come from the GitHub form or from the web form relay (relay/worker.ts); both use the fields in story-form.ts.
 import { mkdir, writeFile, appendFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
-import { ROOT, CROPS, STORIES_DIR, newId, ID_PREFIX } from "./lib.mjs";
-import { LABELS, ORDER } from "./story-form.mjs";
+import { ROOT, CROPS, STORIES_DIR, newId, ID_PREFIX } from "./lib.ts";
+import { LABELS, ORDER } from "./story-form.ts";
+
 
 // Splits the issue body on the form's own headings only, so a "### ..." line written inside a story stays in the story.
-export function parseIssueForm(body) {
-  const out = {};
+export function parseIssueForm(body: string): Record<string, string> {
+  const out: Record<string, string> = {};
   const lines = String(body).replace(/\r\n/g, "\n").split("\n");
   // A heading only counts if it comes after the current one, in the order the form shows them.
-  const order = ORDER;
+  const order: string[] = ORDER;
   let key = null;
   let buf = [];
   const flush = () => {
