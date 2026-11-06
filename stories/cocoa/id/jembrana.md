@@ -22,6 +22,50 @@ sources:
   - https://valrhona.com/en/a-sustainable-company/our-commitments/our-cocoa-partners/kerta-semaya-samaniya-kss-cooperative
   - https://www.goodnewsfromindonesia.id/2018/10/05/kakao-fermentasi-jembrana-menembus-pasar-dunia-bagian-3
   - https://bali.antaranews.com/berita/406833/begini-pengolahan-kakao-fermentasi-di-jembrana-untuk-diekspor
+  - https://en.wikipedia.org/wiki/Cocoa_bean
+journey:
+  - stage: farm
+    title: In the gardens
+    scene: cocoa-grove
+    text: In western Bali, cocoa grows in farmers' gardens.
+    more: The farmers belong to subak abian, Bali's customary dryland farmer groups. In 2018 there were 609 of them in 38 groups.
+    why: Unlike most fruit trees, cocoa grows its pods straight from the trunk and thick branches, so most of them can be reached by hand.
+    then: when the pods ripen to yellow and orange
+    cite: [2, 4]
+  - stage: harvest
+    title: Opening the pods
+    scene: cocoa-open
+    text: Ripe pods are cut and opened. Inside, the beans sit in sweet white pulp.
+    more: One pod holds about 30 to 50 seeds.
+    then: into the wooden boxes, still wet
+    cite: [4]
+  - stage: process
+    title: Fermenting
+    scene: cocoa-ferment
+    text: The beans ferment in wooden boxes, at the farm and at the KSS cooperative.
+    more: Most Indonesian cocoa is only dried, with little or no fermentation. Jembrana takes the longer road.
+    why: Fermenting is what develops the flavour chocolate makers look for. Over several days the pulp liquefies and runs off.
+    then: after several days, out into the sun
+    cite: [1, 2, 4]
+  - stage: dry
+    title: Drying
+    scene: cocoa-drying
+    text: Then they dry in the sun, turning from purple to brown.
+    more: During fermenting and drying the beans lose most of their purple colour.
+    then: to the cooperative, and on to the port
+    cite: [4]
+  - stage: market
+    title: Across the sea
+    scene: ship
+    text: The cooperative ships around 50 tonnes of fermented beans a year.
+    more: They go to France, the Netherlands, Belgium and Japan.
+    then: to the chocolate makers
+    cite: [3]
+  - stage: brew
+    scene: chocolate
+    text: And there, they become chocolate.
+    more: The French chocolate maker Valrhona received its first shipment in 2015 and signed a five-year agreement with the cooperative in 2023.
+    cite: [1]
 ---
 
 Most cocoa in Indonesia is sold simply dried, with little or no fermentation [1]. In Jembrana, in the west of Bali, farmers took the longer road. Fermentation in wooden boxes, done by farmers and at their cooperative, is what develops the flavour that chocolate makers look for.

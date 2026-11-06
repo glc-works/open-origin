@@ -128,6 +128,13 @@ const en = {
   // Words that come from data fields. A key missing here is shown as the field value with its first letter capital.
   told: { farmer: "the farmer", "producer-group": "the producer group", roaster: "a roaster", researcher: "a researcher", editor: "Open Origin Editorial", other: "a contributor" },
   trace: { farm: "Traced to the farm", group: "Traced to the producer group", region: "Traced to the region", country: "Traced to the country", blend: "Blend" },
+  // Illustrated journey and "at a glance" on a story page
+  glance: "At a glance",
+  aboveSea: "above sea level",
+  journeySteps: "Journey steps",
+  journeyCue: "Scroll to follow it, stop by stop. Tap Why? for more; the numbers link to the sources.",
+  followJourney: (n) => `Follow the journey in pictures: ${n} stops ↓`,
+  why: "Why?",
   stage: { farm: "On the farm", harvest: "Harvest", process: "Processing", dry: "Drying", sort: "Sorting", roast: "Roasting", brew: "In the cup", market: "To market", other: "Along the way" },
   crops: {},
   qfields: {},
@@ -280,6 +287,12 @@ const id = {
 
   told: { farmer: "petaninya", "producer-group": "kelompok produsennya", roaster: "seorang roaster", researcher: "seorang peneliti", editor: "Redaksi Open Origin", other: "seorang kontributor" },
   trace: { farm: "Terlacak sampai kebun", group: "Terlacak sampai kelompok produsen", region: "Terlacak sampai daerah", country: "Terlacak sampai negara", blend: "Campuran" },
+  glance: "Sekilas",
+  aboveSea: "di atas permukaan laut",
+  journeySteps: "Langkah perjalanan",
+  journeyCue: "Scroll untuk mengikutinya, langkah demi langkah. Ketuk Kenapa? untuk detail; angka di belakang kalimat menuju sumbernya.",
+  followJourney: (n) => `Ikuti perjalanannya dalam gambar: ${n} langkah ↓`,
+  why: "Kenapa?",
   stage: { farm: "Di kebun", harvest: "Panen", process: "Pengolahan", dry: "Penjemuran", sort: "Sortasi", roast: "Penyangraian", brew: "Di cangkir", market: "Ke pasar", other: "Di perjalanan" },
   crops: {
     coffee: { label: "Kopi", journey: "Dari kebun ke cangkir", use: "Di cangkir", grading: "Cara kopi dinilai" },

@@ -27,6 +27,42 @@ consent: true
 sources:
   - https://hugo.honeytraveler.com/indonesian-honey/nusa-tenggara-honey/sumbawa-forest-honey/
   - https://en.wikipedia.org/wiki/Geographical_indications_in_Indonesia
+  - https://en.wikipedia.org/wiki/Apis_dorsata
+journey:
+  - stage: farm
+    title: In the forest
+    scene: honey-forest
+    text: On dry Sumbawa, giant honeybees nest high in tall forest trees.
+    more: The giant honeybee, Apis dorsata, is called aning in Sumbawa. Each colony builds a single open comb, up to a metre across.
+    why: These bees cannot be kept in hives, so all of this honey comes from the wild. Their favourite nesting tree, the binong, has been on the IUCN Red List since 1998.
+    then: in the harvest season, April to November
+    cite: [1, 3]
+  - stage: harvest
+    title: The climb
+    scene: honey-climb
+    text: Harvesters climb the tree to reach the comb.
+    more: They work together in the Sumbawa forest honey network, JMHS, around Sumbawa Besar and the Batulanteh hills.
+    then: at the top, they choose with care
+    cite: [1]
+  - stage: harvest
+    title: Leave a quarter
+    scene: honey-leave
+    text: They take only the ripe honey and leave about a quarter of the comb.
+    more: The part left on the tree lets the colony recover.
+    then: back down on the ground
+    cite: [1]
+  - stage: process
+    title: Tiris
+    scene: honey-drip
+    text: The honey drips out of the comb on its own.
+    more: This is tiris, draining by gravity, instead of squeezing the comb by hand.
+    then: into jars
+    cite: [1]
+  - stage: brew
+    scene: honey-jar
+    text: From April to November, there is honey for the table.
+    more: December to March is the lean season, when rain keeps the bees from foraging. Madu Sumbawa was registered as a Geographical Indication in 2011.
+    cite: [1, 2]
 ---
 
 Sumbawa's forest honey comes from *Apis dorsata*, the giant honeybee, called *aning* locally. It cannot be kept in hives: it builds its open combs high in forest trees, and people climb to harvest them [1].

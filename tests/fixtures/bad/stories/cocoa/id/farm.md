@@ -5,6 +5,8 @@ kind: farm
 crop: cocoa
 country: ID
 region: Somewhere
+tasting_note: [cocoa]
+constructor: x
 photo: photos/id/farm.jpg
 photo_credit: Someone
 photo_license: CC BY-NC 4.0
