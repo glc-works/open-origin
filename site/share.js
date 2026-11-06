@@ -49,10 +49,10 @@
   // more than D.maxTastes is shown as an error on the step instead of being cut.
   const typedTastes = () => ($("f-tasting_other").value || "").split(",").map((s) => s.trim()).filter(Boolean);
   function syncTastes(e) {
-    const ticked = [...form.querySelectorAll('input[name="taste"]:checked')];
-    if (e && e.target.name === "taste" && e.target.checked && ticked.length + typedTastes().length > D.maxTastes) e.target.checked = false;
-    // A typed word that repeats a ticked one counts once, so the count matches what a restored draft shows.
-    const all = [...new Set([...form.querySelectorAll('input[name="taste"]:checked')].map((i) => i.value).concat(typedTastes()))];
+    // A typed word that repeats a ticked one counts once, here and in the limit below.
+    const words = () => [...new Set([...form.querySelectorAll('input[name="taste"]:checked')].map((i) => i.value).concat(typedTastes()))];
+    if (e && e.target.name === "taste" && e.target.checked && words().length > D.maxTastes) e.target.checked = false;
+    const all = words();
     $("f-tasting_notes").value = all.join(", ");
     return all.length;
   }
@@ -74,7 +74,8 @@
 
   function save() {
     const c = collect();
-    store.set({ ...c.fields, process: c.fields.process, coords, consent: undefined, contact: c.contact, step });
+    // The "Other" box is kept as typed, so a word that also has a ticked box survives unticking it after a reload.
+    store.set({ ...c.fields, process: c.fields.process, tasting_other: $("f-tasting_other").value, coords, consent: undefined, contact: c.contact, step });
   }
   function restore() {
     const params = new URLSearchParams(location.search);
@@ -88,9 +89,10 @@
           const box = form.querySelector(`input[name="taste"][value="${CSS.escape(w)}"]`);
           if (box) { box.checked = true; box.closest("details").open = true; } else other.push(w);
         }
-        $("f-tasting_other").value = other.join(", ");
+        $("f-tasting_other").value = typeof d.tasting_other === "string" ? d.tasting_other : other.join(", ");
         continue;
       }
+      if (k === "tasting_other") continue;
       const radio = form.querySelector(`input[type=radio][name="${k}"][value="${CSS.escape(String(val))}"]`);
       if (radio) { radio.checked = true; continue; }
       if (k === "country") {
