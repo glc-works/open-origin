@@ -89,11 +89,13 @@ const producerHref = (p) => `producers/${p.id}/`;
 const photoSrc = (s, prefix) => (/^https?:\/\//.test(s.photo) ? s.photo : prefix + String(s.photo).replace(/^\/+/, ""));
 // Credit line for a photo: who took it, and for a photo from elsewhere its licence and the page it came from.
 const photoSourceName = (u) => { try { const h = new URL(u).hostname; return h === "wikimedia.org" || h.endsWith(".wikimedia.org") ? "Wikimedia Commons" : h.replace(/^www\./, ""); } catch { return "source"; } };
-const photoCreditText = (x) => [`Photo: ${x.photo_credit}`, x.photo_license, x.photo_source && photoSourceName(x.photo_source)].filter(Boolean).join(" · ");
+// A copy kept in photos/ of a photo from elsewhere is resized for the web; CC 4.0 asks for changes to be marked.
+const photoResized = (x) => x.photo_source && !/^https?:\/\//.test(x.photo) ? "resized" : "";
+const photoCreditText = (x) => [`Photo: ${x.photo_credit}`, photoResized(x), x.photo_license, x.photo_source && photoSourceName(x.photo_source)].filter(Boolean).join(" · ");
 function photoCreditHtml(x) {
   const lic = x.photo_license && (licenseUrl(x.photo_license) ? `<a href="${esc(licenseUrl(x.photo_license))}" rel="license">${esc(x.photo_license)}</a>` : esc(x.photo_license));
   const src = x.photo_source && `<a href="${esc(x.photo_source)}">${esc(photoSourceName(x.photo_source))}</a>`;
-  return [`Photo: ${esc(x.photo_credit)}`, lic, src].filter(Boolean).join(" · ");
+  return [`Photo: ${esc(x.photo_credit)}`, photoResized(x), lic, src].filter(Boolean).join(" · ");
 }
 const photoFigure = (x, prefix) => `<figure class="cover" style="margin:0 0 24px"><img src="${esc(photoSrc(x, prefix))}" alt=""><figcaption>${photoCreditHtml(x)}</figcaption></figure>`;
 const photoLd = (x, prefix) => x.photo && { image: { "@type": "ImageObject", contentUrl: photoSrc(x, prefix), creditText: x.photo_credit,

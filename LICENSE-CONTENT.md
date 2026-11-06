@@ -10,7 +10,7 @@ own licence (for example CC BY-SA 4.0), which the story records in
 (`photo_source`). The site shows all three under the photo. When you reuse
 such a photo, follow the licence recorded for it, even where that is also
 CC BY 4.0. Photos are resized for
-the web and otherwise unchanged.
+the web, marked "resized" in the credit, and otherwise unchanged.
 
 Full text: https://creativecommons.org/licenses/by/4.0/legalcode
 
