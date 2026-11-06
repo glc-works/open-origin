@@ -9,6 +9,8 @@
   --line: #C3C6B8;
   --cherry: #A8261B;
   --leaf: #355E40;
+  --forest: #26432E; /* logo: outer contour */
+  --origin: #1F5F6B; /* logo: point of origin */
   --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --body: "Literata", Georgia, "Times New Roman", serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -17,7 +19,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #131410; --surface: #1C1E18; --card: #191A15; --fg: #E6E6DC; --muted: #A1A496; --line: #34372D;
-    --cherry: #E2604F; --leaf: #7FB08A; color-scheme: dark;
+    --cherry: #E2604F; --leaf: #7FB08A; --forest: #7FB08A; --origin: #7FB6C2; color-scheme: dark;
   }
 }
 
@@ -42,8 +44,8 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
 /* Top bar */
 .bar { border-bottom: 1px solid var(--line); }
 .bar .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 14px; flex-wrap: wrap; }
-.brand { font-family: var(--display); font-weight: 800; letter-spacing: -.02em; text-decoration: none; font-size: 1.1rem; }
-.brand b span { color: var(--cherry); }
+.brand { font-family: var(--display); font-weight: 800; letter-spacing: -.03em; text-decoration: none; font-size: 1.1rem; }
+.brand b span { color: var(--muted); font-weight: 700; }
 .brand b { font-weight: inherit; }
 .brand { display: inline-flex; align-items: center; gap: 8px; }
 .brand .mark { width: 1.6em; height: 1.6em; flex: none; }
