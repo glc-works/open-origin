@@ -39,4 +39,4 @@ open dist/index.html
 
 ## Lisensi
 
-Cerita dan foto: [CC BY 4.0](LICENSE-CONTENT.md), cantumkan pencerita dan Open Origin. Kode: [Apache-2.0](LICENSE); salinan dan fork wajib menyertakan file [NOTICE](NOTICE).
+Cerita dan foto: [CC BY 4.0](LICENSE-CONTENT.md), cantumkan pencerita dan Open Origin; foto dari Wikimedia Commons tetap memakai lisensi yang tertulis di bawahnya. Kode: [Apache-2.0](LICENSE); salinan dan fork wajib menyertakan file [NOTICE](NOTICE).

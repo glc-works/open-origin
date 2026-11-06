@@ -5,9 +5,14 @@ kind: origin
 crop: coffee
 country: ID
 region: Ngada Regency, Flores, East Nusa Tenggara
+photo: photos/id/flores-bajawa.jpg
+photo_credit: "Felix Dance"
+photo_license: CC BY 2.0
+photo_source: https://commons.wikimedia.org/wiki/File:Inerie_(25528630454).jpg
 area:
   iso3166_2: ID-NT
   admin_codes: ["53.09"]
+  wikidata: [Q14145]
   geonames: [1634193]
 producer: Ngada farmers' processing units (UPH)
 species: arabica

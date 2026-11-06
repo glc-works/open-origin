@@ -45,6 +45,6 @@ open dist/index.html
 
 ## الترخيص
 
-الحكايات والصور: [CC BY 4.0](LICENSE-CONTENT.md)، مع ذكر الراوي وOpen Origin. الشيفرة: [Apache-2.0](LICENSE)، ويجب أن تحتفظ النسخ والأعمال المشتقة بملف [NOTICE](NOTICE).
+الحكايات والصور: [CC BY 4.0](LICENSE-CONTENT.md)، مع ذكر الراوي وOpen Origin؛ أما الصور المأخوذة من ويكيميديا كومنز فتبقى بالترخيص المذكور تحتها. الشيفرة: [Apache-2.0](LICENSE)، ويجب أن تحتفظ النسخ والأعمال المشتقة بملف [NOTICE](NOTICE).
 
 </div>

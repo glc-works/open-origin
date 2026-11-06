@@ -39,4 +39,4 @@ open dist/index.html
 
 ## 许可
 
-故事和照片：[CC BY 4.0](LICENSE-CONTENT.md)，请注明讲述者和 Open Origin。代码：[Apache-2.0](LICENSE)，副本和衍生作品必须保留 [NOTICE](NOTICE) 文件。
+故事和照片：[CC BY 4.0](LICENSE-CONTENT.md)，请注明讲述者和 Open Origin；来自 Wikimedia Commons 的照片沿用其下方标注的许可。代码：[Apache-2.0](LICENSE)，副本和衍生作品必须保留 [NOTICE](NOTICE) 文件。
