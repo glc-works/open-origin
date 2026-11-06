@@ -96,7 +96,7 @@ Every build publishes a **Frictionless Data Package** (Open Knowledge Foundation
 
 - Markdown files plus a small static generator (Node, `gray-matter`, `marked`), published with GitHub Pages.
 - Stories come from the public, so raw HTML is escaped and only safe links are rendered.
-- **Map** (`/map/`): every story with coordinates, filterable by crop. MapLibre GL ships with the site (no CDN); the basemap is OpenFreeMap (OpenStreetMap data, no key, no quota), trimmed to land, water, borders and large place names and recoloured to the site palette. Moving to self-hosted PMTiles later means changing `BASEMAP` in `scripts/build.mjs`.
+- **Discover** (`/discover/`): search every story (name, place, variety, process, code), filter by crop, and see the result on a map or in a sortable table; the state is kept in the URL (`#crop=honey&q=gayo&view=table`). MapLibre GL ships with the site (no CDN); the basemap is OpenFreeMap (OpenStreetMap data, no key, no quota), trimmed to land, water, borders and large place names and recoloured to the site palette. Moving to self-hosted PMTiles later means changing `BASEMAP` in `scripts/build.mjs`.
 - **When to move to a framework:** once the site needs a full multilingual interface, a map and search, move the generator to **Astro** (content collections, built-in i18n). The content files stay as they are.
 
 ## 8. Roadmap
