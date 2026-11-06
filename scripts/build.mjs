@@ -88,8 +88,8 @@ const href = (s) => `stories/${s.crop}/${s.pathCountry}/${s.slug}/`;
 const producerHref = (p) => `producers/${p.id}/`;
 const photoSrc = (s, prefix) => (/^https?:\/\//.test(s.photo) ? s.photo : prefix + String(s.photo).replace(/^\/+/, ""));
 
-// The mark is inline so it follows light and dark mode; site/logo.svg is the same mark with fixed colours (favicon).
-const LOGO = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M27.5 9.5A13 13 0 1 1 22.5 4.7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><g transform="rotate(30 16 16)"><ellipse cx="16" cy="16" rx="6.2" ry="9" fill="var(--cherry)"/><path d="M16 7.8C13.2 12.2 18.8 19.8 16 24.2" fill="none" stroke="var(--bg)" stroke-width="1.7" stroke-linecap="round"/></g></svg>`;
+// The mark is inline so it follows light and dark mode; site/logo.svg is the same mark for the favicon. More versions: site/brand/.
+const LOGO = `<svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M52.1 19.2C53.0 20.6 56.2 24.2 57.4 27.2C58.7 30.2 59.8 33.8 59.8 37.2C59.8 40.5 58.9 44.4 57.4 47.4C55.8 50.4 53.1 53.2 50.4 55.2C47.7 57.1 44.3 58.4 41.2 59.3C38.0 60.2 34.7 60.4 31.6 60.3C28.4 60.3 25.2 59.8 22.2 58.9C19.3 57.9 16.2 56.5 13.7 54.6C11.2 52.7 8.8 50.1 7.2 47.4C5.6 44.7 4.4 41.4 3.9 38.2C3.3 35.0 3.3 31.5 3.9 28.3C4.4 25.1 5.5 21.7 7.1 18.8C8.8 15.9 11.1 13.0 13.7 10.9C16.4 8.9 19.8 7.3 23.0 6.6C26.2 5.9 29.9 6.1 33.1 6.8C36.2 7.5 40.5 9.9 41.9 10.6" fill="none" stroke="var(--forest)" stroke-width="4.6" stroke-linecap="round"/><path d="M49.4 22.6C49.8 23.7 51.7 26.7 52.1 28.8C52.4 30.9 52.1 33.4 51.4 35.5C50.8 37.5 49.6 39.5 48.3 41.2C47.1 42.8 45.5 44.2 43.9 45.4C42.3 46.6 40.5 47.7 38.7 48.4C36.8 49.1 34.8 49.6 32.8 49.7C30.8 49.8 28.6 49.5 26.7 48.9C24.8 48.2 23.0 47.1 21.4 45.8C19.8 44.5 18.4 42.9 17.2 41.2C16.1 39.5 15.1 37.5 14.6 35.4C14.0 33.4 13.7 31.0 14.0 28.9C14.3 26.8 15.1 24.4 16.3 22.6C17.4 20.9 19.2 19.3 21.0 18.2C22.8 17.1 25.0 16.5 27.0 16.1C28.9 15.8 30.9 15.8 32.8 15.9C34.7 15.9 37.6 16.4 38.5 16.5" fill="none" stroke="var(--leaf)" stroke-width="4.6" stroke-linecap="round"/><path d="M43.6 28.0C43.5 28.5 43.6 30.0 43.5 30.9C43.4 31.8 43.1 32.7 42.7 33.6C42.4 34.4 41.9 35.2 41.3 35.9C40.8 36.6 40.1 37.3 39.3 37.8C38.6 38.3 37.7 38.7 36.8 39.0C35.9 39.2 34.9 39.3 34.0 39.2C33.1 39.2 32.2 39.0 31.3 38.7C30.4 38.3 29.5 37.9 28.8 37.4C28.0 36.8 27.2 36.1 26.7 35.3C26.1 34.6 25.6 33.6 25.3 32.7C25.1 31.7 25.0 30.6 25.2 29.7C25.3 28.7 25.7 27.7 26.2 26.9C26.7 26.1 27.4 25.4 28.1 24.8C28.8 24.2 29.5 23.7 30.3 23.3C31.1 22.9 31.8 22.5 32.7 22.2C33.5 21.9 34.9 21.7 35.4 21.6" fill="none" stroke="var(--origin)" stroke-width="4.6" stroke-linecap="round"/><circle cx="35.6" cy="29.6" r="3.7" fill="var(--origin)"/></svg>`;
 function head(title, description, prefix, extra = "") {
   return `<!doctype html>
 <html lang="en">
@@ -108,7 +108,7 @@ function head(title, description, prefix, extra = "") {
 ${extra}</head>
 <body>
 <header class="bar"><div class="wrap">
-  <a class="brand" href="${prefix}">${LOGO}<b>Open<span>·</span>Origin</b></a>
+  <a class="brand" href="${prefix}">${LOGO}<b><span>open</span> origin</b></a>
   <nav><a href="${prefix}#stories">Stories</a><a href="${prefix}#learn">Learn</a><a href="${prefix}codes/">Codes</a><a href="${prefix}#contribute">Contribute</a><a href="${prefix}datapackage.json">Open data</a><a href="${REPO}">GitHub</a></nav>
 </div></header>`;
 }
@@ -462,6 +462,7 @@ await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 await copyFile(path.join(SITE, "style.css"), path.join(DIST, "style.css"));
 await copyFile(path.join(SITE, "logo.svg"), path.join(DIST, "logo.svg"));
+await cp(path.join(SITE, "brand"), path.join(DIST, "brand"), { recursive: true });
 try { await access(path.join(ROOT, "photos")); await cp(path.join(ROOT, "photos"), path.join(DIST, "photos"), { recursive: true }); } catch {}
 await writeFile(path.join(DIST, "index.html"), indexPage());
 for (const s of stories) {
